@@ -12,22 +12,28 @@ export default function ServerCard({ server }) {
   return (
     <div
       onClick={() => navigate(`/servers/${server.id}`)}
-      className="group bg-white border border-gray-200 rounded-2xl p-5 cursor-pointer
-                 hover:shadow-lg hover:shadow-gray-200/50 hover:border-gray-300
-                 transition-all duration-300 ease-out"
+      className="group bg-white/60 backdrop-blur-xl border border-white/60 rounded-3xl p-6 cursor-pointer
+                 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)]
+                 hover:shadow-[0_12px_48px_0_rgba(31,38,135,0.1)] 
+                 hover:-translate-y-1.5 hover:bg-white/80 hover:border-white
+                 transition-all duration-500 ease-out relative overflow-hidden flex flex-col h-full"
       id={`server-card-${server.id}`}
     >
+      {/* Top Gradient Accent (Revealed on hover) */}
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-400 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" />
+
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-primary-50 rounded-xl group-hover:bg-primary-100 transition-colors">
-            <Server className="w-5 h-5 text-primary-600" />
+      <div className="flex items-start justify-between mb-5 relative z-10">
+        <div className="flex items-center gap-3.5">
+          <div className="p-2.5 bg-gray-50 rounded-[14px] ring-1 ring-inset ring-gray-100/50 group-hover:bg-white group-hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] group-hover:ring-primary-100 transition-all duration-300">
+            <Server className="w-5 h-5 text-gray-500 group-hover:text-primary-600 transition-colors duration-300" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900 group-hover:text-primary-700 transition-colors">
+            <h3 className="text-[15px] font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-300 leading-tight">
               {server.name}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11.5px] font-medium text-gray-400 mt-0.5 group-hover:text-gray-500 transition-colors duration-300 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover:bg-primary-200 transition-colors" />
               {server.ip_address || 'No IP yet'}
             </p>
           </div>

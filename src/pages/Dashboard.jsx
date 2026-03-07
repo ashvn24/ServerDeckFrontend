@@ -74,7 +74,7 @@ export default function Dashboard() {
         </div>
         <button
           onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors shadow-sm"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-black hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 transition-all duration-300"
           id="add-server-btn"
         >
           <Plus className="w-4 h-4" />
@@ -84,20 +84,21 @@ export default function Dashboard() {
 
       {/* Server Grid */}
       {servers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20">
-          <div className="p-4 bg-gray-100 rounded-2xl mb-4">
-            <ServerOff className="w-10 h-10 text-gray-400" />
+        <div className="flex flex-col items-center justify-center py-28 px-4 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent pointer-events-none" />
+          <div className="p-5 bg-gradient-to-br from-primary-50/80 to-indigo-50/80 rounded-[2rem] shadow-[inset_0_2px_12px_rgba(255,255,255,0.8)] backdrop-blur-md mb-8 relative z-10 border border-white/50">
+            <ServerOff className="w-12 h-12 text-primary-500 drop-shadow-sm" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">No servers yet</h3>
-          <p className="text-sm text-gray-500 mb-6 text-center max-w-sm">
-            Add your first server to start managing it from the dashboard.
+          <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">No servers connected</h3>
+          <p className="text-sm font-medium text-gray-500 mb-8 text-center max-w-sm leading-relaxed">
+            Add your first server to start managing its resources, processes, and applications directly from this dashboard.
           </p>
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors"
+            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-black hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 transition-all duration-300"
           >
             <Plus className="w-4 h-4" />
-            Add Your First Server
+            Connect First Server
           </button>
         </div>
       ) : (

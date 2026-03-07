@@ -70,43 +70,45 @@ export default function ServerDetail() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="p-2 rounded-xl hover:bg-gray-200 transition-colors">
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-5">
+          <button onClick={() => navigate('/')} className="p-2.5 rounded-2xl bg-white/40 border border-white/60 shadow-sm hover:bg-white/80 hover:shadow-md transition-all duration-300">
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
           </button>
           <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">{server.name}</h1>
+            <div className="flex items-center gap-3.5 mb-1">
+              <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">{server.name}</h1>
               <StatusBadge status={server.is_online ? 'online' : 'offline'} size="md" />
             </div>
-            <p className="text-sm text-gray-500 mt-0.5">
-              {server.ip_address || '—'} · {server.os_info || 'Unknown OS'}
+            <p className="text-sm font-medium text-gray-500">
+              {server.ip_address || '—'} <span className="mx-2 text-gray-300">•</span> {server.os_info || 'Unknown OS'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button onClick={() => navigate(`/servers/${id}/sites`)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            <Globe className="w-4 h-4" /> Sites
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(`/servers/${id}/sites`)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-sm font-bold text-gray-700 hover:bg-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+            <Globe className="w-4 h-4 text-primary-500" /> Sites
           </button>
-          <button onClick={() => navigate(`/servers/${id}/logs`)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            <FileText className="w-4 h-4" /> Logs
+          <button onClick={() => navigate(`/servers/${id}/logs`)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-sm font-bold text-gray-700 hover:bg-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+            <FileText className="w-4 h-4 text-amber-500" /> Logs
           </button>
-          <button onClick={() => navigate(`/servers/${id}/ssl`)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-            <Shield className="w-4 h-4" /> SSL
+          <button onClick={() => navigate(`/servers/${id}/ssl`)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.04)] text-sm font-bold text-gray-700 hover:bg-white hover:-translate-y-0.5 hover:shadow-lg transition-all duration-300">
+            <Shield className="w-4 h-4 text-emerald-500" /> SSL
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 rounded-xl p-1">
+      <div className="flex gap-1.5 mb-8 bg-white/40 backdrop-blur-xl border border-white/60 p-1.5 rounded-2xl w-max shadow-sm">
         {TABS.map((tab, idx) => (
           <button
             key={tab}
             onClick={() => setActiveTab(idx)}
-            className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200
-              ${activeTab === idx ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-300
+              ${activeTab === idx 
+                ? 'bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] text-primary-600 border border-white/80' 
+                : 'text-gray-500 hover:text-gray-900 border border-transparent hover:bg-white/40'}`}
           >
             {tab}
           </button>
@@ -135,21 +137,21 @@ export default function ServerDetail() {
       )}
 
       {activeTab === 1 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Nginx Sites</h3>
           <ServiceList services={server.nginx_sites || []} type="nginx" onAction={handleServiceAction} />
         </div>
       )}
 
       {activeTab === 2 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">PM2 Applications</h3>
           <ServiceList services={server.pm2_apps || []} type="pm2" onAction={handleServiceAction} />
         </div>
       )}
 
       {activeTab === 3 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5">
+        <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6">
           <h3 className="text-sm font-semibold text-gray-900 mb-4">Systemd Services</h3>
           <ServiceList services={server.systemd_services || []} type="systemd" onAction={handleServiceAction} />
         </div>
@@ -167,20 +169,23 @@ function StatCard({ icon: Icon, label, value, subtitle, color, children }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl p-5">
-      <div className="flex items-center gap-3 mb-3">
-        <div className={`p-2 rounded-xl ${bgColors[color]}`}>
-          <Icon className={`w-5 h-5 ${iconColors[color]}`} />
+    <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6 relative overflow-hidden">
+      <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${bgColors[color]} blur-2xl opacity-50 pointer-events-none`} />
+      <div className="flex items-center gap-4 mb-4 relative z-10">
+        <div className={`p-3 rounded-2xl ${bgColors[color]} ring-1 ring-inset ring-white/50 shadow-sm`}>
+          <Icon className={`w-6 h-6 ${iconColors[color]}`} />
         </div>
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</p>
-          <div className="flex items-baseline gap-1.5">
-            <p className="text-xl font-bold text-gray-900">{value}</p>
-            {subtitle && <span className="text-xs text-gray-500">{subtitle}</span>}
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</p>
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
+            {subtitle && <span className="text-xs font-medium text-gray-500">{subtitle}</span>}
           </div>
         </div>
       </div>
-      {children}
+      <div className="relative z-10">
+        {children}
+      </div>
     </div>
   );
 }
