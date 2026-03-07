@@ -15,24 +15,24 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop bg-black/40"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-[#0f172a]/40 backdrop-blur-sm"
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
     >
       <div
-        className={`bg-white rounded-2xl shadow-2xl w-full ${maxWidth} transform transition-all duration-200 ease-out scale-100 opacity-100`}
+        className={`bg-white/70 backdrop-blur-2xl border border-white/60 shadow-glass-card rounded-[2rem] w-full flex flex-col max-h-[85vh] ${maxWidth} transform transition-all duration-300 ease-out`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        <div className="flex-shrink-0 flex items-center justify-between px-8 py-6 border-b border-white/40 bg-white/30 rounded-t-[2rem]">
+          <h3 className="text-xl font-bold tracking-tight text-gray-900">{title}</h3>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-2 rounded-xl text-gray-400 hover:text-gray-700 hover:bg-white/50 hover:shadow-sm transition-all duration-200"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        {/* Body */}
-        <div className="px-6 py-5">
+        {/* Body (Scrollable) */}
+        <div className="px-8 py-6 overflow-y-auto form-scroll">
           {children}
         </div>
       </div>
