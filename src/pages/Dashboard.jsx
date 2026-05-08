@@ -1,168 +1,130 @@
 import { useState, useEffect } from 'react';
-import { Plus, Server, Copy, Check, ServerOff } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Server, Globe, ArrowUpRight, ArrowDownRight, Activity, Cpu, HardDrive, Wifi, WifiOff } from 'lucide-react';
 import { serversAPI } from '../api/endpoints';
-import ServerCard from '../components/server/ServerCard';
-import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 export default function Dashboard() {
   const [servers, setServers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newServerName, setNewServerName] = useState('');
-  const [installCommand, setInstallCommand] = useState('');
-  const [createdServer, setCreatedServer] = useState(null);
-  const [creating, setCreating] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  const fetchServers = async () => {
-    try {
-      const res = await serversAPI.list();
-      setServers(res.data);
-    } catch (err) {
-      console.error('Failed to fetch servers:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const res = await serversAPI.list();
+        setServers(res.data);
+      } catch (err) {
+        console.error('Failed to fetch servers for analytics:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServers();
+    const interval = setInterval(fetchServers, 30000); // Refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
 
-  useEffect(() => { fetchServers(); }, []);
+  if (loading) return <LoadingSpinner size="lg" text="Analyzing infrastructure..." />;
 
-  const handleAddServer = async (e) => {
-    e.preventDefault();
-    setCreating(true);
-    try {
-      const res = await serversAPI.create({ name: newServerName });
-      setCreatedServer(res.data);
-      // Get install command
-      const cmdRes = await serversAPI.getInstallCommand(res.data.id);
-      setInstallCommand(cmdRes.data.install_command);
-      fetchServers();
-    } catch (err) {
-      console.error('Failed to create server:', err);
-    } finally {
-      setCreating(false);
-    }
-  };
+  const onlineServers = servers.filter(s => s.is_online);
+  const avgCpu = servers.length > 0 
+    ? (servers.reduce((acc, s) => acc + (s.cpu_percent || 0), 0) / servers.length).toFixed(1)
+    : 0;
+  
+  const totalSites = servers.reduce((acc, s) => {
+    const sites = s.nginx_sites || [];
+    return acc + (Array.isArray(sites) ? sites.length : Object.keys(sites).length);
+  }, 0);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(installCommand);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const totalRamUsed = servers.reduce((acc, s) => acc + (s.ram_used_mb || 0), 0);
+  const totalRam = servers.reduce((acc, s) => acc + (s.ram_total_mb || 0), 0);
+  const ramPercent = totalRam > 0 ? ((totalRamUsed / totalRam) * 100).toFixed(1) : 0;
 
-  const closeAddModal = () => {
-    setShowAddModal(false);
-    setNewServerName('');
-    setInstallCommand('');
-    setCreatedServer(null);
-  };
+  const topCpuServers = [...servers]
+    .sort((a, b) => (b.cpu_percent || 0) - (a.cpu_percent || 0))
+    .slice(0, 5);
 
-  const onlineCount = servers.filter((s) => s.is_online).length;
-
-  if (loading) return <LoadingSpinner size="lg" text="Loading servers..." />;
+  const stats = [
+    { label: 'Avg CPU Usage', value: `${avgCpu}%`, icon: Cpu, color: 'blue' },
+    { label: 'Global Memory', value: `${ramPercent}%`, icon: BarChart3, color: 'violet' },
+    { label: 'Active Sites', value: totalSites.toString(), icon: Globe, color: 'emerald' },
+    { label: 'Total Servers', value: servers.length.toString(), icon: Server, color: 'amber' },
+  ];
 
   return (
-    <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Servers</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {onlineCount} of {servers.length} online
-          </p>
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Analytics Overview</h1>
+          <p className="text-gray-500 font-medium mt-1">Real-time health and performance across {servers.length} servers</p>
         </div>
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-black hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 transition-all duration-300"
-          id="add-server-btn"
-        >
-          <Plus className="w-4 h-4" />
-          Add Server
-        </button>
+        <div className="flex gap-3">
+          <div className="px-4 py-2 bg-emerald-50 rounded-2xl border border-emerald-100 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-emerald-700">{onlineServers.length} Online</span>
+          </div>
+          <div className="px-4 py-2 bg-gray-50 rounded-2xl border border-gray-100 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-gray-400" />
+            <span className="text-xs font-bold text-gray-600">{servers.length - onlineServers.length} Offline</span>
+          </div>
+        </div>
       </div>
 
-      {/* Server Grid */}
-      {servers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-28 px-4 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent pointer-events-none" />
-          <div className="p-5 bg-gradient-to-br from-primary-50/80 to-indigo-50/80 rounded-[2rem] shadow-[inset_0_2px_12px_rgba(255,255,255,0.8)] backdrop-blur-md mb-8 relative z-10 border border-white/50">
-            <ServerOff className="w-12 h-12 text-primary-500 drop-shadow-sm" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        {stats.map((stat, idx) => (
+          <div key={idx} className="bg-white/60 backdrop-blur-xl border border-white/60 rounded-[2rem] p-6 shadow-glass relative overflow-hidden group">
+            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full bg-${stat.color}-50 blur-2xl opacity-50 group-hover:opacity-80 transition-opacity`} />
+            <div className="flex items-center justify-between mb-4 relative z-10">
+              <div className={`p-3 rounded-2xl bg-${stat.color}-50 text-${stat.color}-600 ring-1 ring-inset ring-${stat.color}-100`}>
+                <stat.icon className="w-5 h-5" />
+              </div>
+            </div>
+            <div className="relative z-10">
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">{stat.label}</p>
+              <p className="text-2xl font-bold text-gray-900 tracking-tight">{stat.value}</p>
+            </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">No servers connected</h3>
-          <p className="text-sm font-medium text-gray-500 mb-8 text-center max-w-sm leading-relaxed">
-            Add your first server to start managing its resources, processes, and applications directly from this dashboard.
-          </p>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-semibold hover:bg-black hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 transition-all duration-300"
-          >
-            <Plus className="w-4 h-4" />
-            Connect First Server
-          </button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-          {servers.map((server) => (
-            <ServerCard key={server.id} server={server} />
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
 
-      {/* Add Server Modal */}
-      <Modal isOpen={showAddModal} onClose={closeAddModal} title="Add Server">
-        {!createdServer ? (
-          <form onSubmit={handleAddServer} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Server Name</label>
-              <input
-                type="text"
-                value={newServerName}
-                onChange={(e) => setNewServerName(e.target.value)}
-                required
-                placeholder="e.g. Production API"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
-                autoFocus
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={creating}
-              className="w-full py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
-            >
-              {creating ? 'Creating...' : 'Create Server'}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-              <p className="text-sm text-emerald-700 font-medium">✓ Server created!</p>
-            </div>
-            <p className="text-sm text-gray-600">
-              Run this command on your Linux server to install the agent:
-            </p>
-            <div className="relative">
-              <pre className="bg-gray-950 text-green-400 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
-                {installCommand}
-              </pre>
-              <button
-                onClick={handleCopy}
-                className="absolute top-2 right-2 p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-                title="Copy"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-emerald-400" />
-                ) : (
-                  <Copy className="w-4 h-4 text-gray-400" />
-                )}
-              </button>
-            </div>
-            <button onClick={closeAddModal} className="w-full py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
-              Done
-            </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Top Consumers */}
+        <div className="lg:col-span-1 bg-white/60 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 shadow-glass">
+          <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-primary-500" />
+            Top CPU Consumers
+          </h3>
+          <div className="space-y-6">
+            {topCpuServers.map(server => (
+              <div key={server.id} className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${server.is_online ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+                  <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]">{server.name}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full ${server.cpu_percent > 80 ? 'bg-red-500' : server.cpu_percent > 50 ? 'bg-amber-500' : 'bg-primary-500'}`}
+                      style={{ width: `${server.cpu_percent || 0}%` }}
+                    />
+                  </div>
+                  <span className="text-xs font-extrabold text-gray-900 w-8">{(server.cpu_percent || 0).toFixed(0)}%</span>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
-      </Modal>
+        </div>
+
+        {/* Resource Charts Placeholder */}
+        <div className="lg:col-span-2 bg-white/60 backdrop-blur-xl border border-white/60 rounded-[2.5rem] p-8 shadow-glass flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center mb-6">
+            <Activity className="w-8 h-8 text-gray-300" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">Resource Utilization Over Time</h3>
+          <p className="text-sm text-gray-500 max-w-sm mx-auto">
+            Aggregated metrics for all servers. Integration with time-series data coming soon to visualize performance trends across your cluster.
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

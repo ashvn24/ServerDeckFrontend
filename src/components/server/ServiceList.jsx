@@ -2,7 +2,7 @@ import { Play, Square, RefreshCw, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import StatusBadge from '../common/StatusBadge';
 
-export default function ServiceList({ services = [], type = 'systemd', onAction }) {
+export default function ServiceList({ services = [], type = 'systemd', onAction, isAdmin }) {
   const [loadingAction, setLoadingAction] = useState(null);
 
   const handleAction = async (name, action) => {
@@ -36,60 +36,62 @@ export default function ServiceList({ services = [], type = 'systemd', onAction 
         return (
           <div
             key={name}
-            className="flex items-center justify-between p-3.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+            className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors gap-3"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <StatusBadge status={isActive ? 'online' : 'offline'} size="sm" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">{name}</p>
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-gray-900 truncate">{name}</p>
                 {svc.description && (
-                  <p className="text-xs text-gray-500 mt-0.5">{svc.description}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5 truncate uppercase tracking-tight">{svc.description}</p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
-              {!isActive && (
-                <button
-                  onClick={() => handleAction(name, 'start')}
-                  disabled={!!loadingAction}
-                  className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors disabled:opacity-50"
-                  title="Start"
-                >
-                  {loadingAction === `${name}-start` ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Play className="w-4 h-4" />
-                  )}
-                </button>
-              )}
-              {isActive && (
-                <button
-                  onClick={() => handleAction(name, 'stop')}
-                  disabled={!!loadingAction}
-                  className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                  title="Stop"
-                >
-                  {loadingAction === `${name}-stop` ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Square className="w-4 h-4" />
-                  )}
-                </button>
-              )}
-              <button
-                onClick={() => handleAction(name, 'restart')}
-                disabled={!!loadingAction}
-                className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
-                title="Restart"
-              >
-                {loadingAction === `${name}-restart` ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="w-4 h-4" />
+            {isAdmin && (
+              <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                {!isActive && (
+                  <button
+                    onClick={() => handleAction(name, 'start')}
+                    disabled={!!loadingAction}
+                    className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50 transition-colors disabled:opacity-50"
+                    title="Start"
+                  >
+                    {loadingAction === `${name}-start` ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                  </button>
                 )}
-              </button>
-            </div>
+                {isActive && (
+                  <button
+                    onClick={() => handleAction(name, 'stop')}
+                    disabled={!!loadingAction}
+                    className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                    title="Stop"
+                  >
+                    {loadingAction === `${name}-stop` ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Square className="w-4 h-4" />
+                    )}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleAction(name, 'restart')}
+                  disabled={!!loadingAction}
+                  className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50"
+                  title="Restart"
+                >
+                  {loadingAction === `${name}-restart` ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         );
       })}

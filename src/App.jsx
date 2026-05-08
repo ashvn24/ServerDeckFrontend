@@ -3,11 +3,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import ServerManagement from './pages/ServerManagement';
 import ServerDetail from './pages/ServerDetail';
 import SiteManager from './pages/SiteManager';
 import LogViewer from './pages/LogViewer';
 import SSLManager from './pages/SSLManager';
 import Settings from './pages/Settings';
+import InviteAccept from './pages/InviteAccept';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -24,6 +26,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/invite" element={<InviteAccept />} />
       <Route
         element={
           <ProtectedRoute>
@@ -32,6 +35,8 @@ function AppRoutes() {
         }
       >
         <Route path="/" element={<Dashboard />} />
+        <Route path="/servers" element={<ServerManagement />} />
+        <Route path="/activity" element={<Dashboard />} />
         <Route path="/servers/:id" element={<ServerDetail />} />
         <Route path="/servers/:id/sites" element={<SiteManager />} />
         <Route path="/servers/:id/logs" element={<LogViewer />} />

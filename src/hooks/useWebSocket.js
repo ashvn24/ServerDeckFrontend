@@ -109,5 +109,5 @@ export function useWebSocket() {
     };
   }, []);
 
-  return { connected, watchServer, unwatchServer, sendCommand, on };
+  return { connected, watchServer, unwatchServer, sendCommand, on, send };
 }

@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Server, Monitor } from 'lucide-react';
+import { Server, Monitor, FolderInput } from 'lucide-react';
 import StatusBadge from '../common/StatusBadge';
 import ResourceGauge from './ResourceGauge';
 
-export default function ServerCard({ server }) {
+export default function ServerCard({ server, onMove, isAdmin }) {
   const navigate = useNavigate();
   const ramPercent = server.ram_total_mb
     ? (server.ram_used_mb / server.ram_total_mb) * 100
@@ -38,7 +38,21 @@ export default function ServerCard({ server }) {
             </p>
           </div>
         </div>
-        <StatusBadge status={server.is_online ? 'online' : 'offline'} />
+        <div className="flex items-center gap-2">
+          {isAdmin && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onMove(server);
+              }}
+              className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-all opacity-0 group-hover:opacity-100"
+              title="Move to Folder"
+            >
+              <FolderInput className="w-4 h-4" />
+            </button>
+          )}
+          <StatusBadge status={server.is_online ? 'online' : 'offline'} />
+        </div>
       </div>
 
       {/* Resource Bars */}
