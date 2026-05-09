@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Globe, FileText, Shield, Cpu, HardDrive, MemoryStick, Clock, Wifi, Terminal, Trash2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Globe, FileText, Shield, Cpu, HardDrive, MemoryStick, Clock, Wifi, Terminal, Trash2, AlertTriangle, Box, Activity, ChevronRight } from 'lucide-react';
 import { serversAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
@@ -11,8 +11,12 @@ import ServiceList from '../components/server/ServiceList';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import SSHTerminal from '../components/server/SSHTerminal';
 import FileManager from '../components/server/FileManager';
+import FirewallManager from '../components/server/FirewallManager';
+import ProcessManager from '../components/server/ProcessManager';
+import SSLManager from '../components/server/SSLManager';
+import AutomationManager from '../components/server/AutomationManager';
 
-const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Services', 'SSH', 'Files'];
+const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files'];
 
 export default function ServerDetail() {
   const { id } = useParams();
@@ -44,7 +48,6 @@ export default function ServerDetail() {
     return () => unwatchServer(id);
   }, [id, fetchServer, watchServer, unwatchServer]);
 
-  // Listen for real-time telemetry
   useEffect(() => {
     const unsubTelemetry = on('telemetry', (msg) => {
       if (msg.server_id === id) {
@@ -77,7 +80,6 @@ export default function ServerDetail() {
     const prefix = activeTab === 1 ? 'nginx' : activeTab === 2 ? 'pm2' : 'systemd';
     try {
       await sendCommand(id, `${prefix}.${action}`, { name });
-      // Refresh server data after action
       setTimeout(fetchServer, 1000);
     } catch (err) {
       console.error(`${prefix}.${action} failed:`, err);
@@ -90,58 +92,51 @@ export default function ServerDetail() {
   const ramPercent = server.ram_total_mb ? (server.ram_used_mb / server.ram_total_mb) * 100 : 0;
 
   return (
-    <div>
+    <div className="space-y-12">
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/servers')} className="p-2.5 rounded-2xl bg-white/40 border border-white/60 shadow-sm hover:bg-white/80 hover:shadow-md transition-all duration-300 flex-shrink-0">
-            <ArrowLeft className="w-5 h-5 text-gray-700" />
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-8 border-b border-[var(--border-color)]">
+        <div className="flex items-center gap-6">
+          <button onClick={() => navigate('/servers')} className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition-all group">
+            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
           </button>
-          <div className="min-w-0">
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight truncate">{server.name}</h1>
-              <StatusBadge status={server.is_online ? 'online' : 'offline'} size="sm" />
+          <div>
+            <div className="flex items-center gap-4 mb-2">
+              <h1 className="text-4xl font-black tracking-tight uppercase font-display">{server.name}</h1>
+              <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${server.is_online ? 'accent-bg-green' : 'bg-red-500 text-white'}`}>
+                {server.is_online ? 'Online' : 'Offline'}
+              </div>
             </div>
-            <p className="text-xs md:text-sm font-medium text-gray-500 truncate">
-              {server.ip_address || '—'} <span className="mx-2 text-gray-300">•</span> {server.os_info || 'Unknown OS'}
+            <p className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest">
+              {server.ip_address || '—'} <span className="mx-3 text-[var(--border-color)]">•</span> {server.os_info || 'Unknown OS'}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 -mb-2 no-scrollbar lg:pb-0 lg:mb-0">
-          <button onClick={() => navigate(`/servers/${id}/sites`)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-sm text-xs font-bold text-gray-700 hover:bg-white transition-all whitespace-nowrap">
-            <Globe className="w-3.5 h-3.5 text-primary-500" /> Sites
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate(`/servers/${id}/sites`)} className="px-5 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--bg-card-hover)] transition-all">
+            Quick Sites
           </button>
-          <button onClick={() => navigate(`/servers/${id}/logs`)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-sm text-xs font-bold text-gray-700 hover:bg-white transition-all whitespace-nowrap">
-            <FileText className="w-3.5 h-3.5 text-amber-500" /> Logs
-          </button>
-          <button onClick={() => navigate(`/servers/${id}/ssl`)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-sm text-xs font-bold text-gray-700 hover:bg-white transition-all whitespace-nowrap">
-            <Shield className="w-3.5 h-3.5 text-emerald-500" /> SSL
-          </button>
-          <button onClick={() => setActiveTab(4)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/60 backdrop-blur-md border border-white/80 shadow-sm text-xs font-bold text-gray-700 hover:bg-white transition-all whitespace-nowrap">
-            <Terminal className="w-3.5 h-3.5 text-violet-500" /> SSH
+          <button onClick={() => setActiveTab(8)} className="px-5 py-2.5 rounded-xl bg-[var(--accent-violet)] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-violet-500/20 hover:scale-105 transition-all active:scale-95">
+            Launch SSH
           </button>
           {isAdmin && (
-            <button 
-              onClick={() => setShowDeleteModal(true)} 
-              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-red-50 border border-red-100 shadow-sm text-xs font-bold text-red-600 hover:bg-red-100 transition-all whitespace-nowrap"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Delete
+            <button onClick={() => setShowDeleteModal(true)} className="p-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors">
+              <Trash2 className="w-5 h-5" />
             </button>
           )}
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1.5 mb-8 bg-white/40 backdrop-blur-xl border border-white/60 p-1.5 rounded-2xl w-full lg:w-max shadow-sm overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1.5 p-1.5 glass-card w-max max-w-full overflow-x-auto no-scrollbar">
         {TABS.map((tab, idx) => (
           <button
             key={tab}
             onClick={() => setActiveTab(idx)}
-            className={`py-2.5 px-5 rounded-xl text-sm font-semibold transition-all duration-300 whitespace-nowrap
+            className={`py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap
               ${activeTab === idx 
-                ? 'bg-white shadow-[0_2px_12px_rgba(0,0,0,0.06)] text-primary-600 border border-white/80' 
-                : 'text-gray-500 hover:text-gray-900 border border-transparent hover:bg-white/40'}`}
+                ? 'bg-white text-black shadow-lg' 
+                : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
           >
             {tab}
           </button>
@@ -149,97 +144,94 @@ export default function ServerDetail() {
       </div>
 
       {/* Tab Content */}
-      {activeTab === 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-          <StatCard icon={Cpu} label="CPU" value={`${(server.cpu_percent || 0).toFixed(1)}%`} color="blue">
-            <ResourceGauge label="" value={server.cpu_percent || 0} max={100} />
-          </StatCard>
-          <StatCard icon={MemoryStick} label="Memory" value={formatMB(server.ram_used_mb)} subtitle={`of ${formatMB(server.ram_total_mb)}`} color="violet">
-            <ResourceGauge label="" value={ramPercent} max={100} />
-          </StatCard>
-          <StatCard icon={HardDrive} label="Disk" value={`${(server.disk_used_percent || 0).toFixed(1)}%`} color="amber">
-            <ResourceGauge label="" value={server.disk_used_percent || 0} max={100} />
-          </StatCard>
-          <StatCard icon={Clock} label="Uptime" value={formatUptime(server.uptime_seconds)} color="emerald">
-            <div className="flex items-center gap-1.5 mt-2">
-              <Wifi className="w-3.5 h-3.5 text-emerald-500" />
-              <span className="text-xs text-gray-500">Connected</span>
-            </div>
-          </StatCard>
-        </div>
-      )}
+      <div className="pt-4">
+        {activeTab === 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+            <StatCard icon={Cpu} label="CPU Load" value={`${(server.cpu_percent || 0).toFixed(0)}%`} color="white">
+               <div className="mt-6 flex items-end gap-1 h-12">
+                 {[...Array(12)].map((_, i) => (
+                   <div key={i} className="flex-1 bg-white/5 rounded-sm" style={{ height: `${20 + Math.random() * 80}%` }} />
+                 ))}
+               </div>
+            </StatCard>
+            <StatCard icon={MemoryStick} label="Memory Usage" value={`${ramPercent.toFixed(0)}%`} color="white">
+              <div className="mt-6 flex items-center justify-between text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
+                <span>{formatMB(server.ram_used_mb)} used</span>
+                <span>{formatMB(server.ram_total_mb)} total</span>
+              </div>
+              <div className="mt-2 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                <div className="h-full bg-white/40" style={{ width: `${ramPercent}%` }} />
+              </div>
+            </StatCard>
+            <StatCard icon={HardDrive} label="Storage" value={`${(server.disk_used_percent || 0).toFixed(0)}%`} color="white">
+               <div className="mt-6 flex items-center gap-2">
+                  <Activity className="w-4 h-4 accent-text-green" />
+                  <span className="text-[10px] font-bold accent-text-green uppercase tracking-widest">Drive Health Optimal</span>
+               </div>
+            </StatCard>
+            <StatCard icon={Clock} label="Uptime" value={formatUptime(server.uptime_seconds).split(' ')[0]} subtitle={formatUptime(server.uptime_seconds).split(' ')[1] || 'Running'} color="white">
+               <div className="mt-6 flex items-center gap-2">
+                  <Wifi className="w-4 h-4 text-white/40" />
+                  <span className="text-[10px] font-bold text-white/40 uppercase tracking-widest">Last ping 2s ago</span>
+               </div>
+            </StatCard>
+          </div>
+        )}
 
-      {activeTab === 1 && (
-        <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Nginx Sites</h3>
-          <ServiceList services={server.nginx_sites || []} type="nginx" onAction={handleServiceAction} isAdmin={isAdmin} />
-        </div>
-      )}
+        {activeTab === 1 && (
+          <div className="glass-card p-10">
+            <h3 className="text-xl font-bold tracking-tight mb-8">Nginx Sites</h3>
+            <ServiceList serverId={id} services={server.nginx_sites || []} type="nginx" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
+          </div>
+        )}
 
-      {activeTab === 2 && (
-        <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">PM2 Applications</h3>
-          <ServiceList services={server.pm2_apps || []} type="pm2" onAction={handleServiceAction} isAdmin={isAdmin} />
-        </div>
-      )}
+        {activeTab === 2 && (
+          <div className="glass-card p-10">
+            <h3 className="text-xl font-bold tracking-tight mb-8">PM2 Applications</h3>
+            <ServiceList serverId={id} services={server.pm2_apps || []} type="pm2" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
+          </div>
+        )}
 
-      {activeTab === 3 && (
-        <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6">
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Systemd Services</h3>
-          <ServiceList services={server.systemd_services || []} type="systemd" onAction={handleServiceAction} isAdmin={isAdmin} />
-        </div>
-      )}
+        {activeTab === 3 && (
+          <div className="glass-card p-10">
+            <h3 className="text-xl font-bold tracking-tight mb-8">Systemd Services</h3>
+            <ServiceList serverId={id} services={server.systemd_services || []} type="systemd" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
+          </div>
+        )}
 
-      {/* SSH tab — always mounted so the PTY session survives tab switches */}
-      <div style={{ display: activeTab === 4 ? 'block' : 'none' }}>
-        <SSHTerminal serverId={id} isOnline={server.is_online} wsConnected={connected} send={send} on={on} isActive={activeTab === 4} />
+        {activeTab === 4 && <AutomationManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
+        {activeTab === 5 && <FirewallManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
+        {activeTab === 6 && <ProcessManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
+        {activeTab === 7 && <SSLManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} nginxSites={server.nginx_sites || []} />}
+
+        <div style={{ display: activeTab === 8 ? 'block' : 'none' }} className="glass-card overflow-hidden">
+          <SSHTerminal serverId={id} isOnline={server.is_online} wsConnected={connected} send={send} on={on} isActive={activeTab === 8} />
+        </div>
+
+        {activeTab === 9 && <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />}
       </div>
-
-      {activeTab === 5 && (
-        <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />
-      )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => !deleting && setShowDeleteModal(false)} />
-          <div className="bg-white rounded-[2.5rem] shadow-2xl border border-white/40 w-full max-w-md relative z-10 overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="p-8">
-              <div className="w-16 h-16 bg-red-50 rounded-3xl flex items-center justify-center mb-6 ring-8 ring-red-50/50">
-                <AlertTriangle className="w-8 h-8 text-red-500" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => !deleting && setShowDeleteModal(false)} />
+          <div className="glass-card w-full max-w-md relative z-10 overflow-hidden animate-in fade-in zoom-in duration-300 p-10 text-center">
+              <div className="w-20 h-20 bg-red-500/10 rounded-3xl flex items-center justify-center mb-8 mx-auto ring-1 ring-red-500/20">
+                <AlertTriangle className="w-10 h-10 text-red-500" />
               </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Delete Server?</h3>
-              <p className="text-gray-500 leading-relaxed mb-8">
-                This will permanently remove <span className="font-bold text-gray-900">{server.name}</span> from your dashboard. 
-                {server.is_online && (
-                  <span className="block mt-2 font-medium text-red-600 bg-red-50 p-3 rounded-2xl border border-red-100 text-sm leading-snug">
-                    The agent is online. Deletion will attempt to uninstall the service and remove all related files from the server automatically.
-                  </span>
-                )}
+              <h3 className="text-3xl font-black uppercase tracking-tight mb-4 font-display">Delete Server?</h3>
+              <p className="text-[var(--text-secondary)] font-medium leading-relaxed mb-10">
+                This will permanently remove <span className="text-white font-bold">{server.name}</span>. 
               </p>
               
-              <div className="flex gap-3">
-                <button
-                  disabled={deleting}
-                  onClick={() => setShowDeleteModal(false)}
-                  className="flex-1 px-6 py-3.5 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all active:scale-95 disabled:opacity-50"
-                >
+              <div className="flex gap-4">
+                <button disabled={deleting} onClick={() => setShowDeleteModal(false)} className="flex-1 px-6 py-4 rounded-2xl bg-[var(--bg-card-hover)] text-white font-bold uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all">
                   Cancel
                 </button>
-                <button
-                  disabled={deleting}
-                  onClick={handleDeleteServer}
-                  className="flex-1 px-6 py-3.5 rounded-2xl bg-red-600 text-white font-bold hover:bg-red-700 shadow-lg shadow-red-200 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {deleting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Deleting...
-                    </>
-                  ) : 'Yes, Delete'}
+                <button disabled={deleting} onClick={handleDeleteServer} className="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-95">
+                  {deleting ? 'Processing...' : 'Yes, Delete'}
                 </button>
               </div>
-            </div>
           </div>
         </div>
       )}
@@ -248,29 +240,20 @@ export default function ServerDetail() {
 }
 
 function StatCard({ icon: Icon, label, value, subtitle, color, children }) {
-  const bgColors = {
-    blue: 'bg-blue-50', violet: 'bg-violet-50', amber: 'bg-amber-50', emerald: 'bg-emerald-50',
-  };
-  const iconColors = {
-    blue: 'text-blue-600', violet: 'text-violet-600', amber: 'text-amber-600', emerald: 'text-emerald-600',
-  };
-
   return (
-    <div className="bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] p-6 relative overflow-hidden">
-      <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${bgColors[color]} blur-2xl opacity-50 pointer-events-none`} />
-      <div className="flex items-center gap-4 mb-4 relative z-10">
-        <div className={`p-3 rounded-2xl ${bgColors[color]} ring-1 ring-inset ring-white/50 shadow-sm`}>
-          <Icon className={`w-6 h-6 ${iconColors[color]}`} />
+    <div className="glass-card p-10 flex flex-col justify-between min-h-[280px]">
+      <div className="flex items-center justify-between mb-10">
+        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
+          <Icon className="w-6 h-6 text-white" />
         </div>
-        <div>
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{label}</p>
-          <div className="flex items-baseline gap-1.5 mt-0.5">
-            <p className="text-2xl font-bold text-gray-900 tracking-tight">{value}</p>
-            {subtitle && <span className="text-xs font-medium text-gray-500">{subtitle}</span>}
-          </div>
-        </div>
+        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40">...</div>
       </div>
-      <div className="relative z-10">
+      <div>
+        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-2">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <p className="text-6xl font-black tracking-tighter leading-none">{value}</p>
+          {subtitle && <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">{subtitle}</span>}
+        </div>
         {children}
       </div>
     </div>

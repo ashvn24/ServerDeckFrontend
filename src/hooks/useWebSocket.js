@@ -8,6 +8,16 @@ export function useWebSocket() {
   const [connected, setConnected] = useState(false);
   const reconnectTimerRef = useRef(null);
 
+  const queueRef = useRef([]);
+
+  const flushQueue = useCallback(() => {
+    if (wsRef.current?.readyState === WebSocket.OPEN && queueRef.current.length > 0) {
+      console.log(`[WS] Flushing ${queueRef.current.length} queued messages`);
+      queueRef.current.forEach(msg => wsRef.current.send(JSON.stringify(msg)));
+      queueRef.current = [];
+    }
+  }, []);
+
   const connect = useCallback(() => {
     const token = localStorage.getItem('serverdeck_token');
     if (!token) return;
@@ -19,6 +29,7 @@ export function useWebSocket() {
       ws.onopen = () => {
         setConnected(true);
         console.log('[WS] Connected');
+        flushQueue();
       };
 
       ws.onmessage = (event) => {
@@ -75,6 +86,9 @@ export function useWebSocket() {
   const send = useCallback((data) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify(data));
+    } else {
+      console.log('[WS] Socket not open, queuing message');
+      queueRef.current.push(data);
     }
   }, []);
 

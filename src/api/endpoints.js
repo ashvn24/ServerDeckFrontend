@@ -51,3 +51,8 @@ export const usersAPI = {
   acceptInvite: (data) => client.post('/users/accept-invite', data),
   delete: (id) => client.delete(`/users/${id}`),
 };
+
+// Audit
+export const auditAPI = {
+  list: (serverId, limit = 50) => client.get(`/audit/?server_id=${serverId || ''}&limit=${limit}`),
+};

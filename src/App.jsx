@@ -10,6 +10,7 @@ import LogViewer from './pages/LogViewer';
 import SSLManager from './pages/SSLManager';
 import Settings from './pages/Settings';
 import InviteAccept from './pages/InviteAccept';
+import Activity from './pages/Activity';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -36,7 +37,7 @@ function AppRoutes() {
       >
         <Route path="/" element={<Dashboard />} />
         <Route path="/servers" element={<ServerManagement />} />
-        <Route path="/activity" element={<Dashboard />} />
+        <Route path="/activity" element={<Activity />} />
         <Route path="/servers/:id" element={<ServerDetail />} />
         <Route path="/servers/:id/sites" element={<SiteManager />} />
         <Route path="/servers/:id/logs" element={<LogViewer />} />

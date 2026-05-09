@@ -1,12 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Server, Copy, Check, ServerOff } from 'lucide-react';
+import { Plus, Server, Copy, Check, ServerOff, ChevronRight, FolderPlus, X, Command } from 'lucide-react';
 import ServerCard from '../components/server/ServerCard';
 import FolderCard from '../components/server/FolderCard';
-import Modal from '../components/common/Modal';
-import LoadingSpinner from '../components/common/LoadingSpinner';
 import { foldersAPI, serversAPI } from '../api/endpoints';
-import { ChevronRight, Home, FolderPlus } from 'lucide-react';
-
 import { useAuth } from '../context/AuthContext';
 
 export default function ServerManagement() {
@@ -24,9 +20,8 @@ export default function ServerManagement() {
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
   
-  // Move states
   const [showMoveModal, setShowMoveModal] = useState(false);
-  const [itemToMove, setItemToMove] = useState(null); // { id, type: 'server' | 'folder' }
+  const [itemToMove, setItemToMove] = useState(null);
   const [targetFolderId, setTargetFolderId] = useState('');
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
@@ -108,7 +103,6 @@ export default function ServerManagement() {
       fetchData();
     } catch (err) {
       console.error('Move failed:', err);
-      alert('Failed to move item');
     }
   };
 
@@ -126,22 +120,22 @@ export default function ServerManagement() {
   };
 
   return (
-    <div>
+    <div className="space-y-12">
       {/* Breadcrumbs & Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+      <div className="space-y-10">
+        <div className="flex items-center gap-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
           <button 
             onClick={() => setCurrentFolderId(null)}
-            className={`hover:text-primary-600 transition-colors ${!currentFolderId ? 'text-primary-600' : ''}`}
+            className={`hover:text-white transition-all ${!currentFolderId ? 'text-[var(--accent-mint)]' : ''}`}
           >
-            <Home className="w-3.5 h-3.5" />
+            Infrastructure
           </button>
           {getBreadcrumbs().map(crumb => (
-            <div key={crumb.id} className="flex items-center gap-2">
-              <ChevronRight className="w-3.5 h-3.5 text-gray-300" />
+            <div key={crumb.id} className="flex items-center gap-4">
+              <ChevronRight className="w-4 h-4 text-[var(--border-color)]" />
               <button 
                 onClick={() => setCurrentFolderId(crumb.id)}
-                className={`hover:text-primary-600 transition-colors ${currentFolderId === crumb.id ? 'text-primary-600' : ''}`}
+                className={`hover:text-white transition-all ${currentFolderId === crumb.id ? 'text-[var(--accent-mint)]' : ''}`}
               >
                 {crumb.name}
               </button>
@@ -149,69 +143,55 @@ export default function ServerManagement() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
           <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              {currentFolderId ? folders.find(f => f.id === currentFolderId)?.name : 'Infrastructure'}
+            <h1 className="text-5xl font-black text-white uppercase tracking-tight font-display leading-none">
+              {currentFolderId ? folders.find(f => f.id === currentFolderId)?.name : 'Node Explorer'}
             </h1>
-            <p className="text-sm font-medium text-gray-500 mt-1">
-              {currentFolders.length} folders, {currentServers.length} servers here
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-4">
+              {currentFolders.length} Containers <span className="mx-3 text-white/10">/</span> {currentServers.length} Provisioned Nodes
             </p>
           </div>
           {isAdmin && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setShowFolderModal(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white/60 backdrop-blur-md border border-white shadow-sm text-sm font-bold text-gray-700 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
+                className="px-8 py-3 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all"
               >
-                <FolderPlus className="w-4 h-4 text-amber-500" />
-                <span className="whitespace-nowrap">New Folder</span>
+                Create Group
               </button>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-black hover:shadow-lg hover:shadow-black/10 hover:-translate-y-0.5 transition-all duration-300"
-                id="add-server-btn"
+                className="px-10 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20"
               >
-                <Plus className="w-4 h-4" />
-                <span className="whitespace-nowrap">Add Server</span>
+                Provision Node
               </button>
             </div>
           )}
         </div>
       </div>
 
-      {/* Server Grid */}
+      {/* Grid */}
       {currentFolders.length === 0 && currentServers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-28 px-4 bg-white/40 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] shadow-[0_8px_32px_0_rgba(31,38,135,0.05)] relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-white/50 to-transparent pointer-events-none" />
-          <div className="p-5 bg-gradient-to-br from-primary-50/80 to-indigo-50/80 rounded-[2rem] shadow-[inset_0_2px_12px_rgba(255,255,255,0.8)] backdrop-blur-md mb-8 relative z-10 border border-white/50">
-            <ServerOff className="w-12 h-12 text-primary-500 drop-shadow-sm" />
+        <div className="glass-card py-48 flex flex-col items-center justify-center text-center">
+          <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center mb-10 border border-white/5">
+            <ServerOff className="w-10 h-10 text-[var(--text-secondary)]" />
           </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2 tracking-tight">Empty Workspace</h3>
-          <p className="text-sm font-medium text-gray-500 mb-8 text-center max-w-sm leading-relaxed">
-            This folder is empty. Start organizing your infrastructure by adding servers or creating sub-folders.
+          <h3 className="text-3xl font-black uppercase tracking-tight mb-4 font-display">No nodes detected in scope</h3>
+          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-12">
+            Initialize a new deployment to start indexing your infrastructure
           </p>
           {isAdmin && (
-            <div className="flex gap-4">
-              <button
-                onClick={() => setShowFolderModal(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-white border border-gray-200 text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm"
-              >
-                <FolderPlus className="w-4 h-4 text-amber-500" />
-                Create Folder
-              </button>
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-900 text-white text-sm font-bold hover:bg-black hover:shadow-lg transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                Add Server
-              </button>
-            </div>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="px-12 py-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+            >
+              Start Deployment
+            </button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {currentFolders.map((folder) => (
             <FolderCard 
               key={folder.id} 
@@ -237,124 +217,121 @@ export default function ServerManagement() {
         </div>
       )}
 
-      {/* Add Server Modal */}
-      <Modal isOpen={showAddModal} onClose={closeAddModal} title="Add Server">
-        {!createdServer ? (
-          <form onSubmit={handleAddServer} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Server Name</label>
-              <input
-                type="text"
-                value={newServerName}
-                onChange={(e) => setNewServerName(e.target.value)}
-                required
-                placeholder="e.g. Production API"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all"
-                autoFocus
-              />
-            </div>
-            <button
-              type="submit"
-              disabled={creating}
-              className="w-full py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors disabled:opacity-50"
-            >
-              {creating ? 'Creating...' : 'Create Server'}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-4">
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl">
-              <p className="text-sm text-emerald-700 font-medium">✓ Server created!</p>
-            </div>
-            <p className="text-sm text-gray-600">
-              Run this command on your Linux server to install the agent:
-            </p>
-            <div className="relative">
-              <pre className="bg-gray-950 text-green-400 p-4 rounded-xl text-xs overflow-x-auto font-mono leading-relaxed">
-                {installCommand}
-              </pre>
-              <button
-                onClick={handleCopy}
-                className="absolute top-2 right-2 p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-                title="Copy"
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-emerald-400" />
-                ) : (
-                  <Copy className="w-4 h-4 text-gray-400" />
-                )}
-              </button>
-            </div>
-            <button onClick={closeAddModal} className="w-full py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
-              Done
-            </button>
-          </div>
-        )}
-      </Modal>
+      {/* Provision Node Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8">
+           <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={closeAddModal} />
+           <div className="glass-card w-full max-w-lg p-10 relative z-10">
+              <div className="flex items-center justify-between mb-10">
+                 <h3 className="text-2xl font-black uppercase tracking-tight font-display">Node Deployment</h3>
+                 <button onClick={closeAddModal} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                    <X className="w-6 h-6 text-[var(--text-secondary)]" />
+                 </button>
+              </div>
 
-      {/* New Folder Modal */}
-      <Modal isOpen={showFolderModal} onClose={() => setShowFolderModal(false)} title="Create New Folder">
-        <form onSubmit={handleAddFolder} className="space-y-4">
-          <div>
-            <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Folder Name</label>
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              required
-              placeholder="e.g. Production Cluster"
-              className="w-full px-4 py-3 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-primary-500 font-medium"
-              autoFocus
-            />
-          </div>
-          <div className="flex gap-3 pt-4">
-            <button
-              type="button"
-              onClick={() => setShowFolderModal(false)}
-              className="flex-1 px-6 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 rounded-2xl bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-lg shadow-primary-200 transition-all"
-            >
-              Create Folder
-            </button>
-          </div>
-        </form>
-      </Modal>
+              {!createdServer ? (
+                <form onSubmit={handleAddServer} className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Identifier Name</label>
+                    <input
+                      type="text"
+                      value={newServerName}
+                      onChange={(e) => setNewServerName(e.target.value)}
+                      required
+                      placeholder="e.g. US-EAST-PRODUCTION"
+                      className="w-full px-6 py-4 bg-black/40 border border-[var(--border-color)] rounded-2xl text-sm text-white focus:border-[var(--accent-violet)] outline-none transition-all font-bold"
+                    />
+                  </div>
+                  <button type="submit" disabled={creating} className="w-full py-4 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20">
+                    {creating ? 'HANDSHAKING...' : 'INITIATE PROVISION'}
+                  </button>
+                </form>
+              ) : (
+                <div className="space-y-8">
+                  <div className="p-6 bg-[var(--accent-mint)]/10 border border-[var(--accent-mint)]/20 rounded-2xl flex gap-4">
+                    <div className="w-1.5 h-1.5 rounded-full accent-bg-green animate-pulse-dot mt-1.5" />
+                    <p className="text-[10px] text-[var(--accent-mint)] font-black uppercase tracking-widest leading-relaxed">
+                      Handshake successful. Provisioning script generated.
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Deployment Script</label>
+                    <div className="relative group">
+                      <pre className="bg-black/60 p-8 rounded-3xl text-xs text-gray-300 font-mono leading-relaxed overflow-x-auto border border-white/5 group-hover:border-[var(--accent-violet)]/30 transition-all">
+                        {installCommand}
+                      </pre>
+                      <button onClick={handleCopy} className="absolute top-4 right-4 p-3 rounded-xl bg-white/5 hover:bg-[var(--accent-violet)] text-white transition-all shadow-lg">
+                        {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  <button onClick={closeAddModal} className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+                    COMPLETE SETUP
+                  </button>
+                </div>
+              )}
+           </div>
+        </div>
+      )}
+
+      {/* New Group Modal */}
+      {showFolderModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8">
+           <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowFolderModal(false)} />
+           <div className="glass-card w-full max-w-sm p-10 relative z-10">
+              <h3 className="text-xl font-black uppercase tracking-tight font-display mb-8">Infrastructure Group</h3>
+              <form onSubmit={handleAddFolder} className="space-y-8">
+                <div className="space-y-3">
+                   <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Group Label</label>
+                   <input
+                    type="text"
+                    value={newFolderName}
+                    onChange={(e) => setNewFolderName(e.target.value)}
+                    required
+                    placeholder="e.g. CORE SERVICES"
+                    className="w-full px-6 py-4 bg-black/40 border border-[var(--border-color)] rounded-2xl text-sm text-white focus:border-[var(--accent-violet)] outline-none transition-all font-bold uppercase tracking-widest"
+                  />
+                </div>
+                <div className="flex gap-4">
+                   <button type="button" onClick={() => setShowFolderModal(false)} className="flex-1 py-3.5 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest">CANCEL</button>
+                   <button type="submit" className="flex-1 py-3.5 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest">CREATE</button>
+                </div>
+              </form>
+           </div>
+        </div>
+      )}
 
       {/* Move Item Modal */}
-      <Modal isOpen={showMoveModal} onClose={() => setShowMoveModal(false)} title={`Move ${itemToMove?.name}`}>
-        <div className="space-y-4">
-          <p className="text-sm text-gray-500">Select a destination folder for this {itemToMove?.type}:</p>
-          <select 
-            className="w-full px-4 py-3 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 focus:ring-primary-500 font-medium appearance-none"
-            value={targetFolderId}
-            onChange={(e) => setTargetFolderId(e.target.value)}
-          >
-            <option value="">(Root Infrastructure)</option>
-            {folders.filter(f => f.id !== itemToMove?.id).map(f => (
-              <option key={f.id} value={f.id}>{f.name}</option>
-            ))}
-          </select>
-          <div className="flex gap-3 pt-4">
-            <button
-              onClick={() => setShowMoveModal(false)}
-              className="flex-1 px-6 py-3 rounded-2xl bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 transition-all"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleMove}
-              className="flex-1 px-6 py-3 rounded-2xl bg-primary-600 text-white font-bold hover:bg-primary-700 shadow-lg shadow-primary-200 transition-all"
-            >
-              Move Here
-            </button>
-          </div>
+      {showMoveModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8">
+           <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowMoveModal(false)} />
+           <div className="glass-card w-full max-w-sm p-10 relative z-10 text-center">
+              <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6 text-[var(--accent-violet)]">
+                 <Command className="w-8 h-8" />
+              </div>
+              <h3 className="text-xl font-black uppercase tracking-tight font-display mb-2">Relocate Object</h3>
+              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-8">{itemToMove?.name}</p>
+              
+              <div className="space-y-6">
+                <select 
+                  className="w-full px-6 py-4 bg-black/40 border border-[var(--border-color)] rounded-2xl text-sm text-white focus:border-[var(--accent-violet)] outline-none font-bold uppercase tracking-widest appearance-none"
+                  value={targetFolderId}
+                  onChange={(e) => setTargetFolderId(e.target.value)}
+                >
+                  <option value="">ROOT INFRASTRUCTURE</option>
+                  {folders.filter(f => f.id !== itemToMove?.id).map(f => (
+                    <option key={f.id} value={f.id}>{f.name.toUpperCase()}</option>
+                  ))}
+                </select>
+                
+                <div className="flex gap-4">
+                   <button onClick={() => setShowMoveModal(false)} className="flex-1 py-4 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest">CANCEL</button>
+                   <button onClick={handleMove} className="flex-1 py-4 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest">RELOCATE</button>
+                </div>
+              </div>
+           </div>
         </div>
-      </Modal>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 
-export default function Terminal({ lines = [], autoScroll = true, className = '' }) {
+export default function Terminal({ lines = [], autoScroll = true, className = '', style = {} }) {
   const containerRef = useRef();
 
   useEffect(() => {
@@ -13,7 +13,7 @@ export default function Terminal({ lines = [], autoScroll = true, className = ''
     <div
       ref={containerRef}
       className={`bg-gray-950 rounded-xl p-4 overflow-auto terminal-scroll font-mono text-sm leading-relaxed ${className}`}
-      style={{ minHeight: '300px', maxHeight: '500px' }}
+      style={{ minHeight: '300px', ...style }}
     >
       {lines.length === 0 ? (
         <p className="text-gray-600 italic">No log output</p>

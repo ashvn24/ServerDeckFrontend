@@ -1,72 +1,75 @@
-import { useNavigate } from 'react-router-dom';
-import { Server, Monitor, FolderInput } from 'lucide-react';
-import StatusBadge from '../common/StatusBadge';
-import ResourceGauge from './ResourceGauge';
+import { Link } from 'react-router-dom';
+import { Cpu, HardDrive, MemoryStick, ChevronRight, MoreVertical, Wifi, WifiOff } from 'lucide-react';
 
-export default function ServerCard({ server, onMove, isAdmin }) {
-  const navigate = useNavigate();
-  const ramPercent = server.ram_total_mb
-    ? (server.ram_used_mb / server.ram_total_mb) * 100
-    : 0;
+export default function ServerCard({ server, isAdmin, onMove }) {
+  const ramPercent = server.ram_total_mb ? (server.ram_used_mb / server.ram_total_mb) * 100 : 0;
 
   return (
-    <div
-      onClick={() => navigate(`/servers/${server.id}`)}
-      className="group bg-white/60 backdrop-blur-xl border border-white/60 rounded-3xl p-6 cursor-pointer
-                 shadow-[0_8px_32px_0_rgba(31,38,135,0.05)]
-                 hover:shadow-[0_12px_48px_0_rgba(31,38,135,0.1)] 
-                 hover:-translate-y-1.5 hover:bg-white/80 hover:border-white
-                 transition-all duration-500 ease-out relative overflow-hidden flex flex-col h-full"
-      id={`server-card-${server.id}`}
+    <Link 
+      to={`/servers/${server.id}`}
+      className="glass-card group p-8 flex flex-col justify-between min-h-[260px] relative overflow-hidden transition-all duration-500 hover:scale-[1.02] hover:bg-[var(--bg-card-hover)]"
     >
-      {/* Top Gradient Accent (Revealed on hover) */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary-400 to-primary-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ease-out" />
+      {/* Status Background Glow */}
+      <div className={`absolute -right-12 -top-12 w-32 h-32 rounded-full blur-[80px] opacity-20 transition-opacity duration-500 ${
+        server.is_online ? 'bg-[var(--accent-mint)] group-hover:opacity-40' : 'bg-red-500 group-hover:opacity-30'
+      }`} />
 
-      {/* Header */}
-      <div className="flex items-start justify-between mb-5 relative z-10">
-        <div className="flex items-center gap-3.5">
-          <div className="p-2.5 bg-gray-50 rounded-[14px] ring-1 ring-inset ring-gray-100/50 group-hover:bg-white group-hover:shadow-[0_4px_12px_rgba(37,99,235,0.08)] group-hover:ring-primary-100 transition-all duration-300">
-            <Server className="w-5 h-5 text-gray-500 group-hover:text-primary-600 transition-colors duration-300" />
-          </div>
-          <div>
-            <h3 className="text-[15px] font-semibold text-gray-900 group-hover:text-primary-600 transition-colors duration-300 leading-tight">
+      <div className="flex items-start justify-between mb-8 relative z-10">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-2">
+            <div className={`w-2 h-2 rounded-full ${server.is_online ? 'bg-[var(--accent-mint)]' : 'bg-red-500'} animate-pulse-dot`} />
+            <h3 className="text-xl font-black text-white uppercase tracking-tight font-display truncate">
               {server.name}
             </h3>
-            <p className="text-[11.5px] font-medium text-gray-400 mt-0.5 group-hover:text-gray-500 transition-colors duration-300 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-gray-200 group-hover:bg-primary-200 transition-colors" />
-              {server.ip_address || 'No IP yet'}
-            </p>
           </div>
+          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest truncate">
+            {server.ip_address || 'Unassigned IP'}
+          </p>
         </div>
+        
         <div className="flex items-center gap-2">
           {isAdmin && (
-            <button
-              onClick={(e) => {
+            <button 
+              onClick={(e) => { 
+                e.preventDefault(); 
                 e.stopPropagation();
-                onMove(server);
+                onMove(server); 
               }}
-              className="p-2 rounded-xl hover:bg-gray-100 text-gray-400 hover:text-primary-600 transition-all opacity-0 group-hover:opacity-100"
-              title="Move to Folder"
+              className="p-3 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 rounded-xl transition-all relative z-20"
             >
-              <FolderInput className="w-4 h-4" />
+              <MoreVertical className="w-4 h-4" />
             </button>
           )}
-          <StatusBadge status={server.is_online ? 'online' : 'offline'} />
+          <div className="p-3 bg-white/5 text-white rounded-xl group-hover:bg-[var(--accent-violet)] transition-all">
+            <ChevronRight className="w-4 h-4" />
+          </div>
         </div>
       </div>
 
-      {/* Resource Bars */}
-      <div className="space-y-3 mb-4">
-        <ResourceGauge label="CPU" value={server.cpu_percent || 0} max={100} />
-        <ResourceGauge label="RAM" value={ramPercent} max={100} />
-        <ResourceGauge label="Disk" value={server.disk_used_percent || 0} max={100} />
-      </div>
+      <div className="space-y-6 relative z-10">
+        <div className="grid grid-cols-3 gap-4">
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">CPU</p>
+            <p className="text-lg font-black text-white">{(server.cpu_percent || 0).toFixed(0)}%</p>
+          </div>
+          <div className="space-y-2">
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">RAM</p>
+            <p className="text-lg font-black text-white">{ramPercent.toFixed(0)}%</p>
+          </div>
+          <div className="space-y-2 text-right">
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">DISK</p>
+            <p className="text-lg font-black text-white">{(server.disk_used_percent || 0).toFixed(0)}%</p>
+          </div>
+        </div>
 
-      {/* Footer */}
-      <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
-        <Monitor className="w-3.5 h-3.5 text-gray-400" />
-        <span className="text-xs text-gray-500">{server.os_info || 'Waiting for agent...'}</span>
+        {/* Micro-sparkline or simple progress */}
+        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+          <div 
+            className={`h-full transition-all duration-1000 ${server.is_online ? 'bg-[var(--accent-mint)]' : 'bg-red-500'}`} 
+            style={{ width: `${server.is_online ? 100 : 0}%` }} 
+          />
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

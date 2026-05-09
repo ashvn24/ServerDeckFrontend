@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { ShieldCheck, Lock, User, CheckCircle2, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, User, CheckCircle2, AlertCircle, Loader2, ArrowRight, Server } from 'lucide-react';
 import { usersAPI } from '../api/endpoints';
 
 export default function InviteAccept() {
@@ -45,7 +45,7 @@ export default function InviteAccept() {
       await usersAPI.acceptInvite({ token, name, password });
       setSuccess(true);
     } catch (err) {
-      alert(err.response?.data?.detail || 'Failed to create account.');
+      console.error('Accept failed:', err);
     } finally {
       setSubmitting(false);
     }
@@ -53,26 +53,24 @@ export default function InviteAccept() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 text-primary-600 animate-spin" />
-          <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Verifying invitation...</p>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a]">
+        <Loader2 className="w-12 h-12 text-[var(--accent-violet)] animate-spin mb-6" />
+        <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-[0.4em]">Verifying Authorization Token...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-6">
-        <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-glass border border-white p-10 text-center">
-          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-6 ring-8 ring-red-50/50">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-8">
+        <div className="max-w-md w-full glass-card p-12 text-center">
+          <div className="w-20 h-20 bg-red-500/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-red-500/20">
             <AlertCircle className="w-10 h-10 text-red-500" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Invitation Error</h1>
-          <p className="text-gray-500 leading-relaxed mb-8">{error}</p>
-          <Link to="/login" className="inline-flex items-center gap-2 text-primary-600 font-bold hover:gap-3 transition-all">
-            Go to Login <ArrowRight className="w-4 h-4" />
+          <h1 className="text-2xl font-black text-white uppercase tracking-tight font-display mb-4">Token Expired</h1>
+          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-relaxed mb-10">{error}</p>
+          <Link to="/login" className="inline-flex items-center gap-3 px-8 py-3 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all">
+            Return to Gateway <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>
@@ -81,20 +79,20 @@ export default function InviteAccept() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-6">
-        <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-glass border border-white p-10 text-center">
-          <div className="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center mx-auto mb-6 ring-8 ring-emerald-50/50">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-8">
+        <div className="max-w-md w-full glass-card p-12 text-center">
+          <div className="w-20 h-20 bg-[var(--accent-mint)]/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 border border-[var(--accent-mint)]/20">
+            <CheckCircle2 className="w-10 h-10 text-[var(--accent-mint)]" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">Welcome Aboard!</h1>
-          <p className="text-gray-500 leading-relaxed mb-8">
-            Your account has been created successfully. You can now log in to the ServerDeck portal.
+          <h1 className="text-2xl font-black text-white uppercase tracking-tight font-display mb-4">Access Granted</h1>
+          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-relaxed mb-10">
+            Identity provisioned successfully. You are now authorized to access the ServerDeck cluster.
           </p>
           <button 
             onClick={() => navigate('/login')}
-            className="w-full py-4 rounded-2xl bg-primary-600 text-white font-bold shadow-lg shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95"
+            className="w-full py-4 rounded-2xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20"
           >
-            Login to Dashboard
+            Authorize Handshake
           </button>
         </div>
       </div>
@@ -102,63 +100,68 @@ export default function InviteAccept() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-8">
       <div className="max-w-md w-full">
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-sm border border-gray-100 flex items-center justify-center mx-auto mb-6">
-            <ShieldCheck className="w-8 h-8 text-primary-600" />
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center p-5 bg-white text-black rounded-[2rem] mb-6 shadow-2xl shadow-white/10">
+            <ShieldCheck className="w-10 h-10" />
           </div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight mb-2">Join ServerDeck</h1>
-          <p className="text-gray-500 font-medium">You've been invited to join as <span className="text-primary-600 font-bold uppercase text-xs">{inviteDetails?.role}</span></p>
+          <h1 className="text-3xl font-black text-white uppercase tracking-tight font-display mb-2">Join Infrastructure</h1>
+          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Provisioning access as <span className="text-[var(--accent-violet)]">{inviteDetails?.role}</span></p>
         </div>
 
-        <div className="bg-white rounded-[2.5rem] shadow-glass border border-white p-8 md:p-10">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email</label>
-              <div className="w-full px-5 py-4 rounded-2xl bg-gray-50 border border-gray-100 text-gray-400 font-medium cursor-not-allowed">
+        <div className="glass-card p-10">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Identity Endpoint</label>
+              <div className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white/30 font-bold text-sm tracking-tight">
                 {inviteDetails?.email}
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Your Name</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Full Identity Name</label>
               <div className="relative">
-                <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                 <input
                   required
                   type="text"
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-primary-500 font-medium"
-                  placeholder="John Doe"
+                  className="w-full pl-16 pr-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
+                  placeholder="e.g. OPERATOR-01"
                   value={name}
                   onChange={e => setName(e.target.value)}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Set Password</label>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Establish Security Key</label>
               <div className="relative">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                 <input
                   required
                   type="password"
                   minLength={8}
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-none outline-none focus:ring-2 ring-primary-500 font-medium"
+                  className="w-full pl-16 pr-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
                   placeholder="••••••••"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                 />
               </div>
-              <p className="text-[10px] text-gray-400 mt-2 ml-1">Must be at least 8 characters long.</p>
+              <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 ml-1">8+ CHARACTERS REQUIRED</p>
             </div>
 
             <button
               disabled={submitting}
               type="submit"
-              className="w-full py-4 rounded-2xl bg-primary-600 text-white font-bold shadow-lg shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full py-4 mt-4 rounded-2xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-violet-500/20 flex items-center justify-center gap-3"
             >
-              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
+              {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                <>
+                  Deploy Identity
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
         </div>

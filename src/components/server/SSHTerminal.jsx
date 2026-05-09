@@ -5,21 +5,21 @@ import { Terminal as TerminalIcon, X, RefreshCw, AlertCircle, WifiOff, Loader2, 
 import '@xterm/xterm/css/xterm.css';
 
 const XTERM_THEME = {
-  background: '#0d1117',
-  foreground: '#c9d1d9',
-  cursor: '#7c3aed',
-  cursorAccent: '#0d1117',
-  selectionBackground: 'rgba(124,58,237,0.3)',
-  black: '#161b22', red: '#f85149', green: '#56d364', yellow: '#e3b341',
-  blue: '#58a6ff', magenta: '#bc8cff', cyan: '#39c5cf', white: '#b1bac4',
-  brightBlack: '#6e7681', brightRed: '#ffa198', brightGreen: '#7ee787',
-  brightYellow: '#e3b341', brightBlue: '#79c0ff', brightMagenta: '#d2a8ff',
-  brightCyan: '#56d3c5', brightWhite: '#f0f6fc',
+  background: '#000000',
+  foreground: '#ffffff',
+  cursor: '#8b5cf6',
+  cursorAccent: '#000000',
+  selectionBackground: 'rgba(139, 92, 246, 0.3)',
+  black: '#000000', red: '#ff5555', green: '#50fa7b', yellow: '#f1fa8c',
+  blue: '#bd93f9', magenta: '#ff79c6', cyan: '#8be9fd', white: '#bfbfbf',
+  brightBlack: '#4d4d4d', brightRed: '#ff6e67', brightGreen: '#5af78e',
+  brightYellow: '#f4f99d', brightBlue: '#caa9fa', brightMagenta: '#ff92d0',
+  brightCyan: '#9aedfe', brightWhite: '#e6e6e6',
 };
 
 export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on, isActive }) {
   const containerRef  = useRef(null);
-  const wrapperRef    = useRef(null); // fullscreen target
+  const wrapperRef    = useRef(null);
   const xtermRef      = useRef(null);
   const fitAddonRef   = useRef(null);
   const sessionIdRef  = useRef(null);
@@ -29,16 +29,16 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   const [errorMsg,    setErrorMsg]    = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // ── Init xterm once ────────────────────────────────────────────────────────
   useEffect(() => {
     const term = new Terminal({
       theme: XTERM_THEME,
-      fontFamily: '"JetBrains Mono", "Fira Code", Menlo, Monaco, "Courier New", monospace',
-      fontSize: 13,
-      lineHeight: 1.5,
+      fontFamily: '"JetBrains Mono", "Fira Code", monospace',
+      fontSize: 14,
+      lineHeight: 1.4,
       cursorBlink: true,
       cursorStyle: 'block',
-      scrollback: 3000,
+      scrollback: 5000,
+      allowProposedApi: true,
     });
 
     const fitAddon = new FitAddon();
@@ -48,7 +48,9 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
 
     if (containerRef.current) {
       term.open(containerRef.current);
-      try { fitAddon.fit(); } catch (_) {}
+      setTimeout(() => {
+         try { fitAddon.fit(); } catch (_) {}
+      }, 100);
     }
 
     term.onData((data) => {
@@ -56,10 +58,28 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       if (sid) send({ type: 'terminal_input', server_id: serverId, session_id: sid, data });
     });
 
-    return () => { term.dispose(); xtermRef.current = null; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // Support copy/paste
+    term.onSelectionChange(() => {
+      const selection = term.getSelection();
+      if (selection) {
+        navigator.clipboard.writeText(selection).catch(() => {});
+      }
+    });
 
-  // ── ResizeObserver — refit + inform agent ─────────────────────────────────
+    term.attachCustomKeyEventHandler((e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'C') return false;
+      if (e.ctrlKey && e.key === 'c' && term.hasSelection()) {
+        if (e.type === 'keydown') {
+          navigator.clipboard.writeText(term.getSelection());
+        }
+        return false;
+      }
+      return true;
+    });
+
+    return () => { term.dispose(); xtermRef.current = null; };
+  }, []);
+
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
@@ -78,51 +98,34 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
     return () => obs.disconnect();
   }, [serverId, send]);
 
-  // ── Re-fit when the tab becomes visible after display:none ──────────────
   useEffect(() => {
     if (!isActive) return;
-    // Small delay — let the browser unhide the element before measuring
     const t = setTimeout(() => {
       try {
         fitAddonRef.current?.fit();
         const term = xtermRef.current;
+        if (status === 'connected') term?.focus();
         const sid  = sessionIdRef.current;
         if (term && sid) {
           send({ type: 'terminal_resize', server_id: serverId,
                  session_id: sid, cols: term.cols, rows: term.rows });
         }
       } catch (_) {}
-    }, 50);
+    }, 150);
     return () => clearTimeout(t);
-  }, [isActive, serverId, send]);
+  }, [isActive, serverId, send, status]);
 
-  // ── Fullscreen API change listener ────────────────────────────────────────
-  useEffect(() => {
-    const onFsChange = () => {
-      const fs = !!document.fullscreenElement;
-      setIsFullscreen(fs);
-      // Give browser a tick to resize then refit
-      setTimeout(() => {
-        try { fitAddonRef.current?.fit(); } catch (_) {}
-        const term = xtermRef.current;
-        const sid  = sessionIdRef.current;
-        if (term && sid) {
-          send({ type: 'terminal_resize', server_id: serverId,
-                 session_id: sid, cols: term.cols, rows: term.rows });
-        }
-      }, 100);
-    };
-    document.addEventListener('fullscreenchange', onFsChange);
-    return () => document.removeEventListener('fullscreenchange', onFsChange);
-  }, [serverId, send]);
-
-  // ── WS event listeners ────────────────────────────────────────────────────
   useEffect(() => {
     const unsubOpened = on('terminal_opened', (msg) => {
       if (msg.id !== sessionIdRef.current) return;
       clearTimeout(timerRef.current);
       setStatus('connected');
-      try { fitAddonRef.current?.fit(); xtermRef.current?.focus(); } catch (_) {}
+      setTimeout(() => {
+        try {
+          fitAddonRef.current?.fit();
+          xtermRef.current?.focus();
+        } catch (_) {}
+      }, 100);
     });
 
     const unsubOutput = on('terminal_output', (msg) => {
@@ -144,34 +147,28 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       sessionIdRef.current = null;
       setStatus('error');
       setErrorMsg(msg.error || 'Terminal error');
-      xtermRef.current?.writeln(`\r\n\x1b[31m──── error: ${msg.error} ────\x1b[0m`);
     });
 
     return () => { unsubOpened(); unsubOutput(); unsubClosed(); unsubError(); };
   }, [on]);
 
-  // ── Connect ───────────────────────────────────────────────────────────────
   const connect = useCallback(() => {
     if (!isOnline || !wsConnected) return;
     const sid = crypto.randomUUID();
     sessionIdRef.current = sid;
     setStatus('connecting');
-    setErrorMsg('');
     xtermRef.current?.clear();
-    xtermRef.current?.writeln('\x1b[36m──── connecting… ────\x1b[0m\r\n');
+    xtermRef.current?.writeln('\x1b[35m──── connecting to node… ────\x1b[0m\r\n');
     const cols = xtermRef.current?.cols ?? 80;
     const rows = xtermRef.current?.rows ?? 24;
     send({ type: 'terminal_open', id: sid, server_id: serverId, cols, rows, shell: '/bin/bash' });
     timerRef.current = setTimeout(() => {
       if (sessionIdRef.current !== sid) return;
-      sessionIdRef.current = null;
       setStatus('error');
-      setErrorMsg('Connection timed out. Make sure the agent is running on the server.');
-      xtermRef.current?.writeln('\r\n\x1b[31m──── timed out ────\x1b[0m');
+      setErrorMsg('Connection handshake timed out.');
     }, 15000);
   }, [isOnline, wsConnected, serverId, send]);
 
-  // ── Disconnect ────────────────────────────────────────────────────────────
   const disconnect = useCallback(() => {
     clearTimeout(timerRef.current);
     const sid = sessionIdRef.current;
@@ -180,135 +177,63 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       sessionIdRef.current = null;
     }
     setStatus('idle');
-    xtermRef.current?.writeln('\r\n\x1b[90m──── disconnected ────\x1b[0m');
   }, [serverId, send]);
 
-  // ── Fullscreen toggle ─────────────────────────────────────────────────────
   const toggleFullscreen = useCallback(() => {
     if (!document.fullscreenElement) {
       wrapperRef.current?.requestFullscreen();
+      setIsFullscreen(true);
     } else {
       document.exitFullscreen();
+      setIsFullscreen(false);
     }
   }, []);
 
-  // ── UI ────────────────────────────────────────────────────────────────────
-  const canConnect = isOnline && wsConnected;
-
   const dotClass = {
-    idle: 'bg-gray-400', connecting: 'bg-amber-400 animate-pulse',
-    connected: 'bg-emerald-400 animate-pulse-dot', error: 'bg-red-400', closed: 'bg-gray-400',
+    idle: 'bg-white/10', connecting: 'bg-amber-400 animate-pulse',
+    connected: 'accent-bg-green animate-pulse-dot', error: 'bg-red-500', closed: 'bg-white/10',
   }[status];
-
-  const statusLabel = {
-    idle: 'Not connected', connecting: 'Connecting…', connected: 'Connected',
-    error: 'Connection error', closed: 'Session closed',
-  }[status];
-
-  // In fullscreen the wrapper fills the screen and the terminal canvas expands to fill it
-  const wrapperClass = isFullscreen
-    ? 'flex flex-col w-full h-full bg-[#0d1117]'
-    : 'bg-white/60 backdrop-blur-xl border border-white/60 shadow-glass rounded-[2rem] overflow-hidden flex flex-col';
-
-  const canvasHeight = isFullscreen ? 'calc(100vh - 57px)' : '500px';
 
   return (
-    <div ref={wrapperRef} className={wrapperClass}>
-
-      {/* ── Header ── */}
-      <div className={`flex items-center justify-between px-6 py-3 border-b flex-shrink-0 ${
-        isFullscreen
-          ? 'bg-[#161b22] border-[#30363d]'
-          : 'bg-white/30 border-white/40'
-      }`}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-xl ${isFullscreen ? 'bg-violet-900/40' : 'bg-violet-50 ring-1 ring-inset ring-white/60 shadow-sm'}`}>
-            <TerminalIcon className="w-4 h-4 text-violet-400" />
-          </div>
-          <div>
-            <h3 className={`text-sm font-bold ${isFullscreen ? 'text-slate-200' : 'text-gray-900'}`}>SSH Terminal</h3>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
-              <p className={`text-xs ${isFullscreen ? 'text-slate-400' : 'text-gray-500'}`}>{statusLabel}</p>
-            </div>
-          </div>
+    <div ref={wrapperRef} className={`flex flex-col h-[600px] overflow-hidden ${isFullscreen ? 'bg-black' : 'glass-card'}`}>
+      <div className={`flex items-center justify-between p-6 border-b border-[var(--border-color)] ${isFullscreen ? 'bg-black' : 'bg-black/20'}`}>
+        <div className="flex items-center gap-5">
+           <div className="p-3 bg-black/40 rounded-2xl text-[var(--accent-violet)] border border-white/5">
+              <TerminalIcon className="w-6 h-6" />
+           </div>
+           <div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-white">Cloud Console</h3>
+              <div className="flex items-center gap-2 mt-1">
+                 <div className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
+                 <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">{status.toUpperCase()}</span>
+              </div>
+           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {!isOnline && (
-            <span className="flex items-center gap-1.5 text-xs text-amber-500 font-medium bg-amber-900/30 px-3 py-1.5 rounded-lg border border-amber-800/40">
-              <WifiOff className="w-3.5 h-3.5" /> Server offline
-            </span>
-          )}
-          {isOnline && !wsConnected && (
-            <span className="flex items-center gap-1.5 text-xs text-amber-500 font-medium bg-amber-900/30 px-3 py-1.5 rounded-lg border border-amber-800/40">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Portal connecting…
-            </span>
-          )}
-
-          {/* Connect / Connecting / Disconnect */}
-          {(status === 'idle' || status === 'closed' || status === 'error') ? (
-            <button id="ssh-connect-btn" onClick={connect} disabled={!canConnect}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-violet-600 text-white text-sm font-semibold shadow-sm hover:bg-violet-700 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed">
-              <RefreshCw className="w-3.5 h-3.5" />
-              {status === 'error' ? 'Retry' : 'Connect'}
-            </button>
-          ) : status === 'connecting' ? (
-            <button disabled className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-violet-900/50 text-violet-400 text-sm font-semibold cursor-not-allowed">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Connecting…
+        <div className="flex items-center gap-4">
+          {status === 'connected' ? (
+            <button onClick={disconnect} className="px-6 py-2 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
+               Close Session
             </button>
           ) : (
-            <button id="ssh-disconnect-btn" onClick={disconnect}
-              className="flex items-center gap-2 px-4 py-1.5 rounded-xl bg-red-900/30 text-red-400 border border-red-800/40 text-sm font-semibold hover:bg-red-900/50 active:scale-95 transition-all">
-              <X className="w-3.5 h-3.5" /> Disconnect
+            <button onClick={connect} disabled={!isOnline || !wsConnected} className="px-8 py-2 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-30">
+               Establish Connection
             </button>
           )}
-
-          {/* Fullscreen toggle */}
-          <button
-            id="ssh-fullscreen-btn"
-            onClick={toggleFullscreen}
-            title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Enter fullscreen'}
-            className={`p-2 rounded-xl text-sm transition-all active:scale-95 ${
-              isFullscreen
-                ? 'bg-slate-700/60 text-slate-300 hover:bg-slate-600/60'
-                : 'bg-white/60 border border-white/60 text-gray-600 hover:bg-white hover:shadow-sm'
-            }`}
-          >
-            {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+          <button onClick={toggleFullscreen} className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
+             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
           </button>
         </div>
       </div>
 
-      {/* ── Terminal canvas ── */}
-      <div className="relative bg-[#0d1117] flex-1" style={{ minHeight: canvasHeight }}>
-
-        {/* Idle overlay */}
+      <div className="flex-1 relative bg-black p-4">
         {status === 'idle' && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 pointer-events-none select-none">
-            <div className="p-5 rounded-3xl bg-white/5 border border-white/10">
-              <TerminalIcon className="w-10 h-10 text-slate-600" />
-            </div>
-            <p className="text-slate-500 text-sm">
-              Click <span className="text-violet-400 font-semibold">Connect</span> to start an SSH session
-            </p>
+          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-4 pointer-events-none">
+             <TerminalIcon className="w-12 h-12 text-white/5" />
+             <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Standby mode. Initiate handshake to begin.</p>
           </div>
         )}
-
-        {/* Error overlay */}
-        {status === 'error' && (
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 pointer-events-none select-none">
-            <AlertCircle className="w-10 h-10 text-red-400" />
-            <p className="text-red-300 text-sm text-center max-w-sm px-4">{errorMsg}</p>
-          </div>
-        )}
-
-        {/* xterm mount — always in DOM */}
-        <div
-          ref={containerRef}
-          className="terminal-scroll"
-          style={{ padding: '12px', height: '100%', boxSizing: 'border-box' }}
-        />
+        <div ref={containerRef} className="h-full w-full" />
       </div>
     </div>
   );
