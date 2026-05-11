@@ -4,6 +4,7 @@ import { ArrowLeft, Globe, FileText, Shield, Cpu, HardDrive, MemoryStick, Clock,
 import { serversAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { useNotification } from '../context/NotificationContext';
 import { formatUptime, formatMB } from '../utils/formatters';
 import StatusBadge from '../components/common/StatusBadge';
 import ResourceGauge from '../components/server/ResourceGauge';
@@ -24,6 +25,7 @@ const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'S
 export default function ServerDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useNotification();
   const [server, setServer] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
@@ -108,6 +110,7 @@ export default function ServerDetail() {
         message: 'This action is not available for your current authorization level.',
         type: 'error'
       });
+      showToast('Action restricted: Admin privileges required', 'error');
       return;
     }
     if (action === 'sites') navigate(`/servers/${id}/sites`);

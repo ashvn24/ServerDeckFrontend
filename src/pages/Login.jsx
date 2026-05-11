@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Server, ArrowRight, Loader2 } from 'lucide-react';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Login() {
   const [isRegister, setIsRegister] = useState(false);
@@ -10,6 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useNotification();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,12 +20,16 @@ export default function Login() {
     try {
       if (isRegister) {
         await register(form.name, form.email, form.password);
+        showToast('Operator profile provisioned successfully.', 'success');
       } else {
         await login(form.email, form.password);
+        showToast('Authorization handshake successful. Welcome back.', 'success');
       }
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Handshake failed. Verify credentials.');
+      const msg = err.response?.data?.detail || 'Handshake failed. Verify credentials.';
+      setError(msg);
+      showToast(`Authentication Error: ${msg}`, 'error');
     } finally {
       setLoading(false);
     }
