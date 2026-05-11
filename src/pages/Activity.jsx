@@ -24,7 +24,7 @@ export default function Activity() {
   const [showDateDropdown, setShowDateDropdown] = useState(false);
   const [showTimeDropdown, setShowTimeDropdown] = useState(false);
   
-  const dropdownRef = useRef(null);
+  const filterSectionRef = useRef(null);
   const isOwner = currentUser?.role === 'owner';
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function Activity() {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (filterSectionRef.current && !filterSectionRef.current.contains(event.target)) {
         setShowServerDropdown(false);
         setShowUserDropdown(false);
         setShowDateDropdown(false);
@@ -77,7 +77,10 @@ export default function Activity() {
   }, [selectedServer]);
 
   // Derived Data for Filters
-  const uniqueDates = [...new Set(logs.map(log => new Date(log.timestamp).toLocaleDateString()))].sort((a, b) => new Date(b) - new Date(a));
+  const uniqueDates = [...new Set(logs.map(log => {
+    const d = new Date(log.timestamp);
+    return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  }))].sort((a, b) => new Date(b) - new Date(a));
   const timeSlots = [...Array(24).keys()].map(h => `${h.toString().padStart(2, '0')}:00`);
 
   const filteredLogs = logs.filter(log => {
@@ -87,8 +90,10 @@ export default function Activity() {
       log.server.name.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesUser = !selectedUser || log.user.id === selectedUser;
-    const matchesDate = !selectedDate || new Date(log.timestamp).toLocaleDateString() === selectedDate;
-    const matchesTime = !selectedTime || new Date(log.timestamp).getHours() === parseInt(selectedTime.split(':')[0]);
+    const logDate = new Date(log.timestamp);
+    const logDateStr = `${logDate.getFullYear()}-${(logDate.getMonth() + 1).toString().padStart(2, '0')}-${logDate.getDate().toString().padStart(2, '0')}`;
+    const matchesDate = !selectedDate || logDateStr === selectedDate;
+    const matchesTime = !selectedTime || logDate.getHours() === parseInt(selectedTime.split(':')[0]);
     
     return matchesSearch && matchesUser && matchesDate && matchesTime;
   });
@@ -105,7 +110,7 @@ export default function Activity() {
 
   return (
     <div className="space-y-12">
-      <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-10" ref={filterSectionRef}>
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
           <div>
             <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
@@ -125,7 +130,7 @@ export default function Activity() {
              </div>
              
              {/* Custom Server Dropdown */}
-             <div className="relative" ref={dropdownRef}>
+             <div className="relative">
                 <button 
                   onClick={() => setShowServerDropdown(!showServerDropdown)}
                   className="flex items-center gap-3 pl-12 pr-12 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[200px] relative text-left"
