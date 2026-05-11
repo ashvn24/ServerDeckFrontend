@@ -16,6 +16,8 @@ import ProcessManager from '../components/server/ProcessManager';
 import SSLManager from '../components/server/SSLManager';
 import AutomationManager from '../components/server/AutomationManager';
 
+import RestrictedView from '../components/common/RestrictedView';
+
 const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files'];
 
 export default function ServerDetail() {
@@ -91,6 +93,15 @@ export default function ServerDetail() {
 
   const ramPercent = server.ram_total_mb ? (server.ram_used_mb / server.ram_total_mb) * 100 : 0;
 
+  const handleQuickAction = (action) => {
+    if (!isAdmin) {
+      alert("This action is not available for your current authorization level.");
+      return;
+    }
+    if (action === 'sites') navigate(`/servers/${id}/sites`);
+    if (action === 'ssh') setActiveTab(8);
+  };
+
   return (
     <div className="space-y-12">
       {/* Header */}
@@ -113,10 +124,16 @@ export default function ServerDetail() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button onClick={() => navigate(`/servers/${id}/sites`)} className="px-5 py-2.5 rounded-xl bg-[var(--bg-card)] border border-[var(--border-color)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--bg-card-hover)] transition-all">
+          <button 
+            onClick={() => handleQuickAction('sites')} 
+            className={`px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-bold uppercase tracking-widest transition-all ${!isAdmin ? 'bg-white/5 opacity-50 cursor-not-allowed' : 'bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)]'}`}
+          >
             Quick Sites
           </button>
-          <button onClick={() => setActiveTab(8)} className="px-5 py-2.5 rounded-xl bg-[var(--accent-violet)] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-violet-500/20 hover:scale-105 transition-all active:scale-95">
+          <button 
+            onClick={() => handleQuickAction('ssh')} 
+            className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold uppercase tracking-widest shadow-lg transition-all active:scale-95 ${!isAdmin ? 'bg-gray-500/20 opacity-50 cursor-not-allowed' : 'bg-[var(--accent-violet)] shadow-violet-500/20 hover:scale-105'}`}
+          >
             Launch SSH
           </button>
           {isAdmin && (
@@ -199,17 +216,26 @@ export default function ServerDetail() {
           </div>
         )}
 
-        {activeTab === 4 && <AutomationManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
+        {activeTab === 4 && (
+          isAdmin ? <AutomationManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} /> : <RestrictedView title="Automation Restricted" />
+        )}
         {activeTab === 5 && <FirewallManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
         {activeTab === 6 && <ProcessManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
         {activeTab === 7 && <SSLManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} nginxSites={server.nginx_sites || []} />}
 
-        <div style={{ display: activeTab === 8 ? 'block' : 'none' }} className="glass-card overflow-hidden">
-          <SSHTerminal serverId={id} isOnline={server.is_online} wsConnected={connected} send={send} on={on} isActive={activeTab === 8} />
+        <div style={{ display: activeTab === 8 ? 'block' : 'none' }}>
+          {isAdmin ? (
+            <div className="glass-card overflow-hidden">
+              <SSHTerminal serverId={id} isOnline={server.is_online} wsConnected={connected} send={send} on={on} isActive={activeTab === 8} />
+            </div>
+          ) : (
+            <RestrictedView title="SSH Access Restricted" />
+          )}
         </div>
 
         {activeTab === 9 && <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />}
       </div>
+
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

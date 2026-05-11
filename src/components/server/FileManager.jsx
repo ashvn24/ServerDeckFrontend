@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { 
   Folder, File, ChevronRight, Home, ArrowLeft, RefreshCw, 
   Trash2, Edit3, Plus, Save, X, Search, MoreVertical, 
-  Download, AlertTriangle, FileText, WifiOff, Maximize2, Minimize2
+  Download, AlertTriangle, FileText, WifiOff, Maximize2, Minimize2,
+  ShieldAlert
 } from 'lucide-react';
 import { formatBytes } from '../../utils/formatters';
 
@@ -194,6 +195,12 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
             ))}
           </div>
           <div className="flex items-center gap-4">
+             {!isAdmin && (
+               <div className="px-4 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
+                 <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                 <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">View Only Mode</span>
+               </div>
+             )}
              <button onClick={() => fetchFiles(path)} className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-all">
                 <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
              </button>
@@ -305,6 +312,12 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                       <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1 truncate max-w-md">{editingFile.path}</p>
                     </div>
                   </div>
+                  {!isAdmin && (
+                    <div className="px-4 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center gap-2">
+                      <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                      <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Read Only</span>
+                    </div>
+                  )}
                   <button onClick={() => setEditingFile(null)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
                     <X className="w-6 h-6 text-[var(--text-secondary)]" />
                   </button>
@@ -314,10 +327,12 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                   <textarea 
                     className="w-full h-full p-6 bg-black/60 text-gray-300 font-mono text-sm rounded-3xl border border-[var(--border-color)] focus:border-[var(--accent-violet)] outline-none resize-none leading-relaxed"
                     value={editingFile.content}
-                    onChange={(e) => setEditingFile({ ...editingFile, content: e.target.value })}
+                    onChange={(e) => isAdmin && setEditingFile({ ...editingFile, content: e.target.value })}
+                    readOnly={!isAdmin}
                     spellCheck="false"
                   />
                 </div>
+
 
                 <div className="p-6 border-t border-[var(--border-color)] flex justify-end gap-4">
                    <button onClick={() => setEditingFile(null)} className="px-8 py-3 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Cancel</button>

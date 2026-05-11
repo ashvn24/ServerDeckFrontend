@@ -9,15 +9,21 @@ import CreateBackendSite from '../components/sites/CreateBackendSite';
 import CreateFrontendSite from '../components/sites/CreateFrontendSite';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
+import { useAuth } from '../context/AuthContext';
+import RestrictedView from '../components/common/RestrictedView';
+
 export default function SiteManager() {
   const { id: serverId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { sendCommand } = useWebSocket();
   const [server, setServer] = useState(null);
   const [sites, setSites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showBackendModal, setShowBackendModal] = useState(false);
   const [showFrontendModal, setShowFrontendModal] = useState(false);
+
+  const isAdmin = user?.role === 'owner' || user?.role === 'admin';
 
   const fetchData = useCallback(async () => {
     try {
@@ -37,6 +43,7 @@ export default function SiteManager() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleDeleteSite = async (siteId) => {
+    if (!isAdmin) return;
     if (!confirm('Delete this site?')) return;
     try {
       await sitesAPI.delete(siteId);
@@ -48,46 +55,57 @@ export default function SiteManager() {
 
   if (loading) return <LoadingSpinner size="lg" text="Loading sites..." />;
 
+  if (!isAdmin) {
+    return (
+      <div className="space-y-8">
+        <button onClick={() => navigate(`/servers/${serverId}`)} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+          <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
+        </button>
+        <RestrictedView title="Site Management Restricted" />
+      </div>
+    );
+  }
+
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate(`/servers/${serverId}`)} className="p-2 rounded-xl hover:bg-gray-200 transition-colors">
-            <ArrowLeft className="w-5 h-5 text-gray-600" />
+      <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center gap-6">
+          <button onClick={() => navigate(`/servers/${serverId}`)} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Sites</h1>
-            <p className="text-sm text-gray-500 mt-0.5">{server?.name}</p>
+            <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Sites</h1>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-4">{server?.name}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setShowBackendModal(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors">
-            <Plus className="w-4 h-4" /> Backend Site
+        <div className="flex items-center gap-4">
+          <button onClick={() => setShowBackendModal(true)} className="px-8 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20">
+            <Plus className="w-4 h-4 inline mr-2" /> Backend Site
           </button>
-          <button onClick={() => setShowFrontendModal(true)} className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 transition-colors">
-            <Plus className="w-4 h-4" /> Frontend Site
+          <button onClick={() => setShowFrontendModal(true)} className="px-8 py-3 rounded-xl bg-[var(--accent-mint)] text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+            <Plus className="w-4 h-4 inline mr-2" /> Frontend Site
           </button>
         </div>
       </div>
 
       {/* Site List */}
       {sites.length === 0 ? (
-        <div className="text-center py-20">
-          <p className="text-gray-400 text-sm mb-4">No sites configured on this server</p>
-          <div className="flex items-center justify-center gap-3">
-            <button onClick={() => setShowBackendModal(true)} className="px-4 py-2 rounded-xl bg-primary-600 text-white text-sm font-medium hover:bg-primary-700">
+        <div className="glass-card py-32 flex flex-col items-center justify-center text-center">
+          <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest mb-8">No sites configured on this server</p>
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={() => setShowBackendModal(true)} className="px-8 py-4 rounded-2xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
               Create Backend Site
             </button>
-            <button onClick={() => setShowFrontendModal(true)} className="px-4 py-2 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700">
+            <button onClick={() => setShowFrontendModal(true)} className="px-8 py-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
               Create Frontend Site
             </button>
           </div>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {sites.map((site) => (
-            <SiteCard key={site.id} site={site} onDelete={handleDeleteSite} />
+            <SiteCard key={site.id} site={site} onDelete={handleDeleteSite} isAdmin={isAdmin} />
           ))}
         </div>
       )}
@@ -102,3 +120,4 @@ export default function SiteManager() {
     </div>
   );
 }
+
