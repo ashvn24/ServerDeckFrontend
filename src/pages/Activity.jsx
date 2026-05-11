@@ -1,26 +1,43 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Server, User, Clock, Activity as ActivityIcon, ChevronRight, Filter, Database, Shield, ChevronDown, Check } from 'lucide-react';
-import { auditAPI, serversAPI } from '../api/endpoints';
+import { useAuth } from '../context/AuthContext';
+import { auditAPI, serversAPI, usersAPI } from '../api/endpoints';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 export default function Activity() {
+  const { user: currentUser } = useAuth();
   const [logs, setLogs] = useState([]);
   const [servers, setServers] = useState([]);
+  const [teamUsers, setTeamUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filters
   const [selectedServer, setSelectedServer] = useState('');
+  const [selectedUser, setSelectedUser] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Dropdown States
   const [showServerDropdown, setShowServerDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showDateDropdown, setShowDateDropdown] = useState(false);
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+  
   const dropdownRef = useRef(null);
+  const isOwner = currentUser?.role === 'owner';
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [sRes, aRes] = await Promise.all([
+        const [sRes, aRes, uRes] = await Promise.all([
           serversAPI.list(),
-          auditAPI.list()
+          auditAPI.list(),
+          isOwner ? usersAPI.list() : Promise.resolve({ data: [] })
         ]);
         setServers(sRes.data);
         setLogs(aRes.data);
+        if (isOwner) setTeamUsers(uRes.data);
       } catch (err) {
         console.error('Activity load failed:', err);
       } finally {
@@ -28,12 +45,15 @@ export default function Activity() {
       }
     };
     fetchInitialData();
-  }, []);
+  }, [isOwner]);
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowServerDropdown(false);
+        setShowUserDropdown(false);
+        setShowDateDropdown(false);
+        setShowTimeDropdown(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -56,75 +76,209 @@ export default function Activity() {
     if (!loading) fetchFilteredLogs();
   }, [selectedServer]);
 
-  const filteredLogs = logs.filter(log => 
-    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.server.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Derived Data for Filters
+  const uniqueDates = [...new Set(logs.map(log => new Date(log.timestamp).toLocaleDateString()))].sort((a, b) => new Date(b) - new Date(a));
+  const timeSlots = [...Array(24).keys()].map(h => `${h.toString().padStart(2, '0')}:00`);
+
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = 
+      log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      log.server.name.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesUser = !selectedUser || log.user.id === selectedUser;
+    const matchesDate = !selectedDate || new Date(log.timestamp).toLocaleDateString() === selectedDate;
+    const matchesTime = !selectedTime || new Date(log.timestamp).getHours() === parseInt(selectedTime.split(':')[0]);
+    
+    return matchesSearch && matchesUser && matchesDate && matchesTime;
+  });
 
   const selectedServerName = selectedServer 
     ? servers.find(s => s.id === selectedServer)?.name 
-    : 'ALL CLUSTER NODES';
+    : 'ALL NODES';
+
+  const selectedUserName = selectedUser
+    ? teamUsers.find(u => u.id === selectedUser)?.name
+    : 'ALL OPERATORS';
 
   if (loading && logs.length === 0) return <LoadingSpinner size="lg" text="Syncing audit trails..." />;
 
   return (
     <div className="space-y-12">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
-        <div>
-          <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
-          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] mt-4">Audit trails and infrastructure access logs</p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-           <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] group-focus-within:text-white transition-colors" />
-              <input
-                type="text"
-                placeholder="SEARCH ACTIVITY..."
-                className="pl-12 pr-6 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-64 transition-all"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-           </div>
-           
-           {/* Custom Server Dropdown */}
-           <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setShowServerDropdown(!showServerDropdown)}
-                className="flex items-center gap-3 pl-12 pr-12 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[240px] relative text-left"
-              >
-                <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-                <span className="truncate">{selectedServerName}</span>
-                <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${showServerDropdown ? 'rotate-180' : ''}`} />
-              </button>
+      <div className="flex flex-col gap-10">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+          <div>
+            <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] mt-4">Audit trails and infrastructure access logs</p>
+          </div>
+          
+          <div className="flex items-center gap-4">
+             <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] group-focus-within:text-white transition-colors" />
+                <input
+                  type="text"
+                  placeholder="SEARCH ACTIVITY..."
+                  className="pl-12 pr-6 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-64 transition-all"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+             </div>
+             
+             {/* Custom Server Dropdown */}
+             <div className="relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setShowServerDropdown(!showServerDropdown)}
+                  className="flex items-center gap-3 pl-12 pr-12 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[200px] relative text-left"
+                >
+                  <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                  <span className="truncate">{selectedServerName}</span>
+                  <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${showServerDropdown ? 'rotate-180' : ''}`} />
+                </button>
 
-              {showServerDropdown && (
-                <div className="absolute right-0 mt-3 w-full min-w-[240px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-1">
-                    <button
-                      onClick={() => { setSelectedServer(''); setShowServerDropdown(false); }}
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedServer ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
-                    >
-                      <span>All Cluster Nodes</span>
-                      {!selectedServer && <Check className="w-3.5 h-3.5" />}
-                    </button>
-                    {servers.map(s => (
+                {showServerDropdown && (
+                  <div className="absolute right-0 mt-3 w-full min-w-[200px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-1">
                       <button
-                        key={s.id}
-                        onClick={() => { setSelectedServer(s.id); setShowServerDropdown(false); }}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedServer === s.id ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                        onClick={() => { setSelectedServer(''); setShowServerDropdown(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedServer ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
                       >
-                        <span className="truncate">{s.name}</span>
-                        {selectedServer === s.id && <Check className="w-3.5 h-3.5" />}
+                        <span>All Cluster Nodes</span>
+                        {!selectedServer && <Check className="w-3.5 h-3.5" />}
                       </button>
-                    ))}
+                      {servers.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => { setSelectedServer(s.id); setShowServerDropdown(false); }}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedServer === s.id ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                        >
+                          <span className="truncate">{s.name}</span>
+                          {selectedServer === s.id && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-           </div>
+                )}
+             </div>
+          </div>
         </div>
+
+        {/* Owner Specific Filters */}
+        {isOwner && (
+          <div className="flex flex-wrap items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+             <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-[var(--accent-violet)]/10 border border-[var(--accent-violet)]/20">
+                <Filter className="w-4 h-4 text-[var(--accent-violet)]" />
+                <span className="text-[10px] font-black text-[var(--accent-violet)] uppercase tracking-widest">Enhanced Filters</span>
+             </div>
+
+             {/* User Dropdown */}
+             <div className="relative">
+                <button 
+                  onClick={() => { setShowUserDropdown(!showUserDropdown); setShowDateDropdown(false); setShowTimeDropdown(false); }}
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[180px] relative text-left"
+                >
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                  <span className="truncate">{selectedUserName}</span>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                </button>
+                {showUserDropdown && (
+                  <div className="absolute left-0 mt-3 w-full min-w-[200px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-1">
+                      <button
+                        onClick={() => { setSelectedUser(''); setShowUserDropdown(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedUser ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        <span>All Operators</span>
+                      </button>
+                      {teamUsers.map(u => (
+                        <button
+                          key={u.id}
+                          onClick={() => { setSelectedUser(u.id); setShowUserDropdown(false); }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedUser === u.id ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                        >
+                          <span className="truncate">{u.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+             </div>
+
+             {/* Date Dropdown */}
+             <div className="relative">
+                <button 
+                  onClick={() => { setShowDateDropdown(!showDateDropdown); setShowUserDropdown(false); setShowTimeDropdown(false); }}
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[160px] relative text-left"
+                >
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                  <span className="truncate">{selectedDate || 'ALL DATES'}</span>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                </button>
+                {showDateDropdown && (
+                  <div className="absolute left-0 mt-3 w-full min-w-[180px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-1">
+                      <button
+                        onClick={() => { setSelectedDate(''); setShowDateDropdown(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedDate ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        <span>All Dates</span>
+                      </button>
+                      {uniqueDates.map(d => (
+                        <button
+                          key={d}
+                          onClick={() => { setSelectedDate(d); setShowDateDropdown(false); }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedDate === d ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                        >
+                          <span className="truncate">{d}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+             </div>
+
+             {/* Time Dropdown */}
+             <div className="relative">
+                <button 
+                  onClick={() => { setShowTimeDropdown(!showTimeDropdown); setShowUserDropdown(false); setShowDateDropdown(false); }}
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[140px] relative text-left"
+                >
+                  <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                  <span className="truncate">{selectedTime || 'ALL TIME'}</span>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                </button>
+                {showTimeDropdown && (
+                  <div className="absolute left-0 mt-3 w-full min-w-[160px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-1">
+                      <button
+                        onClick={() => { setSelectedTime(''); setShowTimeDropdown(false); }}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedTime ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                      >
+                        <span>All Time</span>
+                      </button>
+                      {timeSlots.map(t => (
+                        <button
+                          key={t}
+                          onClick={() => { setSelectedTime(t); setShowTimeDropdown(false); }}
+                          className={`w-full flex items-center justify-between px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedTime === t ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                        >
+                          <span className="truncate">{t} - {(parseInt(t) + 1).toString().padStart(2, '0')}:00</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+             </div>
+
+             <button 
+                onClick={() => { setSelectedUser(''); setSelectedDate(''); setSelectedTime(''); setSearchQuery(''); }}
+                className="ml-auto text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-white transition-colors"
+             >
+                Reset All
+             </button>
+          </div>
+        )}
       </div>
+
 
       {/* Top / Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
