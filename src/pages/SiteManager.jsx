@@ -8,6 +8,7 @@ import Modal from '../components/common/Modal';
 import CreateBackendSite from '../components/sites/CreateBackendSite';
 import CreateFrontendSite from '../components/sites/CreateFrontendSite';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 import { useAuth } from '../context/AuthContext';
 import RestrictedView from '../components/common/RestrictedView';
@@ -22,6 +23,8 @@ export default function SiteManager() {
   const [loading, setLoading] = useState(true);
   const [showBackendModal, setShowBackendModal] = useState(false);
   const [showFrontendModal, setShowFrontendModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [siteToDelete, setSiteToDelete] = useState(null);
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
 
@@ -42,11 +45,16 @@ export default function SiteManager() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  const handleDeleteSite = async (siteId) => {
+  const handleDeleteSite = (siteId) => {
     if (!isAdmin) return;
-    if (!confirm('Delete this site?')) return;
+    setSiteToDelete(siteId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteSite = async () => {
+    if (!siteToDelete) return;
     try {
-      await sitesAPI.delete(siteId);
+      await sitesAPI.delete(siteToDelete);
       fetchData();
     } catch (err) {
       console.error('Failed to delete site:', err);
@@ -68,6 +76,15 @@ export default function SiteManager() {
 
   return (
     <div>
+      <ConfirmModal 
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Delete Site"
+        message="Are you sure you want to permanently delete this site configuration?"
+        type="danger"
+        confirmText="Delete Site"
+        onConfirm={confirmDeleteSite}
+      />
       {/* Header */}
       <div className="flex items-center justify-between mb-12">
         <div className="flex items-center gap-6">

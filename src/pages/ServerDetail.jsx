@@ -17,6 +17,7 @@ import SSLManager from '../components/server/SSLManager';
 import AutomationManager from '../components/server/AutomationManager';
 
 import RestrictedView from '../components/common/RestrictedView';
+import AlertModal from '../components/common/AlertModal';
 
 const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files'];
 
@@ -30,6 +31,7 @@ export default function ServerDetail() {
   const [deleting, setDeleting] = useState(false);
   const { user } = useAuth();
   const { watchServer, unwatchServer, sendCommand, on, send, connected } = useWebSocket();
+  const [alertConfig, setAlertConfig] = useState({ open: false, title: '', message: '', type: 'error' });
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
 
@@ -71,7 +73,12 @@ export default function ServerDetail() {
       navigate('/');
     } catch (err) {
       console.error('Failed to delete server:', err);
-      alert('Failed to delete server. Please try again.');
+      setAlertConfig({
+        open: true,
+        title: 'Decommission Failed',
+        message: 'Could not remove the node from the registry. Please ensure all sessions are terminated and try again.',
+        type: 'error'
+      });
     } finally {
       setDeleting(false);
       setShowDeleteModal(false);
@@ -95,7 +102,12 @@ export default function ServerDetail() {
 
   const handleQuickAction = (action) => {
     if (!isAdmin) {
-      alert("This action is not available for your current authorization level.");
+      setAlertConfig({
+        open: true,
+        title: 'Access Restricted',
+        message: 'This action is not available for your current authorization level.',
+        type: 'error'
+      });
       return;
     }
     if (action === 'sites') navigate(`/servers/${id}/sites`);
@@ -104,6 +116,13 @@ export default function ServerDetail() {
 
   return (
     <div className="space-y-12">
+      <AlertModal 
+        isOpen={alertConfig.open} 
+        onClose={() => setAlertConfig({ ...alertConfig, open: false })} 
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+      />
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-8 border-b border-[var(--border-color)]">
         <div className="flex items-center gap-6">

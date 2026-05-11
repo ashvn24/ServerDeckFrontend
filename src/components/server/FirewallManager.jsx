@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Shield, Plus, Trash2, Loader2, RefreshCw, AlertCircle, X } from 'lucide-react';
+import ConfirmModal from '../common/ConfirmModal';
 
 export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
   const [rules, setRules] = useState([]);
@@ -7,6 +8,8 @@ export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newRule, setNewRule] = useState({ port: '', proto: 'tcp', action: 'allow' });
   const [actionLoading, setActionLoading] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [ruleToDelete, setRuleToDelete] = useState(null);
 
   const fetchRules = async () => {
     setLoading(true);
@@ -45,21 +48,38 @@ export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
     }
   };
 
-  const handleDeleteRule = async (ruleNumber) => {
-    setActionLoading(`delete-${ruleNumber}`);
+  const handleDeleteRule = (ruleNumber) => {
+    setRuleToDelete(ruleNumber);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteRule = async () => {
+    if (!ruleToDelete) return;
+    setActionLoading(`delete-${ruleToDelete}`);
     try {
-      const res = await sendCommand(serverId, 'firewall.delete', { rule_number: ruleNumber });
+      const res = await sendCommand(serverId, 'firewall.delete', { rule_number: ruleToDelete });
       if (res.error) throw new Error(res.error);
       fetchRules();
     } catch (err) {
       console.error('Failed to delete rule:', err);
     } finally {
       setActionLoading(null);
+      setShowDeleteConfirm(false);
+      setRuleToDelete(null);
     }
   };
 
   return (
     <div className="space-y-8">
+      <ConfirmModal 
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Delete Policy"
+        message="Are you sure you want to permanently delete this firewall policy?"
+        type="danger"
+        confirmText="Delete Policy"
+        onConfirm={confirmDeleteRule}
+      />
       <div className="glass-card p-10">
         <div className="flex items-center justify-between mb-12">
           <div className="flex items-center gap-6">

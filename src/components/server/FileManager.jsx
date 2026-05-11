@@ -6,6 +6,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { formatBytes } from '../../utils/formatters';
+import ConfirmModal from '../common/ConfirmModal';
 
 export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }) {
   const [path, setPath] = useState('/');
@@ -22,6 +23,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   const [newItemName, setNewItemName] = useState('');
   
   const [isUploading, setIsUploading] = useState(false);
+  const [confirmConfig, setConfirmConfig] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'warning' });
 
   const fetchFiles = useCallback(async (targetPath) => {
     if (!isOnline) return;
@@ -48,8 +50,18 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
 
   const navigateTo = (newPath) => {
     if (editingFile) {
-      if (!confirm('Discard unsaved changes?')) return;
-      setEditingFile(null);
+      setConfirmConfig({
+        open: true,
+        title: 'Unsaved Changes',
+        message: 'You have unsaved changes in the editor. Discard them and navigate?',
+        type: 'warning',
+        confirmText: 'Discard & Move',
+        onConfirm: () => {
+          setEditingFile(null);
+          fetchFiles(newPath);
+        }
+      });
+      return;
     }
     fetchFiles(newPath);
   };
@@ -86,13 +98,22 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   };
 
   const deleteItem = async (targetPath, isDir) => {
-    try {
-      const res = await sendCommand(serverId, 'files.delete', { path: targetPath });
-      if (res.error) throw new Error(res.error);
-      fetchFiles(path);
-    } catch (err) {
-      console.error('Delete failed:', err);
-    }
+    setConfirmConfig({
+      open: true,
+      title: 'Delete Object',
+      message: `Are you sure you want to permanently delete ${targetPath}?`,
+      type: 'danger',
+      confirmText: 'Delete Permanently',
+      onConfirm: async () => {
+        try {
+          const res = await sendCommand(serverId, 'files.delete', { path: targetPath });
+          if (res.error) throw new Error(res.error);
+          fetchFiles(path);
+        } catch (err) {
+          console.error('Delete failed:', err);
+        }
+      }
+    });
   };
 
   const createItem = async () => {
@@ -175,6 +196,15 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         ? 'fixed inset-0 z-[200] rounded-none border-none h-screen w-screen bg-[var(--bg-main)]' 
         : 'h-[700px]'
     }`}>
+      <ConfirmModal 
+        isOpen={confirmConfig.open}
+        onClose={() => setConfirmConfig({ ...confirmConfig, open: false })}
+        title={confirmConfig.title}
+        message={confirmConfig.message}
+        type={confirmConfig.type}
+        confirmText={confirmConfig.confirmText}
+        onConfirm={confirmConfig.onConfirm}
+      />
       
       {/* ── File Explorer Header ── */}
       <div className="p-8 border-b border-[var(--border-color)] space-y-8">

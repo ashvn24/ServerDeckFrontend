@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Users, Mail, Shield, Plus, Trash2, ShieldCheck, Loader2, X, LogOut } from 'lucide-react';
 import { usersAPI } from '../api/endpoints';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 export default function Settings() {
   const { user, logout } = useAuth();
@@ -17,6 +18,8 @@ export default function Settings() {
   const [createMode, setCreateMode] = useState('invite'); // 'invite' | 'direct'
   const [directName, setDirectName] = useState('');
   const [directPassword, setDirectPassword] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
   const isOwner = user?.role === 'owner';
@@ -66,10 +69,15 @@ export default function Settings() {
     }
   };
 
-  const handleDeleteUser = async (userId) => {
-    if (!confirm('Remove this operator from the team?')) return;
+  const handleDeleteUser = (userId) => {
+    setUserToDelete(userId);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
     try {
-      await usersAPI.delete(userId);
+      await usersAPI.delete(userToDelete);
       fetchUsers();
     } catch (err) {
       console.error('Failed to delete user');
@@ -83,6 +91,15 @@ export default function Settings() {
 
   return (
     <div className="max-w-6xl">
+      <ConfirmModal 
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        title="Remove Operator"
+        message="Are you sure you want to remove this operator from the team? They will lose all access immediately."
+        type="danger"
+        confirmText="Remove Operator"
+        onConfirm={confirmDeleteUser}
+      />
       <div className="mb-12">
         <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security & Team</h1>
         <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-4">Workspace authorization and operator management</p>
