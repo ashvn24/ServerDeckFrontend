@@ -4,11 +4,12 @@ import { useAuth } from '../../context/AuthContext';
 import { ChevronDown, Box, LogOut, User, Settings, Shield } from 'lucide-react';
 
 const NAV_LINKS = [
-  { name: 'Dashboard', path: '/' },
+  { name: 'Dashboard', path: '/dashboard' },
   { name: 'Servers', path: '/servers' },
   { name: 'Activity', path: '/activity' },
   { name: 'Settings', path: '/settings' },
 ];
+
 
 export default function TopNav() {
   const location = useLocation();
@@ -37,12 +38,13 @@ export default function TopNav() {
       <div className="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
         {/* Logo & Links */}
         <div className="flex items-center gap-12">
-          <Link to="/" className="flex items-center gap-4 group">
+          <Link to="/dashboard" className="flex items-center gap-4 group">
             <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
               <Box className="w-6 h-6 text-black" />
             </div>
             <span className="text-xl font-black tracking-tighter uppercase font-display text-white">ServerDeck</span>
           </Link>
+
 
           <div className="hidden md:flex items-center gap-10">
             {NAV_LINKS.map((link) => {

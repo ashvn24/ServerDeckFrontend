@@ -12,6 +12,8 @@ import SSLManager from './pages/SSLManager';
 import Settings from './pages/Settings';
 import InviteAccept from './pages/InviteAccept';
 import Activity from './pages/Activity';
+import Landing from './pages/Landing';
+
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -27,7 +29,9 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing />} />
+      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+
       <Route path="/invite" element={<InviteAccept />} />
       <Route
         element={
@@ -36,7 +40,8 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+
         <Route path="/servers" element={<ServerManagement />} />
         <Route path="/activity" element={<Activity />} />
         <Route path="/servers/:id" element={<ServerDetail />} />
@@ -46,6 +51,7 @@ function AppRoutes() {
         <Route path="/settings" element={<Settings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
+
     </Routes>
   );
 }

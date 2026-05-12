@@ -120,7 +120,7 @@ export default function Sidebar({ isOpen, onClose }) {
         <div>
           <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Main Console</p>
           <div className="space-y-1">
-            <NavLink to="/" end onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+            <NavLink to="/dashboard" end onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
               <LayoutDashboard className="w-4 h-4" /> Dashboard
             </NavLink>
             <NavLink to="/servers" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>

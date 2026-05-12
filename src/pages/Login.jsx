@@ -25,7 +25,7 @@ export default function Login() {
         await login(form.email, form.password);
         showToast('Authorization handshake successful. Welcome back.', 'success');
       }
-      navigate('/');
+      navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.detail || 'Handshake failed. Verify credentials.';
       setError(msg);
