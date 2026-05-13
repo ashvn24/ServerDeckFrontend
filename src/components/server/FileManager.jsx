@@ -104,6 +104,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
       message: `Are you sure you want to permanently delete ${targetPath}?`,
       type: 'danger',
       confirmText: 'Delete Permanently',
+      requiresVerification: true,
       onConfirm: async () => {
         try {
           const res = await sendCommand(serverId, 'files.delete', { path: targetPath });
@@ -204,6 +205,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         type={confirmConfig.type}
         confirmText={confirmConfig.confirmText}
         onConfirm={confirmConfig.onConfirm}
+        requiresVerification={confirmConfig.requiresVerification}
       />
       
       {/* ── File Explorer Header ── */}

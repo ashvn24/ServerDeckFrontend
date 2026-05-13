@@ -19,6 +19,7 @@ import AutomationManager from '../components/server/AutomationManager';
 
 import RestrictedView from '../components/common/RestrictedView';
 import AlertModal from '../components/common/AlertModal';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files'];
 
@@ -259,30 +260,16 @@ export default function ServerDetail() {
       </div>
 
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={() => !deleting && setShowDeleteModal(false)} />
-          <div className="glass-card w-full max-w-md relative z-10 overflow-hidden animate-in fade-in zoom-in duration-300 p-10 text-center">
-              <div className="w-20 h-20 bg-red-500/10 rounded-3xl flex items-center justify-center mb-8 mx-auto ring-1 ring-red-500/20">
-                <AlertTriangle className="w-10 h-10 text-red-500" />
-              </div>
-              <h3 className="text-3xl font-black uppercase tracking-tight mb-4 font-display">Delete Server?</h3>
-              <p className="text-[var(--text-secondary)] font-medium leading-relaxed mb-10">
-                This will permanently remove <span className="text-white font-bold">{server.name}</span>. 
-              </p>
-              
-              <div className="flex gap-4">
-                <button disabled={deleting} onClick={() => setShowDeleteModal(false)} className="flex-1 px-6 py-4 rounded-2xl bg-[var(--bg-card-hover)] text-white font-bold uppercase text-[10px] tracking-widest hover:bg-white/10 transition-all">
-                  Cancel
-                </button>
-                <button disabled={deleting} onClick={handleDeleteServer} className="flex-1 px-6 py-4 rounded-2xl bg-red-600 text-white font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20 hover:bg-red-700 transition-all active:scale-95">
-                  {deleting ? 'Processing...' : 'Yes, Delete'}
-                </button>
-              </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Decommission Node"
+        message={`You are about to permanently decommission ${server.name}.`}
+        type="danger"
+        confirmText={deleting ? "Processing..." : "Confirm Decommission"}
+        onConfirm={handleDeleteServer}
+        requiresVerification={true}
+      />
     </div>
   );
 }

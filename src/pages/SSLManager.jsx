@@ -210,7 +210,8 @@ export default function SSLManager() {
                   </button>
                 </div>
               </div>
-            ))}
+            )
+          })}
         </div>
       )}
 

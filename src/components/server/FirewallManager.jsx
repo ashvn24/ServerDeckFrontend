@@ -79,6 +79,7 @@ export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
         type="danger"
         confirmText="Delete Policy"
         onConfirm={confirmDeleteRule}
+        requiresVerification={true}
       />
       <div className="glass-card p-10">
         <div className="flex items-center justify-between mb-12">

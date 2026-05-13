@@ -84,6 +84,7 @@ export default function SiteManager() {
         type="danger"
         confirmText="Delete Site"
         onConfirm={confirmDeleteSite}
+        requiresVerification={true}
       />
       {/* Header */}
       <div className="flex items-center justify-between mb-12">

@@ -5,7 +5,7 @@ import { Server, ArrowRight, Loader2 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 
 export default function Login() {
-  const [isRegister, setIsRegister] = useState(false);
+
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,13 +18,9 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      if (isRegister) {
-        await register(form.name, form.email, form.password);
-        showToast('Operator profile provisioned successfully.', 'success');
-      } else {
-        await login(form.email, form.password);
-        showToast('Authorization handshake successful. Welcome back.', 'success');
-      }
+      await login(form.email, form.password);
+      showToast('Authorization handshake successful. Welcome back.', 'success');
+
       navigate('/dashboard');
     } catch (err) {
       const msg = err.response?.data?.detail || 'Handshake failed. Verify credentials.';
@@ -55,10 +51,10 @@ export default function Login() {
         <div className="glass-card p-10">
           <div className="mb-10">
              <h2 className="text-2xl font-black text-white uppercase tracking-tight font-display">
-               {isRegister ? 'Provision Account' : 'Identify Operator'}
+               Login
              </h2>
              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
-               {isRegister ? 'Initialize a new operator profile' : 'Establish an encrypted session'}
+               Access your infrastructure
              </p>
           </div>
 
@@ -69,32 +65,20 @@ export default function Login() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {isRegister && (
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Identity Name</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  required
-                  className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
-                  placeholder="e.g. CORE-ADMIN-01"
-                />
-              </div>
-            )}
+
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email Protocol</label>
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 required
                 className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
-                placeholder="identity@portal.net"
+                placeholder="your@email.com"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Security Token</label>
+              <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Password</label>
               <input
                 type="password"
                 value={form.password}
@@ -114,21 +98,14 @@ export default function Login() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {isRegister ? 'Deploy Profile' : 'Authorize Handshake'}
+                  Sign In
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-10 text-center">
-            <button
-              onClick={() => { setIsRegister(!isRegister); setError(''); }}
-              className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest hover:text-white transition-colors"
-            >
-              {isRegister ? 'Returning Operator? Sign In' : 'New System Member? Provision Here'}
-            </button>
-          </div>
+
         </div>
 
         <div className="mt-12 text-center">
