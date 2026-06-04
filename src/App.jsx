@@ -15,6 +15,7 @@ import Activity from './pages/Activity';
 import Landing from './pages/Landing';
 
 
+
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
