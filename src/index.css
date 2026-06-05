@@ -161,10 +161,10 @@ body {
 
 /* Ticket page message bubble */
 .msg-bubble-user {
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   border-radius: 18px 18px 4px 18px;
   color: #fff;
-  box-shadow: 0 4px 20px rgba(99,102,241,0.2);
+  box-shadow: 0 4px 20px rgba(59,130,246,0.2);
 }
 .msg-bubble-other {
   background: rgba(255,255,255,0.04);
@@ -188,11 +188,104 @@ body {
 
 /* Global select override — prevent browser-default white background */
 select {
-  background-color: #0f1625;
-  color: #e2e8f0;
+  background-color: var(--bg-card-hover);
+  color: var(--text-primary);
   color-scheme: dark;
 }
 select option {
-  background-color: #0f1625;
-  color: #e2e8f0;
+  background-color: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+[data-theme='light'] select,
+[data-theme='light'] select option {
+  color-scheme: light;
+}
+
+/* ─── Light theme — iOS / Apple system colors ───────────────────── */
+/* Dark is the default (variables in :root). Light mode adopts an iOS
+   look: systemGroupedBackground chrome, white cards, systemBlue accent,
+   hairline separators and soft layered shadows. `:not([class*="bg-"])`
+   keeps white text legible on saturated colored buttons/badges. */
+[data-theme='light'] {
+  --bg-main: #f2f2f7;            /* systemGroupedBackground */
+  --bg-card: #ffffff;           /* secondarySystemGroupedBackground */
+  --bg-card-hover: #eaeaef;     /* tertiary fill */
+  --accent-mint: #34c759;       /* systemGreen */
+  --accent-violet: #af52de;     /* systemPurple */
+  --text-primary: #1d1d1f;      /* label */
+  --text-secondary: #6e6e73;    /* secondaryLabel */
+  --border-color: rgba(60, 60, 67, 0.29); /* separator */
+  --ios-blue: #007aff;          /* systemBlue */
+  --ios-blue-hover: #0a6cdb;
+}
+
+/* smooth transition when switching themes */
+body { transition: background-color 0.3s ease, color 0.3s ease; }
+
+/* neutral text → iOS label / system gray scale */
+[data-theme='light'] .text-white:not([class*="bg-"]) { color: #1d1d1f; }
+[data-theme='light'] .text-gray-100:not([class*="bg-"]),
+[data-theme='light'] .text-gray-200:not([class*="bg-"]),
+[data-theme='light'] .text-gray-300:not([class*="bg-"]) { color: #3a3a3c; }
+[data-theme='light'] .text-gray-400 { color: #6e6e73; }
+[data-theme='light'] .text-gray-500 { color: #8e8e93; }  /* systemGray */
+[data-theme='light'] .text-gray-600 { color: #aeaeb2; }  /* systemGray2 */
+
+/* translucent white fills → iOS gray fills (systemGray base) */
+[data-theme='light'] .bg-white\/2,
+[data-theme='light'] .bg-white\/3 { background-color: rgba(120, 120, 128, 0.05); }
+[data-theme='light'] .bg-white\/5 { background-color: rgba(120, 120, 128, 0.08); }
+[data-theme='light'] .bg-white\/8 { background-color: rgba(120, 120, 128, 0.12); }
+[data-theme='light'] .bg-white\/10 { background-color: rgba(120, 120, 128, 0.16); }
+[data-theme='light'] .hover\:bg-white\/5:hover { background-color: rgba(120, 120, 128, 0.10); }
+[data-theme='light'] .hover\:bg-white\/8:hover { background-color: rgba(120, 120, 128, 0.14); }
+[data-theme='light'] .hover\:bg-white\/10:hover { background-color: rgba(120, 120, 128, 0.18); }
+
+/* white-ish borders → iOS hairline separators */
+[data-theme='light'] .border-white\/5 { border-color: rgba(60, 60, 67, 0.18); }
+[data-theme='light'] .border-white\/8 { border-color: rgba(60, 60, 67, 0.24); }
+[data-theme='light'] .border-white\/10 { border-color: rgba(60, 60, 67, 0.29); }
+
+/* soft, layered iOS card shadow */
+[data-theme='light'] .glass-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+[data-theme='light'] .glass-card:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06), 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Blue accents (primary + indigo utilities) → iOS systemBlue ── */
+[data-theme='light'] .bg-primary-500,
+[data-theme='light'] .bg-indigo-500 { background-color: var(--ios-blue); }
+[data-theme='light'] .hover\:bg-primary-600:hover,
+[data-theme='light'] .hover\:bg-indigo-600:hover { background-color: var(--ios-blue-hover); }
+[data-theme='light'] .text-primary-400,
+[data-theme='light'] .text-primary-500,
+[data-theme='light'] .text-indigo-400 { color: var(--ios-blue); }
+[data-theme='light'] .bg-primary-500\/5 { background-color: rgba(0, 122, 255, 0.06); }
+[data-theme='light'] .bg-primary-500\/10,
+[data-theme='light'] .bg-indigo-500\/10 { background-color: rgba(0, 122, 255, 0.10); }
+[data-theme='light'] .border-primary-500\/20,
+[data-theme='light'] .border-indigo-500\/20 { border-color: rgba(0, 122, 255, 0.22); }
+[data-theme='light'] .border-l-primary-500 { border-left-color: var(--ios-blue); }
+[data-theme='light'] .focus\:border-primary-500\/40:focus,
+[data-theme='light'] .focus\:border-primary-500\/50:focus,
+[data-theme='light'] .focus\:border-primary-500\/60:focus,
+[data-theme='light'] .focus-within\:border-primary-500\/40:focus-within {
+  border-color: rgba(0, 122, 255, 0.5);
+}
+[data-theme='light'] .shadow-primary-500\/20,
+[data-theme='light'] .shadow-primary-500\/15 {
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.25);
+}
+
+/* ── Ticket chat bubbles → iOS Messages style ── */
+[data-theme='light'] .msg-bubble-user {
+  background: linear-gradient(180deg, #2a9bff 0%, #007aff 100%);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+}
+[data-theme='light'] .msg-bubble-other {
+  background: #e9e9eb;            /* iOS incoming bubble */
+  border-color: transparent;
+  color: #1d1d1f;
 }

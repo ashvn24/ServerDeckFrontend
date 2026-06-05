@@ -657,18 +657,18 @@ const Landing = () => {
 
           <div>
             <div className="ld-footer-col-title">Resources</div>
-            <a href="#" className="ld-footer-link">Documentation</a>
-            <a href="#" className="ld-footer-link">API Reference</a>
+            <Link to="/documentation" className="ld-footer-link">Documentation</Link>
+            <Link to="/api-reference" className="ld-footer-link">API Reference</Link>
             <a href="#" className="ld-footer-link">Status Page</a>
             <a href="#" className="ld-footer-link">Blog</a>
           </div>
 
           <div>
             <div className="ld-footer-col-title">Company</div>
-            <a href="#" className="ld-footer-link">About</a>
-            <a href="#" className="ld-footer-link">Security</a>
-            <a href="#" className="ld-footer-link">Privacy Policy</a>
-            <a href="#" className="ld-footer-link">Terms</a>
+            <Link to="/about" className="ld-footer-link">About</Link>
+            <Link to="/security" className="ld-footer-link">Security</Link>
+            <Link to="/privacy" className="ld-footer-link">Privacy Policy</Link>
+            <Link to="/terms" className="ld-footer-link">Terms</Link>
           </div>
         </div>
 

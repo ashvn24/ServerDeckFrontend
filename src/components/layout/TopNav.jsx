@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ChevronDown, Box, LogOut, User, Settings, Shield, LifeBuoy } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { ChevronDown, Box, LogOut, User, Settings, Shield, LifeBuoy, Sun, Moon } from 'lucide-react';
 
 const ALL_NAV_LINKS = [
   { name: 'Dashboard', path: '/dashboard', supportHidden: true },
@@ -16,6 +17,7 @@ export default function TopNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, isPlatformOwner, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -39,7 +41,7 @@ export default function TopNav() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-[100] bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-color)]">
-      <div className="max-w-[1400px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+      <div className="px-6 md:px-12 h-20 flex items-center justify-between">
         {/* Logo & Links */}
         <div className="flex items-center gap-12">
           <Link to="/dashboard" className="flex items-center gap-4 group">
@@ -70,8 +72,22 @@ export default function TopNav() {
           </div>
         </div>
 
-        {/* User Profile */}
-        <div className="relative" ref={dropdownRef}>
+        {/* Right cluster: theme toggle + profile */}
+        <div className="flex items-center gap-3">
+          {/* Theme toggle (dark is default) */}
+          <button
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center border border-[var(--border-color)] bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/10 transition-all"
+          >
+            {theme === 'dark'
+              ? <Sun className="w-[18px] h-[18px]" />
+              : <Moon className="w-[18px] h-[18px]" />}
+          </button>
+
+          {/* User Profile */}
+          <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setShowDropdown(!showDropdown)}
             className={`flex items-center gap-4 p-2 rounded-2xl transition-all border ${
@@ -137,6 +153,7 @@ export default function TopNav() {
                </div>
             </div>
           )}
+          </div>
         </div>
       </div>
     </nav>

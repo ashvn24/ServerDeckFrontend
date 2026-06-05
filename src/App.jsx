@@ -1,7 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/layout/Layout';
+import ScrollToTop from './components/layout/ScrollToTop';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ServerManagement from './pages/ServerManagement';
@@ -15,6 +17,12 @@ import Activity from './pages/Activity';
 import Landing from './pages/Landing';
 import Organizations from './pages/Organizations';
 import Tickets from './pages/Tickets';
+import ApiReference from './pages/ApiReference';
+import Documentation from './pages/Documentation';
+import About from './pages/About';
+import Security from './pages/Security';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 
 
 
@@ -58,6 +66,12 @@ function AppRoutes() {
       <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
 
       <Route path="/invite" element={<InviteAccept />} />
+      <Route path="/api-reference" element={<ApiReference />} />
+      <Route path="/documentation" element={<Documentation />} />
+      <Route path="/about" element={<About />} />
+      <Route path="/security" element={<Security />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route
         element={
           <ProtectedRoute>
@@ -90,10 +104,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
-        <NotificationProvider>
-          <AppRoutes />
-        </NotificationProvider>
+        <ThemeProvider>
+          <NotificationProvider>
+            <AppRoutes />
+          </NotificationProvider>
+        </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>
   );

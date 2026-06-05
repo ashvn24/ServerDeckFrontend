@@ -18,7 +18,7 @@ function priorityMeta(p) {
   switch (p) {
     case 'Urgent': return { cls: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',   dot: 'bg-rose-400' };
     case 'High':   return { cls: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', dot: 'bg-amber-400' };
-    case 'Medium': return { cls: 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20', dot: 'bg-indigo-400' };
+    case 'Medium': return { cls: 'bg-primary-500/10 text-primary-400 border border-primary-500/20', dot: 'bg-primary-400' };
     default:       return { cls: 'bg-slate-500/10 text-slate-400 border border-slate-600/20',  dot: 'bg-slate-500' };
   }
 }
@@ -200,21 +200,21 @@ export default function Tickets() {
 
   /* ═══════════════════════════════════════════════════════════════ */
   return (
-    <div className="flex h-[calc(100vh-88px)] gap-0 overflow-hidden rounded-2xl border border-white/5" style={{ background: '#080c18' }}>
+    <div className="fixed top-20 left-0 right-0 bottom-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ background: 'var(--bg-main)' }}>
 
       {/* ══ LEFT: Ticket List ══════════════════════════════════════ */}
-      <aside className="w-72 flex-shrink-0 flex flex-col border-r border-white/5" style={{ background: '#0a0f1e' }}>
+      <aside className="w-72 flex-shrink-0 flex flex-col border-r border-white/5" style={{ background: 'var(--bg-card)' }}>
 
         {/* header */}
         <div className="px-4 pt-5 pb-3 border-b border-white/5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <LifeBuoy className="w-4 h-4 text-indigo-400" />
+              <LifeBuoy className="w-4 h-4 text-primary-400" />
               <h2 className="text-sm font-black uppercase tracking-widest text-white">Service Desk</h2>
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="w-7 h-7 rounded-lg bg-indigo-500 hover:bg-indigo-600 flex items-center justify-center text-white transition-colors shadow-lg shadow-indigo-500/20"
+              className="w-7 h-7 rounded-lg bg-primary-500 hover:bg-primary-600 flex items-center justify-center text-white transition-colors shadow-lg shadow-primary-500/20"
               title="New ticket"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -229,8 +229,8 @@ export default function Tickets() {
               placeholder="Search tickets…"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full border border-white/8 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/40 transition-colors"
-              style={{ background: '#131929' }}
+              className="w-full border border-white/8 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/40 transition-colors"
+              style={{ background: 'var(--bg-card-hover)' }}
             />
           </div>
 
@@ -239,20 +239,20 @@ export default function Tickets() {
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="flex-1 appearance-none border border-white/8 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-indigo-500/50 transition-colors"
-              style={{ background: '#131929' }}
+              className="flex-1 appearance-none border border-white/8 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-primary-500/50 transition-colors"
+              style={{ background: 'var(--bg-card-hover)' }}
             >
-              <option value="" style={{ background: '#131929' }}>All Status</option>
-              {STATUSES.map(s => <option key={s} value={s} style={{ background: '#131929' }}>{s}</option>)}
+              <option value="" style={{ background: 'var(--bg-card-hover)' }}>All Status</option>
+              {STATUSES.map(s => <option key={s} value={s} style={{ background: 'var(--bg-card-hover)' }}>{s}</option>)}
             </select>
             <select
               value={priorityFilter}
               onChange={e => setPriorityFilter(e.target.value)}
-              className="flex-1 appearance-none border border-white/8 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-indigo-500/50 transition-colors"
-              style={{ background: '#131929' }}
+              className="flex-1 appearance-none border border-white/8 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-primary-500/50 transition-colors"
+              style={{ background: 'var(--bg-card-hover)' }}
             >
-              <option value="" style={{ background: '#131929' }}>All Priority</option>
-              {PRIORITIES.map(p => <option key={p} value={p} style={{ background: '#131929' }}>{p}</option>)}
+              <option value="" style={{ background: 'var(--bg-card-hover)' }}>All Priority</option>
+              {PRIORITIES.map(p => <option key={p} value={p} style={{ background: 'var(--bg-card-hover)' }}>{p}</option>)}
             </select>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function Tickets() {
                 onClick={() => setSelectedId(t.id)}
                 className={`w-full text-left px-3 py-3 border-l-2 transition-all relative group
                   ${active
-                    ? 'border-l-indigo-500 bg-indigo-500/5'
+                    ? 'border-l-primary-500 bg-primary-500/5'
                     : 'border-l-transparent hover:border-l-white/10 hover:bg-white/3'}`}
               >
                 <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -298,7 +298,7 @@ export default function Tickets() {
                   </span>
                 </div>
                 {t.assigned_to && (
-                  <div className="flex items-center gap-1 mt-1.5 text-[10px] text-indigo-400 font-medium">
+                  <div className="flex items-center gap-1 mt-1.5 text-[10px] text-primary-400 font-medium">
                     <UserCheck className="w-3 h-3" />{t.assigned_to.name}
                   </div>
                 )}
@@ -332,7 +332,7 @@ export default function Tickets() {
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="mt-2 flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-indigo-500/20"
+              className="mt-2 flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-primary-500/20"
             >
               <Plus className="w-3.5 h-3.5" /> New Ticket
             </button>
@@ -367,7 +367,7 @@ export default function Tickets() {
             <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-5 space-y-4">
 
               {/* original description */}
-              <div className="rounded-2xl border border-indigo-500/10 p-4" style={{ background: 'rgba(99,102,241,0.04)' }}>
+              <div className="rounded-2xl border border-primary-500/10 p-4" style={{ background: 'rgba(59,130,246,0.04)' }}>
                 <div className="flex items-center gap-3 mb-3">
                   <Avatar name={selectedTicket.created_by?.name} role={selectedTicket.created_by?.role} />
                   <div>
@@ -448,8 +448,8 @@ export default function Tickets() {
                   </label>
                 )}
                 <div
-                  className={`flex items-end gap-2 rounded-xl border px-3 py-2 transition-colors ${isInternal ? 'border-amber-500/20' : 'border-white/8 focus-within:border-indigo-500/40'}`}
-                  style={{ background: isInternal ? 'rgba(245,158,11,0.04)' : '#0f1625' }}
+                  className={`flex items-end gap-2 rounded-xl border px-3 py-2 transition-colors ${isInternal ? 'border-amber-500/20' : 'border-white/8 focus-within:border-primary-500/40'}`}
+                  style={{ background: isInternal ? 'rgba(245,158,11,0.04)' : '#1c1c1c' }}
                 >
                   <textarea
                     placeholder={isInternal ? 'Write an internal note…' : 'Type a reply… (Shift+Enter for newline)'}
@@ -467,7 +467,7 @@ export default function Tickets() {
                     className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white transition-all
                       ${isInternal
                         ? 'bg-amber-500 hover:bg-amber-600 disabled:opacity-30'
-                        : 'bg-indigo-500 hover:bg-indigo-600 disabled:opacity-30'}`}
+                        : 'bg-primary-500 hover:bg-primary-600 disabled:opacity-30'}`}
                   >
                     <Send className="w-3.5 h-3.5" />
                   </button>
@@ -479,7 +479,7 @@ export default function Tickets() {
       </main>
 
       {/* ══ RIGHT: Properties Panel ════════════════════════════════ */}
-      <aside className="w-60 flex-shrink-0 flex flex-col border-l border-white/5" style={{ background: '#0a0f1e' }}>
+      <aside className="w-60 flex-shrink-0 flex flex-col border-l border-white/5" style={{ background: 'var(--bg-card)' }}>
         {selectedTicket ? (
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 pb-3 border-b border-white/5">Ticket Properties</h4>
@@ -492,10 +492,10 @@ export default function Tickets() {
               <select
                 value={selectedTicket.status}
                 onChange={e => handleProp('status', e.target.value)}
-                className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-indigo-500/60 transition-colors"
-                style={{ background: '#0f1625' }}
+                className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary-500/60 transition-colors"
+                style={{ background: 'var(--bg-card-hover)' }}
               >
-                {STATUSES.map(s => <option key={s} value={s} style={{ background: '#0f1625' }}>{s}</option>)}
+                {STATUSES.map(s => <option key={s} value={s} style={{ background: 'var(--bg-card-hover)' }}>{s}</option>)}
               </select>
             </div>
 
@@ -508,10 +508,10 @@ export default function Tickets() {
                 value={selectedTicket.priority}
                 onChange={e => handleProp('priority', e.target.value)}
                 disabled={!isSupportStaff}
-                className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-indigo-500/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: '#0f1625' }}
+                className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary-500/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: 'var(--bg-card-hover)' }}
               >
-                {PRIORITIES.map(p => <option key={p} value={p} style={{ background: '#0f1625' }}>{p}</option>)}
+                {PRIORITIES.map(p => <option key={p} value={p} style={{ background: 'var(--bg-card-hover)' }}>{p}</option>)}
               </select>
             </div>
 
@@ -524,20 +524,20 @@ export default function Tickets() {
                 <select
                   value={selectedTicket.assigned_to_id ?? 'unassigned'}
                   onChange={e => handleProp('assigned_to_id', e.target.value)}
-                  className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-indigo-500/60 transition-colors"
-                  style={{ background: '#0f1625' }}
+                  className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary-500/60 transition-colors"
+                  style={{ background: 'var(--bg-card-hover)' }}
                 >
-                  <option value="unassigned" style={{ background: '#0f1625' }}>Unassigned</option>
+                  <option value="unassigned" style={{ background: 'var(--bg-card-hover)' }}>Unassigned</option>
                   {teamUsers
                     .filter(u => ['owner','admin','support'].includes(u.role))
                     .map(u => (
-                      <option key={u.id} value={u.id} style={{ background: '#0f1625' }}>
+                      <option key={u.id} value={u.id} style={{ background: 'var(--bg-card-hover)' }}>
                         {u.name} ({u.role})
                       </option>
                   ))}
                 </select>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2 border border-white/8 rounded-lg" style={{ background: '#0f1625' }}>
+                <div className="flex items-center gap-2 px-3 py-2 border border-white/8 rounded-lg" style={{ background: 'var(--bg-card-hover)' }}>
                   <User className="w-3.5 h-3.5 text-gray-500" />
                   <span className="text-xs text-gray-300 font-medium">
                     {selectedTicket.assigned_to?.name ?? 'Unassigned'}
@@ -561,13 +561,13 @@ export default function Tickets() {
                     }
                   }}
                   className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-rose-500/40 transition-colors"
-                  style={{ background: '#0f1625' }}
+                  style={{ background: 'var(--bg-card-hover)' }}
                 >
-                  <option value="" style={{ background: '#0f1625' }}>Choose agent…</option>
+                  <option value="" style={{ background: 'var(--bg-card-hover)' }}>Choose agent…</option>
                   {teamUsers
                     .filter(u => ['owner','admin'].includes(u.role) && u.id !== selectedTicket.assigned_to_id)
                     .map(u => (
-                      <option key={u.id} value={u.id} style={{ background: '#0f1625' }}>
+                      <option key={u.id} value={u.id} style={{ background: 'var(--bg-card-hover)' }}>
                         ↑ {u.name} ({u.role})
                       </option>
                   ))}
@@ -625,11 +625,11 @@ export default function Tickets() {
       {/* ══ Create Ticket Modal ════════════════════════════════════ */}
       {showCreate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[#0d1120] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+          <div className="bg-[var(--bg-card)] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
             {/* modal header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
               <div className="flex items-center gap-2">
-                <LifeBuoy className="w-4 h-4 text-indigo-400" />
+                <LifeBuoy className="w-4 h-4 text-primary-400" />
                 <h3 className="text-sm font-black text-white uppercase tracking-widest">Raise New Issue</h3>
               </div>
               <button
@@ -650,8 +650,8 @@ export default function Tickets() {
                   placeholder="Brief summary of the issue…"
                   value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  className="w-full border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition-colors"
-                  style={{ background: '#0f1625' }}
+                  className="w-full border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 transition-colors"
+                  style={{ background: 'var(--bg-card-hover)' }}
                 />
               </div>
 
@@ -663,8 +663,8 @@ export default function Tickets() {
                   placeholder="Describe the issue in detail, including steps to reproduce, error messages, and expected vs actual behavior…"
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  className="w-full border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500/50 transition-colors resize-none"
-                  style={{ background: '#0f1625' }}
+                  className="w-full border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 transition-colors resize-none"
+                  style={{ background: 'var(--bg-card-hover)' }}
                 />
               </div>
 
@@ -673,10 +673,10 @@ export default function Tickets() {
                 <select
                   value={form.priority}
                   onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
-                  className="w-full appearance-none border border-white/10 rounded-xl py-2.5 px-3 text-sm text-gray-100 focus:outline-none focus:border-indigo-500/50 transition-colors"
-                  style={{ background: '#0f1625' }}
+                  className="w-full appearance-none border border-white/10 rounded-xl py-2.5 px-3 text-sm text-gray-100 focus:outline-none focus:border-primary-500/50 transition-colors"
+                  style={{ background: 'var(--bg-card-hover)' }}
                 >
-                  {PRIORITIES.map(p => <option key={p} value={p} style={{ background: '#0f1625' }}>{p}</option>)}
+                  {PRIORITIES.map(p => <option key={p} value={p} style={{ background: 'var(--bg-card-hover)' }}>{p}</option>)}
                 </select>
               </div>
 
@@ -691,7 +691,7 @@ export default function Tickets() {
                 <button
                   type="submit"
                   disabled={!form.title.trim() || !form.description.trim() || creating}
-                  className="flex-1 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:pointer-events-none text-xs font-bold text-white transition-colors uppercase tracking-widest shadow-lg shadow-indigo-500/15"
+                  className="flex-1 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:pointer-events-none text-xs font-bold text-white transition-colors uppercase tracking-widest shadow-lg shadow-primary-500/15"
                 >
                   {creating ? 'Submitting…' : 'Submit Issue'}
                 </button>
