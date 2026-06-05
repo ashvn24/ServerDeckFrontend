@@ -56,3 +56,21 @@ export const usersAPI = {
 export const auditAPI = {
   list: (serverId, limit = 50) => client.get(`/audit/?server_id=${serverId || ''}&limit=${limit}`),
 };
+
+// Admin (Platform Owner)
+export const adminAPI = {
+  setup: (data) => client.post('/admin/setup', null, { params: data }),
+  listOrgs: () => client.get('/admin/organizations'),
+  createOrg: (data) => client.post('/admin/organizations', data),
+  deleteOrg: (id) => client.delete(`/admin/organizations/${id}`),
+};
+
+// Tickets
+export const ticketsAPI = {
+  list: (status, priority) => client.get('/tickets/', { params: { status_filter: status, priority_filter: priority } }),
+  create: (data) => client.post('/tickets/', data),
+  get: (id) => client.get(`/tickets/${id}`),
+  update: (id, data) => client.patch(`/tickets/${id}`, data),
+  addMessage: (id, data) => client.post(`/tickets/${id}/messages`, data),
+};
+

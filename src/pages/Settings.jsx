@@ -23,6 +23,7 @@ export default function Settings() {
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
   const isOwner = user?.role === 'owner';
+  const isSupport = user?.role === 'support';
 
   const fetchUsers = async () => {
     if (!isAdmin) return;
@@ -119,7 +120,9 @@ export default function Settings() {
               <div className="mt-4">
                  <span className={`inline-flex items-center px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest ${
                     user?.role === 'owner' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/10' : 
-                    user?.role === 'admin' ? 'bg-violet-500/10 text-violet-500 border border-violet-500/10' : 'bg-white/5 text-[var(--text-secondary)]'
+                    user?.role === 'admin' ? 'bg-violet-500/10 text-violet-500 border border-violet-500/10' :
+                    user?.role === 'support' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/10' :
+                    'bg-white/5 text-[var(--text-secondary)] border border-white/5'
                  }`}>
                     {user?.role}
                  </span>
@@ -194,7 +197,9 @@ export default function Settings() {
                       <div className="flex items-center justify-between sm:justify-end gap-6">
                         <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg ${
                           u.role === 'owner' ? 'bg-amber-500/10 text-amber-500 border border-amber-500/10' :
-                          u.role === 'admin' ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/10' : 'bg-white/5 text-[var(--text-secondary)] border border-white/5'
+                          u.role === 'admin' ? 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/10' :
+                          u.role === 'support' ? 'bg-sky-500/10 text-sky-400 border border-sky-500/10' :
+                          'bg-white/5 text-[var(--text-secondary)] border border-white/5'
                         }`}>
                           {u.role}
                         </span>
@@ -287,8 +292,9 @@ export default function Settings() {
                     value={inviteRole}
                     onChange={e => setInviteRole(e.target.value)}
                   >
-                    <option value="member">MEMBER (VIEW SCOPE)</option>
-                    <option value="admin">ADMIN (FULL ACCESS)</option>
+                    <option value="member">MEMBER (View Scope)</option>
+                    <option value="support">SUPPORT (Tickets Only)</option>
+                    <option value="admin">ADMIN (Full Access)</option>
                   </select>
                 </div>
                 {createMode === 'direct' && (

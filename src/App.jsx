@@ -13,6 +13,8 @@ import Settings from './pages/Settings';
 import InviteAccept from './pages/InviteAccept';
 import Activity from './pages/Activity';
 import Landing from './pages/Landing';
+import Organizations from './pages/Organizations';
+import Tickets from './pages/Tickets';
 
 
 
@@ -23,15 +25,37 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
-function AppRoutes() {
+function PlatformOwnerRoute({ children }) {
+  const { user, isPlatformOwner, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!isPlatformOwner) return <Navigate to="/dashboard" replace />;
+  return children;
+}
+
+// Support users can only access /tickets
+function NonSupportRoute({ children }) {
   const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user?.role === 'support') return <Navigate to="/tickets" replace />;
+  return children;
+}
+
+function AppRoutes() {
+  const { user, isPlatformOwner, loading } = useAuth();
 
   if (loading) return null;
 
+  const defaultRoute = isPlatformOwner 
+    ? '/organizations' 
+    : user?.role === 'support' 
+      ? '/tickets' 
+      : '/dashboard';
+
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Landing />} />
-      <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+      <Route path="/" element={user ? <Navigate to={defaultRoute} replace /> : <Landing />} />
+      <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
 
       <Route path="/invite" element={<InviteAccept />} />
       <Route
@@ -41,15 +65,21 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<NonSupportRoute><Dashboard /></NonSupportRoute>} />
 
-        <Route path="/servers" element={<ServerManagement />} />
-        <Route path="/activity" element={<Activity />} />
-        <Route path="/servers/:id" element={<ServerDetail />} />
-        <Route path="/servers/:id/sites" element={<SiteManager />} />
-        <Route path="/servers/:id/logs" element={<LogViewer />} />
-        <Route path="/servers/:id/ssl" element={<SSLManager />} />
-        <Route path="/settings" element={<Settings />} />
+        <Route path="/servers" element={<NonSupportRoute><ServerManagement /></NonSupportRoute>} />
+        <Route path="/activity" element={<NonSupportRoute><Activity /></NonSupportRoute>} />
+        <Route path="/servers/:id" element={<NonSupportRoute><ServerDetail /></NonSupportRoute>} />
+        <Route path="/servers/:id/sites" element={<NonSupportRoute><SiteManager /></NonSupportRoute>} />
+        <Route path="/servers/:id/logs" element={<NonSupportRoute><LogViewer /></NonSupportRoute>} />
+        <Route path="/servers/:id/ssl" element={<NonSupportRoute><SSLManager /></NonSupportRoute>} />
+        <Route path="/settings" element={<NonSupportRoute><Settings /></NonSupportRoute>} />
+        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/organizations" element={
+          <PlatformOwnerRoute>
+            <Organizations />
+          </PlatformOwnerRoute>
+        } />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
 

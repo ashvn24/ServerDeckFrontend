@@ -100,6 +100,14 @@ export function useWebSocket() {
     send({ type: 'unwatch', server_id: serverId });
   }, [send]);
 
+  const subscribeTicket = useCallback((ticketId) => {
+    send({ type: 'subscribe_ticket', ticket_id: ticketId });
+  }, [send]);
+
+  const unsubscribeTicket = useCallback((ticketId) => {
+    send({ type: 'unsubscribe_ticket', ticket_id: ticketId });
+  }, [send]);
+
   const sendCommand = useCallback((serverId, action, params = {}) => {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
@@ -123,5 +131,5 @@ export function useWebSocket() {
     };
   }, []);
 
-  return { connected, watchServer, unwatchServer, sendCommand, on, send };
+  return { connected, watchServer, unwatchServer, subscribeTicket, unsubscribeTicket, sendCommand, on, send };
 }

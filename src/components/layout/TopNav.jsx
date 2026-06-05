@@ -1,22 +1,26 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { ChevronDown, Box, LogOut, User, Settings, Shield } from 'lucide-react';
+import { ChevronDown, Box, LogOut, User, Settings, Shield, LifeBuoy } from 'lucide-react';
 
-const NAV_LINKS = [
-  { name: 'Dashboard', path: '/dashboard' },
-  { name: 'Servers', path: '/servers' },
-  { name: 'Activity', path: '/activity' },
-  { name: 'Settings', path: '/settings' },
+const ALL_NAV_LINKS = [
+  { name: 'Dashboard', path: '/dashboard', supportHidden: true },
+  { name: 'Servers', path: '/servers', supportHidden: true },
+  { name: 'Tickets', path: '/tickets', supportHidden: false },
+  { name: 'Activity', path: '/activity', supportHidden: true },
+  { name: 'Settings', path: '/settings', supportHidden: true },
 ];
 
 
 export default function TopNav() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, isPlatformOwner, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
+
+  const isSupport = user?.role === 'support';
+  const NAV_LINKS = isPlatformOwner ? [] : ALL_NAV_LINKS.filter(l => isSupport ? !l.supportHidden : true);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -75,11 +79,17 @@ export default function TopNav() {
             }`}
           >
             <div className="text-right hidden sm:block">
-              <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em]">Operator</p>
+              <p className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-[0.2em]">{
+                user?.role === 'support' ? 'Support Agent' : 'Operator'
+              }</p>
               <p className="text-xs font-black text-white uppercase tracking-tight">{user?.name || 'Authorized'}</p>
             </div>
             <div className="relative">
-              <div className="w-10 h-10 bg-[var(--accent-violet)] rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-violet-500/20 text-sm">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-white shadow-lg text-sm ${
+                user?.role === 'support' ? 'bg-sky-500 shadow-sky-500/20' :
+                user?.role === 'admin' ? 'bg-indigo-500 shadow-indigo-500/20' :
+                'bg-[var(--accent-violet)] shadow-violet-500/20'
+              }`}>
                 {user?.name?.charAt(0) || 'A'}
               </div>
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-[var(--bg-main)] rounded-full flex items-center justify-center p-0.5 border border-[var(--border-color)]">

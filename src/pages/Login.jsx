@@ -18,10 +18,12 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      const userData = await login(form.email, form.password);
       showToast('Authorization handshake successful. Welcome back.', 'success');
-
-      navigate('/dashboard');
+      
+      // Platform owner goes to organizations, org users go to dashboard
+      const isPO = localStorage.getItem('serverdeck_is_platform_owner') === 'true';
+      navigate(isPO ? '/organizations' : '/dashboard');
     } catch (err) {
       const msg = err.response?.data?.detail || 'Handshake failed. Verify credentials.';
       setError(msg);

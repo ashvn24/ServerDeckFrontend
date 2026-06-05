@@ -138,3 +138,61 @@ body {
 .modal-backdrop {
   backdrop-filter: blur(4px);
 }
+
+/* Custom scrollbar for panels */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,0.08) transparent;
+}
+.custom-scrollbar::-webkit-scrollbar {
+  display: block;
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* Ticket page message bubble */
+.msg-bubble-user {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  border-radius: 18px 18px 4px 18px;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(99,102,241,0.2);
+}
+.msg-bubble-other {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px 18px 18px 4px;
+  color: #d1d5db;
+}
+.msg-bubble-internal {
+  background: rgba(245,158,11,0.05);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: 12px;
+  color: #fbbf24;
+}
+
+/* Status & priority pill animations */
+@keyframes status-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(16,185,129,0); }
+}
+.status-open { animation: status-pulse 2.5s ease-in-out infinite; }
+
+/* Global select override — prevent browser-default white background */
+select {
+  background-color: #0f1625;
+  color: #e2e8f0;
+  color-scheme: dark;
+}
+select option {
+  background-color: #0f1625;
+  color: #e2e8f0;
+}

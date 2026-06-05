@@ -3,17 +3,20 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Settings, Server, Shield, 
   ChevronRight, ChevronDown, Folder, BarChart3,
-  Activity, Plus, Search
+  Activity, Plus, Search, Building2, LifeBuoy
 } from 'lucide-react';
 import { serversAPI, foldersAPI } from '../../api/endpoints';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Sidebar({ isOpen, onClose }) {
   const [folders, setFolders] = useState([]);
   const [servers, setServers] = useState([]);
   const [expandedFolders, setExpandedFolders] = useState(new Set());
   const location = useLocation();
+  const { isPlatformOwner, user } = useAuth();
 
   useEffect(() => {
+    if (isPlatformOwner) return; // Platform owner has no tenant data
     const fetchData = async () => {
       try {
         const [fRes, sRes] = await Promise.all([
@@ -27,7 +30,7 @@ export default function Sidebar({ isOpen, onClose }) {
       }
     };
     fetchData();
-  }, [location.pathname]);
+  }, [location.pathname, isPlatformOwner]);
 
   const toggleFolder = (id) => {
     const newExpanded = new Set(expandedFolders);
@@ -116,39 +119,72 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Main Nav */}
       <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-6 space-y-8">
         
-        {/* Dashboard Group */}
-        <div>
-          <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Main Console</p>
-          <div className="space-y-1">
-            <NavLink to="/dashboard" end onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
-              <LayoutDashboard className="w-4 h-4" /> Dashboard
-            </NavLink>
-            <NavLink to="/servers" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
-              <Server className="w-4 h-4" /> Management
-            </NavLink>
+        {/* Platform Owner Section */}
+        {isPlatformOwner && (
+          <div>
+            <p className="px-3 text-[10px] font-bold text-amber-500 uppercase tracking-widest mb-3">Platform</p>
+            <div className="space-y-1">
+              <NavLink to="/organizations" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-amber-500/10 text-amber-500 shadow-sm border border-amber-500/10' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                <Building2 className="w-4 h-4" /> Organizations
+              </NavLink>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Servers Group */}
-        <div>
-          <div className="flex items-center justify-between px-3 mb-3">
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Servers</p>
-            <button className="p-1 rounded-md hover:bg-white/10 text-gray-500 hover:text-white transition-colors">
-              <Plus className="w-3 h-3" />
-            </button>
+        {/* Dashboard Group — hidden for support users */}
+        {!isPlatformOwner && user?.role !== 'support' && (
+          <div>
+            <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Main Console</p>
+            <div className="space-y-1">
+              <NavLink to="/dashboard" end onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                <LayoutDashboard className="w-4 h-4" /> Dashboard
+              </NavLink>
+              <NavLink to="/servers" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                <Server className="w-4 h-4" /> Management
+              </NavLink>
+              <NavLink to="/tickets" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                <LifeBuoy className="w-4 h-4" /> Tickets
+              </NavLink>
+            </div>
           </div>
-          {renderTree()}
-        </div>
+        )}
 
-        {/* System Group */}
-        <div>
-          <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">System</p>
-          <div className="space-y-1">
-            <NavLink to="/settings" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
-              <Settings className="w-4 h-4" /> Settings
-            </NavLink>
+        {/* Support Agent — only sees tickets */}
+        {!isPlatformOwner && user?.role === 'support' && (
+          <div>
+            <p className="px-3 text-[10px] font-bold text-sky-500 uppercase tracking-widest mb-3">Support Desk</p>
+            <div className="space-y-1">
+              <NavLink to="/tickets" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-sky-500/10 text-sky-400 border border-sky-500/20' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                <LifeBuoy className="w-4 h-4" /> Tickets
+              </NavLink>
+            </div>
           </div>
-        </div>
+        )}
+
+        {/* Servers Group — hidden for support users */}
+        {!isPlatformOwner && user?.role !== 'support' && (
+          <div>
+            <div className="flex items-center justify-between px-3 mb-3">
+              <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Servers</p>
+              <button className="p-1 rounded-md hover:bg-white/10 text-gray-500 hover:text-white transition-colors">
+                <Plus className="w-3 h-3" />
+              </button>
+            </div>
+            {renderTree()}
+          </div>
+        )}
+
+        {/* System Group — hidden for support users */}
+        {!isPlatformOwner && user?.role !== 'support' && (
+          <div>
+            <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">System</p>
+            <div className="space-y-1">
+              <NavLink to="/settings" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                <Settings className="w-4 h-4" /> Settings
+              </NavLink>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Footer */}
