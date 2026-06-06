@@ -73,6 +73,7 @@ export default function Tickets() {
   const [searchQuery,    setSearchQuery]    = useState('');
   const [statusFilter,   setStatusFilter]   = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [showFilters,    setShowFilters]    = useState(false);
   const [msgBody,        setMsgBody]        = useState('');
   const [isInternal,     setIsInternal]     = useState(false);
   const [showCreate,     setShowCreate]     = useState(false);
@@ -80,6 +81,15 @@ export default function Tickets() {
   const [form,           setForm]           = useState({ title: '', description: '', priority: 'Medium' });
   const [sendingMsg,     setSendingMsg]     = useState(false);
   const [showProps,      setShowProps]      = useState(false);
+  const [closingProps,   setClosingProps]   = useState(false);
+
+  const handleCloseProps = useCallback(() => {
+    setClosingProps(true);
+    setTimeout(() => {
+      setShowProps(false);
+      setClosingProps(false);
+    }, 400);
+  }, []);
 
   const chatEndRef       = useRef(null);
   const selectedIdRef    = useRef(null);
@@ -210,36 +220,50 @@ export default function Tickets() {
             </button>
           </div>
 
-          <div className="space-y-3">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-              <input
-                type="text"
-                placeholder="SEARCH TICKETS..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl py-3 pl-11 pr-4 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all"
-              />
+          <div className="space-y-2">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                <input
+                  type="text"
+                  placeholder="SEARCH TICKETS..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl py-2.5 pl-9 pr-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all"
+                />
+              </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className={`w-[38px] shrink-0 rounded-xl border flex items-center justify-center transition-all ${
+                  showFilters || statusFilter || priorityFilter
+                    ? 'bg-[var(--accent-mint)]/10 border-[var(--accent-mint)]/20 text-[var(--accent-mint)]'
+                    : 'bg-[var(--bg-card-hover)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                }`}
+              >
+                <Filter className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="flex gap-2">
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value)}
-                className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
-              >
-                <option value="">ALL STATUS</option>
-                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <select
-                value={priorityFilter}
-                onChange={e => setPriorityFilter(e.target.value)}
-                className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
-              >
-                <option value="">ALL PRIORITY</option>
-                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
-              </select>
-            </div>
+            {showFilters && (
+              <div className="flex gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value)}
+                  className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
+                >
+                  <option value="">ALL STATUS</option>
+                  {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                </select>
+                <select
+                  value={priorityFilter}
+                  onChange={e => setPriorityFilter(e.target.value)}
+                  className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
+                >
+                  <option value="">ALL PRIORITY</option>
+                  {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -289,12 +313,6 @@ export default function Tickets() {
           })}
         </div>
 
-        <div className="p-4 border-t border-[var(--border-color)] flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] bg-[var(--bg-card-hover)]">
-          <span>{tickets.filter(t => t.status === 'Open').length} OPEN TICKETS</span>
-          <button onClick={fetchTickets} className="p-2 rounded-lg hover:bg-white/10 hover:text-[var(--text-primary)] transition-all">
-            <RefreshCw className="w-4 h-4" />
-          </button>
-        </div>
       </aside>
 
       {/* MIDDLE: Conversation */}
@@ -326,7 +344,7 @@ export default function Tickets() {
             {/* Chat Header */}
             <div className="px-4 md:px-6 py-4 md:py-5 border-b border-[var(--border-color)] flex items-center gap-4 bg-[var(--bg-card-hover)]">
               <button
-                onClick={() => { setSelectedId(null); setShowProps(false); }}
+                onClick={() => { setSelectedId(null); handleCloseProps(); }}
                 className="lg:hidden p-2 -ml-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -477,14 +495,14 @@ export default function Tickets() {
       </main>
 
       {/* RIGHT: Properties Panel */}
-      {showProps && (
-        <div className="lg:hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm" onClick={() => setShowProps(false)} />
+      {(showProps || closingProps) && (
+        <div className={`lg:hidden absolute inset-0 z-[200] bg-black/80 backdrop-blur-sm ${closingProps ? 'animate-out fade-out' : 'animate-in fade-in'}`} onClick={handleCloseProps} />
       )}
-      <aside className={`${showProps ? 'fixed inset-y-0 right-0 z-[210] w-80 shadow-2xl border-l border-[var(--border-color)] bg-[var(--bg-main)]' : 'hidden'} lg:flex lg:static lg:w-72 lg:shadow-none lg:border-l lg:border-[var(--border-color)] lg:bg-[var(--bg-card)] flex-shrink-0 flex-col`}>
+      <aside className={`${(showProps || closingProps) ? `absolute inset-y-0 right-0 z-[210] w-80 shadow-2xl border-l border-[var(--border-color)] bg-[var(--bg-main)] ${closingProps ? 'animate-out slide-out-to-right-full' : 'animate-in slide-in-from-right-full'}` : 'hidden'} lg:flex lg:static lg:w-72 lg:shadow-none lg:border-l lg:border-[var(--border-color)] lg:bg-[var(--bg-card)] flex-shrink-0 flex-col`}>
         <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between">
           <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Ticket Details</h4>
           <button
-            onClick={() => setShowProps(false)}
+            onClick={handleCloseProps}
             className="lg:hidden p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
           >
             <X className="w-4 h-4" />

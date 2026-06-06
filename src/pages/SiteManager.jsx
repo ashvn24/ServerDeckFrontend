@@ -90,35 +90,35 @@ export default function SiteManager() {
         requiresVerification={true}
       />
       {/* Header */}
-      <div className="flex items-center justify-between mb-12">
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate(`/servers/${serverId}`)} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
-            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-0 mb-8 md:mb-12">
+        <div className="flex items-center gap-4 md:gap-6">
+          <button onClick={() => navigate(`/servers/${serverId}`)} className="shrink-0 p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition-all group">
+            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors" />
           </button>
-          <div>
-            <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Sites</h1>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-4">{server?.name}</p>
+          <div className="min-w-0">
+            <h1 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] uppercase tracking-tight font-display leading-none truncate">Sites</h1>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 md:mt-4 truncate">{server?.name}</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
-          <button onClick={() => setShowBackendModal(true)} className="px-8 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20">
-            <Plus className="w-4 h-4 inline mr-2" /> Backend Site
+        <div className="flex flex-row flex-wrap sm:flex-nowrap items-center gap-3 md:gap-4 w-full md:w-auto">
+          <button onClick={() => setShowBackendModal(true)} className="flex-1 md:flex-none flex items-center justify-center px-4 md:px-8 py-3.5 rounded-xl bg-[var(--accent-violet)] text-[#0a0a0a] text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-500/20">
+            <Plus className="w-4 h-4 mr-2 shrink-0" /> Backend Site
           </button>
-          <button onClick={() => setShowFrontendModal(true)} className="px-8 py-3 rounded-xl bg-[var(--accent-mint)] text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
-            <Plus className="w-4 h-4 inline mr-2" /> Frontend Site
+          <button onClick={() => setShowFrontendModal(true)} className="flex-1 md:flex-none flex items-center justify-center px-4 md:px-8 py-3.5 rounded-xl bg-[var(--accent-mint)] text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+            <Plus className="w-4 h-4 mr-2 shrink-0" /> Frontend Site
           </button>
         </div>
       </div>
 
       {/* Site List */}
       {sites.length === 0 ? (
-        <div className="glass-card py-32 flex flex-col items-center justify-center text-center">
+        <div className="glass-card py-20 md:py-32 px-6 flex flex-col items-center justify-center text-center">
           <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest mb-8">No sites configured on this server</p>
-          <div className="flex items-center justify-center gap-4">
-            <button onClick={() => setShowBackendModal(true)} className="px-8 py-4 rounded-2xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+          <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 w-full sm:w-auto">
+            <button onClick={() => setShowBackendModal(true)} className="flex items-center justify-center px-8 py-4 rounded-2xl bg-[var(--accent-violet)] text-[#0a0a0a] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-500/20">
               Create Backend Site
             </button>
-            <button onClick={() => setShowFrontendModal(true)} className="px-8 py-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+            <button onClick={() => setShowFrontendModal(true)} className="flex items-center justify-center px-8 py-4 rounded-2xl bg-[var(--text-primary)] text-[var(--bg-main)] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
               Create Frontend Site
             </button>
           </div>

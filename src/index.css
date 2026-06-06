@@ -49,6 +49,115 @@ body {
     overscroll-behavior-y: contain;
   }
 
+/* ─────────── Fallbacks for missing tailwindcss-animate ─────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-in-from-bottom-full {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes slide-in-from-right-4 {
+  from { transform: translateX(1rem); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-right-10 {
+  from { transform: translateX(2.5rem); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-top-1 {
+  from { transform: translateY(-0.25rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-top-2 {
+  from { transform: translateY(-0.5rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slide-in-from-top-4 {
+  from { transform: translateY(-1rem); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes zoom-in-95 {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes slide-out-to-bottom-full {
+  from { transform: translateY(0); }
+  to { transform: translateY(100%); }
+}
+
+.animate-in.fade-in {
+  animation: fade-in 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-out.fade-out {
+  animation: fade-out 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.slide-in-from-bottom-full {
+  animation: slide-in-from-bottom-full 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-out.slide-out-to-bottom-full {
+  animation: slide-out-to-bottom-full 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+@keyframes slide-in-from-right-full {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-to-right-full {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+.animate-in.slide-in-from-right-full {
+  animation: slide-in-from-right-full 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-out.slide-out-to-right-full {
+  animation: slide-out-to-right-full 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.slide-in-from-right-4 {
+  animation: slide-in-from-right-4 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.slide-in-from-right-10 {
+  animation: slide-in-from-right-10 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.slide-in-from-top-1 {
+  animation: slide-in-from-top-1 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.slide-in-from-top-2 {
+  animation: slide-in-from-top-2 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.slide-in-from-top-4 {
+  animation: slide-in-from-top-4 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
+.animate-in.zoom-in-95 {
+  animation: zoom-in-95 0.4s cubic-bezier(0.32,0.72,0,1) forwards;
+}
+
   /* Disable the global zoom on mobile (it shrinks already-cramped UI). */
   @media (max-width: 768px) {
     body { zoom: 1; }

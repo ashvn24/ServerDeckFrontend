@@ -368,8 +368,8 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         {/* Row action sheet */}
         {(pwaRowSheet || closingRowSheet) && (
           <div className="fixed inset-0 z-[200] flex items-end">
-            <div className={`absolute inset-0 bg-black/50 transition-opacity duration-500 ease-out ${closingRowSheet ? 'opacity-0' : 'opacity-100 animate-in fade-in'}`} onClick={handleCloseRowSheet} />
-            <div className={`relative w-full p-3 space-y-2 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${closingRowSheet ? 'translate-y-full' : 'translate-y-0 animate-in slide-in-from-bottom-full'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+            <div className={`absolute inset-0 bg-black/50 ${closingRowSheet ? 'animate-out fade-out' : 'animate-in fade-in'}`} onClick={handleCloseRowSheet} />
+            <div className={`relative w-full p-3 space-y-2 ${closingRowSheet ? 'animate-out slide-out-to-bottom-full' : 'animate-in slide-in-from-bottom-full'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
               <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
                 <p className="px-4 py-3 text-center text-xs text-[var(--text-secondary)] truncate">{pwaRowSheet?.name}</p>
                 {isAdmin && (
@@ -403,8 +403,8 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         {/* Create / upload action sheet */}
         {(pwaCreateSheet || closingCreateSheet) && (
           <div className="fixed inset-0 z-[200] flex items-end">
-            <div className={`absolute inset-0 bg-black/50 transition-opacity duration-500 ease-out ${closingCreateSheet ? 'opacity-0' : 'opacity-100 animate-in fade-in'}`} onClick={handleCloseCreateSheet} />
-            <div className={`relative w-full p-3 space-y-2 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${closingCreateSheet ? 'translate-y-full' : 'translate-y-0 animate-in slide-in-from-bottom-full'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+            <div className={`absolute inset-0 bg-black/50 ${closingCreateSheet ? 'animate-out fade-out' : 'animate-in fade-in'}`} onClick={handleCloseCreateSheet} />
+            <div className={`relative w-full p-3 space-y-2 ${closingCreateSheet ? 'animate-out slide-out-to-bottom-full' : 'animate-in slide-in-from-bottom-full'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
               <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
                 <button onClick={() => { handleCloseCreateSheet(); setNewItemType('folder'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Folder className="w-4 h-4 text-amber-500" /> New Folder</button>
                 <button onClick={() => { handleCloseCreateSheet(); setNewItemType('file'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><FileText className="w-4 h-4 text-[var(--accent-violet)]" /> New File</button>

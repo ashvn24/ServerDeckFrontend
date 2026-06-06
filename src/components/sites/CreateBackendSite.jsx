@@ -145,19 +145,19 @@ export default function CreateBackendSite({ serverId, onClose, onSuccess, sendCo
   if (currentStep >= 0) {
     return (
       <div className="space-y-4">
-        <h4 className="font-medium text-gray-900">Creating Backend Site: {form.domain}</h4>
+        <h4 className="text-[12px] font-black uppercase tracking-widest text-[var(--text-primary)]">Creating Backend Site: <span className="text-[var(--accent-mint)]">{form.domain}</span></h4>
         <div className="space-y-3">
           {steps.map((step, idx) => (
             <div key={idx} className="flex items-center gap-3">
               {stepIcons[step.status]}
-              <span className={`text-sm ${step.status === 'running' ? 'text-blue-700 font-medium' : step.status === 'success' ? 'text-emerald-700' : step.status === 'error' ? 'text-red-600' : 'text-gray-500'}`}>
+              <span className={`text-[11px] font-bold uppercase tracking-wider ${step.status === 'running' ? 'text-blue-500' : step.status === 'success' ? 'text-[var(--accent-mint)]' : step.status === 'error' ? 'text-red-500' : 'text-[var(--text-secondary)]'}`}>
                 {step.label}
               </span>
             </div>
           ))}
         </div>
         {!running && (
-          <button onClick={onClose} className="mt-4 w-full py-2.5 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200 transition-colors">
+          <button onClick={onClose} className="mt-4 w-full py-3 rounded-xl bg-[var(--bg-card-hover)] border border-[var(--border-color)] text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest hover:bg-[var(--border-color)] transition-colors">
             Close
           </button>
         )}
@@ -166,8 +166,8 @@ export default function CreateBackendSite({ serverId, onClose, onSuccess, sendCo
   }
 
   // Input classes
-  const inputClass = "w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-all";
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1";
+  const inputClass = "w-full px-3.5 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[var(--text-primary)] text-sm focus:ring-2 focus:ring-[var(--accent-mint)] focus:border-[var(--accent-mint)] outline-none transition-all placeholder-[var(--text-secondary)]/50";
+  const labelClass = "block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1.5";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -206,49 +206,49 @@ export default function CreateBackendSite({ serverId, onClose, onSuccess, sendCo
         </label>
 
         {loadingCerts ? (
-          <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[var(--text-secondary)] py-2">
             <Loader2 className="w-4 h-4 animate-spin" />
             Loading available certificates...
           </div>
         ) : (
           <div className="space-y-2.5 mt-1">
             {/* No SSL */}
-            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.ssl_option === 'none' ? 'border-gray-400 bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
+            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.ssl_option === 'none' ? 'border-[var(--text-secondary)] bg-[var(--bg-card-hover)]' : 'border-[var(--border-color)] hover:border-[var(--text-secondary)] bg-[var(--bg-card)]'}`}>
               <input
                 type="radio"
                 name="ssl_option"
                 value="none"
                 checked={form.ssl_option === 'none'}
                 onChange={() => setForm({ ...form, ssl_option: 'none', ssl_cert_name: '' })}
-                className="text-primary-600"
+                className="accent-[var(--text-primary)]"
               />
               <div className="flex items-center gap-2">
-                <ShieldOff className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-700">No SSL (HTTP only)</span>
+                <ShieldOff className="w-4 h-4 text-[var(--text-secondary)]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">No SSL (HTTP only)</span>
               </div>
             </label>
 
             {/* Existing certs */}
             {availableCerts.length > 0 && (
-              <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.ssl_option === 'existing' ? 'border-emerald-400 bg-emerald-50' : 'border-gray-200 hover:border-gray-300'}`}>
+              <label className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.ssl_option === 'existing' ? 'border-[var(--accent-mint)] bg-[var(--accent-mint)]/10' : 'border-[var(--border-color)] hover:border-[var(--text-secondary)] bg-[var(--bg-card)]'}`}>
                 <input
                   type="radio"
                   name="ssl_option"
                   value="existing"
                   checked={form.ssl_option === 'existing'}
                   onChange={() => setForm({ ...form, ssl_option: 'existing', ssl_cert_name: availableCerts[0].name })}
-                  className="text-primary-600 mt-0.5"
+                  className="accent-[var(--accent-mint)] mt-0.5"
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                    <span className="text-sm font-medium text-gray-900">Use existing certificate</span>
+                    <ShieldCheck className="w-4 h-4 text-[var(--accent-mint)]" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Use existing certificate</span>
                   </div>
                   {form.ssl_option === 'existing' && (
                     <select
                       value={form.ssl_cert_name}
                       onChange={(e) => setForm({ ...form, ssl_cert_name: e.target.value })}
-                      className="mt-2 w-full px-3 py-2 rounded-lg border border-gray-300 text-sm bg-white focus:ring-2 focus:ring-emerald-400 outline-none"
+                      className="mt-3 w-full px-3.5 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-card)] text-[10px] font-black tracking-widest text-[var(--text-primary)] focus:ring-2 focus:ring-[var(--accent-mint)] focus:border-[var(--accent-mint)] outline-none"
                     >
                       {availableCerts.map((cert) => (
                         <option key={cert.name} value={cert.name}>
@@ -262,25 +262,25 @@ export default function CreateBackendSite({ serverId, onClose, onSuccess, sendCo
             )}
 
             {/* Issue new */}
-            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.ssl_option === 'new' ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
+            <label className={`flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all ${form.ssl_option === 'new' ? 'border-[var(--accent-violet)] bg-[var(--accent-violet)]/10' : 'border-[var(--border-color)] hover:border-[var(--text-secondary)] bg-[var(--bg-card)]'}`}>
               <input
                 type="radio"
                 name="ssl_option"
                 value="new"
                 checked={form.ssl_option === 'new'}
                 onChange={() => setForm({ ...form, ssl_option: 'new', ssl_cert_name: '' })}
-                className="text-primary-600"
+                className="accent-[var(--accent-violet)]"
               />
               <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-blue-600" />
-                <span className="text-sm text-gray-700">Issue new certificate <span className="text-gray-400">(Let's Encrypt / Certbot)</span></span>
+                <Lock className="w-4 h-4 text-[var(--accent-violet)]" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">Issue new certificate <span className="text-[var(--text-secondary)]">(Let's Encrypt / Certbot)</span></span>
               </div>
             </label>
           </div>
         )}
       </div>
 
-      <button type="submit" className="w-full py-2.5 rounded-xl bg-primary-600 text-white text-sm font-semibold hover:bg-primary-700 transition-colors shadow-sm">
+      <button type="submit" className="w-full py-3.5 mt-2 rounded-xl bg-[var(--accent-violet)] text-[#0a0a0a] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg shadow-[var(--accent-violet)]/20">
         Create Backend Site
       </button>
     </form>

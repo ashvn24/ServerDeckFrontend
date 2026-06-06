@@ -48,7 +48,7 @@ export default function BottomNav() {
               >
                 {/* Active glow background */}
                 {isActive && (
-                  <span className="absolute inset-x-2 top-1.5 h-8 rounded-xl bg-white/8 -z-10" />
+                  <span className="absolute w-12 h-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white/8 -z-10" />
                 )}
                 <Icon
                   className={`w-5 h-5 transition-all duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}
