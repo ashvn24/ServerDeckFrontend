@@ -9,10 +9,15 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 )
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.warn('Service worker registration failed:', err);
-    });
-  });
+// There is no /sw.js in this build. A previous deploy may have registered one
+// that still controls installed iOS PWAs and serves a stale bundle (e.g. an old
+// auth interceptor). Proactively unregister any service workers and purge their
+// caches so the standalone PWA always runs the current code.
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations?.()
+    .then((regs) => regs.forEach((r) => r.unregister()))
+    .catch(() => {});
+  if (window.caches?.keys) {
+    caches.keys().then((keys) => keys.forEach((k) => caches.delete(k))).catch(() => {});
+  }
 }

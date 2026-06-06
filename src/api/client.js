@@ -6,11 +6,21 @@ const client = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
-// Attach JWT token to every request
+// Attach JWT token to every request — read fresh from localStorage each time.
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem('serverdeck_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Guard against a token that was persisted as the literal string "undefined"/
+  // "null" (still truthy → would send `Bearer undefined` and 403 with hasToken=true).
+  if (token && token !== 'undefined' && token !== 'null') {
+    config.headers = config.headers || {};
+    // axios >= 1.x uses an AxiosHeaders instance (set()); older builds use a
+    // plain object. Handle both so the header is reliably attached everywhere,
+    // including iOS standalone PWA.
+    if (typeof config.headers.set === 'function') {
+      config.headers.set('Authorization', `Bearer ${token}`);
+    } else {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
