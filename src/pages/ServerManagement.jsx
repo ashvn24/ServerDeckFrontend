@@ -120,30 +120,31 @@ export default function ServerManagement() {
   };
 
   return (
-    <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
-      <div className="p-4 sm:p-6 md:p-10 lg:p-12 space-y-4 md:space-y-12 w-full mx-auto">
+    <div className="space-y-6 md:space-y-12">
       {/* Breadcrumbs & Header */}
       <div className="space-y-4 md:space-y-10">
         {/* Breadcrumbs — horizontal scroll on mobile */}
-        <div className="flex items-center gap-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest overflow-x-auto no-scrollbar pb-1">
-          <button 
-            onClick={() => setCurrentFolderId(null)}
-            className={`shrink-0 hover:text-white transition-all ${!currentFolderId ? 'text-[var(--accent-mint)]' : ''}`}
-          >
-            Infrastructure
-          </button>
-          {getBreadcrumbs().map(crumb => (
-            <div key={crumb.id} className="flex items-center gap-3 shrink-0">
-              <ChevronRight className="w-4 h-4 text-[var(--border-color)]" />
-              <button 
-                onClick={() => setCurrentFolderId(crumb.id)}
-                className={`hover:text-white transition-all ${currentFolderId === crumb.id ? 'text-[var(--accent-mint)]' : ''}`}
-              >
-                {crumb.name}
-              </button>
-            </div>
-          ))}
-        </div>
+        {currentFolderId && (
+          <div className="flex items-center gap-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest overflow-x-auto no-scrollbar pb-1">
+            <button 
+              onClick={() => setCurrentFolderId(null)}
+              className="shrink-0 hover:text-[var(--text-primary)] transition-all"
+            >
+              Infrastructure
+            </button>
+            {getBreadcrumbs().map(crumb => (
+              <div key={crumb.id} className="flex items-center gap-3 shrink-0">
+                <ChevronRight className="w-4 h-4 text-[var(--border-color)]" />
+                <button 
+                  onClick={() => setCurrentFolderId(crumb.id)}
+                  className={`hover:text-[var(--text-primary)] transition-all ${currentFolderId === crumb.id ? 'text-[var(--accent-mint)]' : ''}`}
+                >
+                  {crumb.name}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-10">
           <div>
@@ -334,7 +335,6 @@ export default function ServerManagement() {
            </div>
         </div>
       )}
-      </div>
     </div>
   );
 }
