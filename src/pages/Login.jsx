@@ -20,7 +20,7 @@ export default function Login() {
     setLoading(true);
     try {
       const userData = await login(form.email, form.password);
-      showToast('Authorization handshake successful. Welcome back.', 'success');
+      showToast('Login Successfull', 'success');
       
       // Return to the page the user was trying to reach, if any.
       // Otherwise: platform owner goes to organizations, org users go to dashboard.

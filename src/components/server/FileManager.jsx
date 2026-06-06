@@ -31,12 +31,30 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   const isPWA = useIsPWA();
   const isMobile = useMobile();
   const [pwaCreateSheet, setPwaCreateSheet] = useState(false);
+  const [closingCreateSheet, setClosingCreateSheet] = useState(false);
   const [pwaRowSheet, setPwaRowSheet] = useState(null); // item targeted by the context menu
+  const [closingRowSheet, setClosingRowSheet] = useState(false);
   const [pwaRename, setPwaRename] = useState(null);      // { full, name }
   const [renameInput, setRenameInput] = useState('');
   const uploadInputRef = useRef(null);
   const longPressTimer = useRef(null);
   const longPressedRef = useRef(false);
+
+  const handleCloseCreateSheet = () => {
+    setClosingCreateSheet(true);
+    setTimeout(() => {
+      setPwaCreateSheet(false);
+      setClosingCreateSheet(false);
+    }, 500);
+  };
+
+  const handleCloseRowSheet = () => {
+    setClosingRowSheet(true);
+    setTimeout(() => {
+      setPwaRowSheet(null);
+      setClosingRowSheet(false);
+    }, 500);
+  };
 
   const fetchFiles = useCallback(async (targetPath) => {
     if (!isOnline) return;
@@ -348,51 +366,51 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         <input ref={uploadInputRef} type="file" className="hidden" onChange={handleFileUpload} />
 
         {/* Row action sheet */}
-        {pwaRowSheet && (
+        {(pwaRowSheet || closingRowSheet) && (
           <div className="fixed inset-0 z-[200] flex items-end">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setPwaRowSheet(null)} />
-            <div className="relative w-full p-3 space-y-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+            <div className={`absolute inset-0 bg-black/50 transition-opacity duration-500 ease-out ${closingRowSheet ? 'opacity-0' : 'opacity-100 animate-in fade-in'}`} onClick={handleCloseRowSheet} />
+            <div className={`relative w-full p-3 space-y-2 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${closingRowSheet ? 'translate-y-full' : 'translate-y-0 animate-in slide-in-from-bottom-full'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
               <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
-                <p className="px-4 py-3 text-center text-xs text-[var(--text-secondary)] truncate">{pwaRowSheet.name}</p>
+                <p className="px-4 py-3 text-center text-xs text-[var(--text-secondary)] truncate">{pwaRowSheet?.name}</p>
                 {isAdmin && (
                   <button
-                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const n = pwaRowSheet.name; setPwaRowSheet(null); setRenameInput(n); setPwaRename({ full: f, name: n }); }}
+                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const n = pwaRowSheet.name; handleCloseRowSheet(); setRenameInput(n); setPwaRename({ full: f, name: n }); }}
                     className="w-full py-4 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"
                   >
                     Rename
                   </button>
                 )}
                   <button
-                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; setPwaRowSheet(null); downloadItem(f); }}
+                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; handleCloseRowSheet(); downloadItem(f); }}
                     className="w-full py-4 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"
                   >
                     Download
                   </button>
                 {isAdmin && (
                   <button
-                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const d = pwaRowSheet.is_dir; setPwaRowSheet(null); deleteItem(f, d); }}
+                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const d = pwaRowSheet.is_dir; handleCloseRowSheet(); deleteItem(f, d); }}
                     className="w-full py-4 text-sm font-semibold text-red-500 active:bg-[var(--text-primary)]/5"
                   >
                     Delete
                   </button>
                 )}
               </div>
-              <button onClick={() => setPwaRowSheet(null)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5">Cancel</button>
+              <button onClick={handleCloseRowSheet} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5">Cancel</button>
             </div>
           </div>
         )}
 
         {/* Create / upload action sheet */}
-        {pwaCreateSheet && (
+        {(pwaCreateSheet || closingCreateSheet) && (
           <div className="fixed inset-0 z-[200] flex items-end">
-            <div className="absolute inset-0 bg-black/50" onClick={() => setPwaCreateSheet(false)} />
-            <div className="relative w-full p-3 space-y-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+            <div className={`absolute inset-0 bg-black/50 transition-opacity duration-500 ease-out ${closingCreateSheet ? 'opacity-0' : 'opacity-100 animate-in fade-in'}`} onClick={handleCloseCreateSheet} />
+            <div className={`relative w-full p-3 space-y-2 transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${closingCreateSheet ? 'translate-y-full' : 'translate-y-0 animate-in slide-in-from-bottom-full'}`} style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
               <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
-                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('folder'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Folder className="w-4 h-4 text-amber-500" /> New Folder</button>
-                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('file'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><FileText className="w-4 h-4 text-[var(--accent-violet)]" /> New File</button>
-                <button onClick={() => { setPwaCreateSheet(false); uploadInputRef.current?.click(); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Upload className="w-4 h-4 text-[var(--accent-mint)]" /> {isUploading ? 'Uploading…' : 'Upload File'}</button>
+                <button onClick={() => { handleCloseCreateSheet(); setNewItemType('folder'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Folder className="w-4 h-4 text-amber-500" /> New Folder</button>
+                <button onClick={() => { handleCloseCreateSheet(); setNewItemType('file'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><FileText className="w-4 h-4 text-[var(--accent-violet)]" /> New File</button>
+                <button onClick={() => { handleCloseCreateSheet(); uploadInputRef.current?.click(); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Upload className="w-4 h-4 text-[var(--accent-mint)]" /> {isUploading ? 'Uploading…' : 'Upload File'}</button>
               </div>
-              <button onClick={() => setPwaCreateSheet(false)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5">Cancel</button>
+              <button onClick={handleCloseCreateSheet} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5">Cancel</button>
             </div>
           </div>
         )}
