@@ -207,11 +207,17 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   };
 
   // Long-press → iOS context menu (without blocking a normal tap).
-  const startLongPress = (item) => {
+  const handleTouchStart = (e, item) => {
+    e.stopPropagation();
     longPressedRef.current = false;
-    longPressTimer.current = setTimeout(() => { longPressedRef.current = true; setPwaRowSheet(item); }, 450);
+    longPressTimer.current = setTimeout(() => { 
+      longPressedRef.current = true; 
+      setPwaRowSheet(item); 
+    }, 500);
   };
-  const cancelLongPress = () => clearTimeout(longPressTimer.current);
+  const handleTouchEnd = () => clearTimeout(longPressTimer.current);
+  const handleTouchMove = () => clearTimeout(longPressTimer.current);
+
   const handleCellTap = (open) => {
     if (longPressedRef.current) { longPressedRef.current = false; return; }
     open();
@@ -307,15 +313,15 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
               <button
                 key={item.name}
                 onClick={() => handleCellTap(open)}
-                onContextMenu={(e) => { e.preventDefault(); setPwaRowSheet(item); }}
-                onTouchStart={() => startLongPress(item)}
-                onTouchEnd={cancelLongPress}
-                onTouchMove={cancelLongPress}
+                onTouchStart={(e) => handleTouchStart(e, item)}
+                onTouchEnd={handleTouchEnd}
+                onTouchMove={handleTouchMove}
+                style={{ WebkitUserSelect: 'none', userSelect: 'none', WebkitTouchCallout: 'none' }}
                 className="file-grid-cell flex flex-col items-center text-center gap-1 p-2 rounded-xl bg-white/5 active:scale-95 active:opacity-80 transition-all"
               >
                 <Icon className={`w-8 h-8 ${meta.color} ${item.is_dir ? 'fill-amber-500/30' : ''}`} />
-                <p className="text-xs text-white leading-tight line-clamp-2 break-all w-full">{item.name}</p>
-                <p className={`text-[var(--text-secondary)] uppercase tracking-wide ${item.is_dir ? 'hidden md:block' : ''}`} style={{ fontSize: '10px' }}>{item.is_dir ? 'DIRECTORY' : formatBytes(item.size)}</p>
+                <p style={{ WebkitUserSelect: 'none', userSelect: 'none' }} className="text-xs text-white leading-tight line-clamp-2 break-all w-full">{item.name}</p>
+                <p className={`text-[var(--text-secondary)] uppercase tracking-wide ${item.is_dir ? 'hidden md:block' : ''}`} style={{ fontSize: '10px', WebkitUserSelect: 'none', userSelect: 'none' }}>{item.is_dir ? 'DIRECTORY' : formatBytes(item.size)}</p>
               </button>
             );
           })}
@@ -565,12 +571,16 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
               return (
                 <div key={item.name} className="relative group">
                   <button
-                    onClick={() => (item.is_dir ? navigateTo(full) : openFile(full))}
+                    onClick={() => handleCellTap(() => (item.is_dir ? navigateTo(full) : openFile(full)))}
+                    onTouchStart={(e) => handleTouchStart(e, item)}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchMove}
+                    style={{ WebkitUserSelect: 'none', userSelect: 'none', WebkitTouchCallout: 'none' }}
                     className="file-grid-cell w-full flex flex-col items-center text-center gap-1 p-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
                   >
                     <Icon className={`w-8 h-8 ${meta.color} ${item.is_dir ? 'fill-amber-500/30' : ''}`} />
-                    <p className="text-xs text-white leading-tight line-clamp-2 break-all w-full">{item.name}</p>
-                    <p className={`text-[var(--text-secondary)] uppercase tracking-wide ${item.is_dir ? 'hidden md:block' : ''}`} style={{ fontSize: '10px' }}>{item.is_dir ? 'DIRECTORY' : formatBytes(item.size)}</p>
+                    <p style={{ WebkitUserSelect: 'none', userSelect: 'none' }} className="text-xs text-white leading-tight line-clamp-2 break-all w-full">{item.name}</p>
+                    <p className={`text-[var(--text-secondary)] uppercase tracking-wide ${item.is_dir ? 'hidden md:block' : ''}`} style={{ fontSize: '10px', WebkitUserSelect: 'none', userSelect: 'none' }}>{item.is_dir ? 'DIRECTORY' : formatBytes(item.size)}</p>
                   </button>
                   <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => downloadItem(full)} className="p-1.5 rounded-lg bg-black/40 text-[var(--text-secondary)] hover:text-white transition-all">
