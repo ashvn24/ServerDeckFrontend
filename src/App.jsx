@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -28,8 +28,9 @@ import Terms from './pages/Terms';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
   if (loading) return null;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
   return children;
 }
 
@@ -62,11 +63,11 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to={defaultRoute} replace /> : <Landing />} />
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
 
       <Route path="/invite" element={<InviteAccept />} />
-      <Route path="/api-reference" element={<ApiReference />} />
+      <Route path="/api-reference" element={<ProtectedRoute><ApiReference /></ProtectedRoute>} />
       <Route path="/documentation" element={<Documentation />} />
       <Route path="/about" element={<About />} />
       <Route path="/security" element={<Security />} />

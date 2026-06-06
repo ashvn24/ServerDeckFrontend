@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Server, ArrowRight, Loader2 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
@@ -11,6 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const { login, register } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useNotification();
 
   const handleSubmit = async (e) => {
@@ -21,9 +22,14 @@ export default function Login() {
       const userData = await login(form.email, form.password);
       showToast('Authorization handshake successful. Welcome back.', 'success');
       
-      // Platform owner goes to organizations, org users go to dashboard
+      // Return to the page the user was trying to reach, if any.
+      // Otherwise: platform owner goes to organizations, org users go to dashboard.
+      const from = location.state?.from;
       const isPO = localStorage.getItem('serverdeck_is_platform_owner') === 'true';
-      navigate(isPO ? '/organizations' : '/dashboard');
+      const dest = from
+        ? `${from.pathname}${from.search || ''}${from.hash || ''}`
+        : (isPO ? '/organizations' : '/dashboard');
+      navigate(dest, { replace: true });
     } catch (err) {
       const msg = err.response?.data?.detail || 'Handshake failed. Verify credentials.';
       setError(msg);
