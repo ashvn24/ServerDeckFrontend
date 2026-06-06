@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Folder, File, ChevronRight, Home, ArrowLeft, RefreshCw,
   Trash2, Edit3, Plus, Save, X, Search, MoreVertical,
@@ -361,14 +362,12 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                     Rename
                   </button>
                 )}
-                {!pwaRowSheet.is_dir && (
                   <button
                     onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; setPwaRowSheet(null); downloadItem(f); }}
                     className="w-full py-4 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"
                   >
                     Download
                   </button>
-                )}
                 {isAdmin && (
                   <button
                     onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const d = pwaRowSheet.is_dir; setPwaRowSheet(null); deleteItem(f, d); }}
@@ -442,9 +441,9 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         )}
 
         {/* Full-screen editor */}
-        {editingFile && (
+        {editingFile && createPortal(
           <div
-            className="fixed inset-0 z-[300] flex flex-col bg-[var(--bg-main)]"
+            className="fixed inset-0 z-[9999] flex flex-col bg-[var(--bg-main)]"
             style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
           >
             <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-color)]">
@@ -465,7 +464,8 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
               readOnly={!isAdmin}
               spellCheck="false"
             />
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     );
@@ -606,8 +606,8 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
         </div>
 
         {/* Editor Modal Integration */}
-        {editingFile && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+        {editingFile && createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6">
              <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => !isSaving && setEditingFile(null)} />
              <div className="glass-card w-full max-w-6xl h-full relative z-10 flex flex-col overflow-hidden">
                 <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between">
@@ -651,7 +651,8 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                    )}
                 </div>
              </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
 
