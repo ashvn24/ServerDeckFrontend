@@ -2,6 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal as TerminalIcon, X, RefreshCw, AlertCircle, WifiOff, Loader2, Maximize2, Minimize2 } from 'lucide-react';
+import { useIsPWA } from '../../hooks/useIsPWA';
 import '@xterm/xterm/css/xterm.css';
 
 const XTERM_THEME = {
@@ -28,6 +29,7 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   const [status,      setStatus]      = useState('idle');
   const [errorMsg,    setErrorMsg]    = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const isPWA = useIsPWA();
 
   useEffect(() => {
     const term = new Terminal({
@@ -180,6 +182,11 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   }, [serverId, send]);
 
   const toggleFullscreen = useCallback(() => {
+    // iOS PWA has no element Fullscreen API — use a CSS fixed overlay instead.
+    if (isPWA) {
+      setIsFullscreen((v) => !v);
+      return;
+    }
     if (!document.fullscreenElement) {
       wrapperRef.current?.requestFullscreen();
       setIsFullscreen(true);
@@ -187,15 +194,58 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       document.exitFullscreen();
       setIsFullscreen(false);
     }
-  }, []);
+  }, [isPWA]);
+
+  // Refit xterm whenever fullscreen toggles (size changes).
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        fitAddonRef.current?.fit();
+        const term = xtermRef.current;
+        const sid = sessionIdRef.current;
+        if (term && sid) {
+          send({ type: 'terminal_resize', server_id: serverId,
+                 session_id: sid, cols: term.cols, rows: term.rows });
+        }
+      } catch (_) {}
+    }, 150);
+    return () => clearTimeout(t);
+  }, [isFullscreen, serverId, send]);
 
   const dotClass = {
     idle: 'bg-white/10', connecting: 'bg-amber-400 animate-pulse',
     connected: 'accent-bg-green animate-pulse-dot', error: 'bg-red-500', closed: 'bg-white/10',
   }[status];
 
+  // PWA fullscreen: fixed overlay covering the whole screen (incl. behind nav bars).
+  const pwaFullscreen = isPWA && isFullscreen;
+  const wrapperStyle = pwaFullscreen
+    ? {
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        zIndex: 9999, background: '#000',
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }
+    : undefined;
+
   return (
-    <div ref={wrapperRef} className={`flex flex-col h-[600px] overflow-hidden ${isFullscreen ? 'bg-black' : 'glass-card'}`}>
+    <div
+      ref={wrapperRef}
+      style={wrapperStyle}
+      className={`flex flex-col overflow-hidden ${
+        pwaFullscreen ? '' : isFullscreen ? 'bg-black h-screen w-screen' : 'glass-card h-[600px]'
+      }`}
+    >
+      {pwaFullscreen && (
+        <button
+          onClick={toggleFullscreen}
+          aria-label="Exit fullscreen"
+          className="fixed right-4 z-[10000] w-11 h-11 flex items-center justify-center rounded-full bg-white/15 backdrop-blur text-white active:scale-95 transition-transform"
+          style={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
+        >
+          <Minimize2 className="w-5 h-5" />
+        </button>
+      )}
       <div className={`flex items-center justify-between p-6 border-b border-[var(--border-color)] ${isFullscreen ? 'bg-black' : 'bg-black/20'}`}>
         <div className="flex items-center gap-5">
            <div className="p-3 bg-black/40 rounded-2xl text-[var(--accent-violet)] border border-white/5">

@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Globe, FileText, Shield, Cpu, HardDrive, MemoryStick, Clock, Wifi, Terminal, Trash2, AlertTriangle, Box, Activity, ChevronRight } from 'lucide-react';
 import { serversAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
+import { useIsPWA } from '../hooks/useIsPWA';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNotification } from '../context/NotificationContext';
 import { formatUptime, formatMB } from '../utils/formatters';
@@ -35,8 +36,16 @@ export default function ServerDetail() {
   const { user } = useAuth();
   const { watchServer, unwatchServer, sendCommand, on, send, connected } = useWebSocket();
   const [alertConfig, setAlertConfig] = useState({ open: false, title: '', message: '', type: 'error' });
+  const isPWA = useIsPWA();
+  const tabStripRef = useRef(null);
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
+
+  // Keep the active tab scrolled into view on the iOS-style tab strip.
+  useEffect(() => {
+    const el = tabStripRef.current?.querySelector('[data-active="true"]');
+    el?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  }, [activeTab]);
 
   const fetchServer = useCallback(async () => {
     try {
@@ -119,69 +128,135 @@ export default function ServerDetail() {
   };
 
   return (
-    <div className="space-y-12">
-      <AlertModal 
-        isOpen={alertConfig.open} 
-        onClose={() => setAlertConfig({ ...alertConfig, open: false })} 
+    <div className={isPWA ? 'pwa-server space-y-5' : 'space-y-12'}>
+      <AlertModal
+        isOpen={alertConfig.open}
+        onClose={() => setAlertConfig({ ...alertConfig, open: false })}
         title={alertConfig.title}
         message={alertConfig.message}
         type={alertConfig.type}
       />
+
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-8 border-b border-[var(--border-color)]">
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/servers')} className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition-all group">
-            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
-          </button>
-          <div>
-            <div className="flex items-center gap-4 mb-2">
-              <h1 className="text-4xl font-black tracking-tight uppercase font-display">{server.name}</h1>
-              <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${server.is_online ? 'accent-bg-green' : 'bg-red-500 text-white'}`}>
-                {server.is_online ? 'Online' : 'Offline'}
-              </div>
+      {isPWA ? (
+        <>
+          {/* iOS-style sticky navigation bar */}
+          <div
+            className="sticky z-30 -mx-4 px-4 py-2.5 flex items-center gap-3 bg-[var(--bg-main)]/85 backdrop-blur-xl border-b border-[var(--border-color)]"
+            style={{ top: 'var(--total-header)' }}
+          >
+            <button
+              onClick={() => navigate('/servers')}
+              className="flex items-center justify-center w-10 h-10 -ml-1 rounded-full text-[var(--accent-violet)] active:scale-95 transition-transform"
+              aria-label="Back to servers"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-base font-bold tracking-tight truncate leading-tight">{server.name}</h1>
+              <p className="text-xs text-[var(--text-secondary)] truncate">{server.ip_address || '—'} · {server.os_info || 'Unknown OS'}</p>
             </div>
-            <p className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest">
-              {server.ip_address || '—'} <span className="mx-3 text-[var(--border-color)]">•</span> {server.os_info || 'Unknown OS'}
-            </p>
+            <span className={`shrink-0 px-3 py-1 rounded-full text-xs font-bold ${server.is_online ? 'accent-bg-green' : 'bg-red-500 text-white'}`}>
+              {server.is_online ? 'Online' : 'Offline'}
+            </span>
+          </div>
+
+          {/* Action row */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => handleQuickAction('sites')}
+              className={`flex-1 h-11 rounded-2xl text-sm font-semibold transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-[var(--bg-card)] opacity-50' : 'bg-[var(--bg-card)] border border-[var(--border-color)]'}`}
+            >
+              Quick Sites
+            </button>
+            <button
+              onClick={() => handleQuickAction('ssh')}
+              className={`flex-1 h-11 rounded-2xl text-sm font-semibold text-white shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50' : 'bg-[var(--accent-violet)] shadow-violet-500/20'}`}
+            >
+              Launch SSH
+            </button>
+            {isAdmin && (
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                aria-label="Delete server"
+                className="w-11 h-11 shrink-0 flex items-center justify-center rounded-2xl text-red-500 bg-red-500/10 active:scale-[0.97] transition-transform"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </>
+      ) : (
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-8 border-b border-[var(--border-color)]">
+          <div className="flex items-center gap-6">
+            <button onClick={() => navigate('/servers')} className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition-all group">
+              <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
+            </button>
+            <div>
+              <div className="flex items-center gap-4 mb-2">
+                <h1 className="text-4xl font-black tracking-tight uppercase font-display">{server.name}</h1>
+                <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${server.is_online ? 'accent-bg-green' : 'bg-red-500 text-white'}`}>
+                  {server.is_online ? 'Online' : 'Offline'}
+                </div>
+              </div>
+              <p className="text-sm font-bold text-[var(--text-secondary)] uppercase tracking-widest">
+                {server.ip_address || '—'} <span className="mx-3 text-[var(--border-color)]">•</span> {server.os_info || 'Unknown OS'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => handleQuickAction('sites')}
+              className={`px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-bold uppercase tracking-widest transition-all ${!isAdmin ? 'bg-white/5 opacity-50 cursor-not-allowed' : 'bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)]'}`}
+            >
+              Quick Sites
+            </button>
+            <button
+              onClick={() => handleQuickAction('ssh')}
+              className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold uppercase tracking-widest shadow-lg transition-all active:scale-95 ${!isAdmin ? 'bg-gray-500/20 opacity-50 cursor-not-allowed' : 'bg-[var(--accent-violet)] shadow-violet-500/20 hover:scale-105'}`}
+            >
+              Launch SSH
+            </button>
+            {isAdmin && (
+              <button onClick={() => setShowDeleteModal(true)} className="p-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors">
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => handleQuickAction('sites')} 
-            className={`px-5 py-2.5 rounded-xl border border-[var(--border-color)] text-xs font-bold uppercase tracking-widest transition-all ${!isAdmin ? 'bg-white/5 opacity-50 cursor-not-allowed' : 'bg-[var(--bg-card)] hover:bg-[var(--bg-card-hover)]'}`}
-          >
-            Quick Sites
-          </button>
-          <button 
-            onClick={() => handleQuickAction('ssh')} 
-            className={`px-5 py-2.5 rounded-xl text-white text-xs font-bold uppercase tracking-widest shadow-lg transition-all active:scale-95 ${!isAdmin ? 'bg-gray-500/20 opacity-50 cursor-not-allowed' : 'bg-[var(--accent-violet)] shadow-violet-500/20 hover:scale-105'}`}
-          >
-            Launch SSH
-          </button>
-          {isAdmin && (
-            <button onClick={() => setShowDeleteModal(true)} className="p-2.5 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors">
-              <Trash2 className="w-5 h-5" />
-            </button>
-          )}
-        </div>
-      </div>
+      )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-1.5 p-1.5 glass-card w-max max-w-full overflow-x-auto no-scrollbar">
-        {TABS.map((tab, idx) => (
-          <button
-            key={tab}
-            onClick={() => setActiveTab(idx)}
-            className={`py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap
-              ${activeTab === idx 
-                ? 'bg-white text-black shadow-lg' 
-                : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
+      {isPWA ? (
+        <div ref={tabStripRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 py-1">
+          {TABS.map((tab, idx) => (
+            <button
+              key={tab}
+              data-active={activeTab === idx}
+              onClick={() => setActiveTab(idx)}
+              className={`shrink-0 px-4 h-9 rounded-full text-sm font-semibold whitespace-nowrap transition-transform active:scale-[0.97] ${activeTab === idx ? 'bg-white text-black' : 'bg-[var(--bg-card)] text-[var(--text-secondary)]'}`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex items-center gap-1.5 p-1.5 glass-card w-max max-w-full overflow-x-auto no-scrollbar">
+          {TABS.map((tab, idx) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(idx)}
+              className={`py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap
+                ${activeTab === idx
+                  ? 'bg-white text-black shadow-lg'
+                  : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Tab Content */}
       <div className="pt-4">

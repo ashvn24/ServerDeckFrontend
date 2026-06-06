@@ -263,6 +263,16 @@ select option {
 /* smooth transition when switching themes */
 body { transition: background-color 0.3s ease, color 0.3s ease; }
 
+/* ─── PWA Server module — native iOS polish ──────────────────────────
+   Scoped to .pwa-server (only rendered in standalone PWA), so the web
+   view is untouched. Covers: consistent 16px card radius, tactile press
+   states, and a 12px minimum font (avoids tiny text / Safari zoom). */
+.pwa-server .glass-card { border-radius: 16px; }
+.pwa-server button { transition: transform 0.08s ease; }
+.pwa-server button:active { transform: scale(0.97); }
+.pwa-server .text-\[10px\],
+.pwa-server .text-\[9px\] { font-size: 12px !important; }
+
 /* neutral text → iOS label / system gray scale */
 [data-theme='light'] .text-white:not([class*="bg-"]) { color: #1d1d1f; }
 [data-theme='light'] .text-gray-100:not([class*="bg-"]),
