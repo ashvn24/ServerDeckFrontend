@@ -201,7 +201,7 @@ export default function Tickets() {
 
   /* ═══════════════════════════════════════════════════════════════ */
   return (
-    <div className="fixed left-0 right-0 bottom-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ top: 'var(--total-header)', background: 'var(--bg-main)' }}>
+    <div className="fixed left-0 right-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)', background: 'var(--bg-main)' }}>
 
       {/* ══ LEFT: Ticket List ══════════════════════════════════════ */}
       <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 flex-shrink-0 flex-col border-r border-white/5`} style={{ background: 'var(--bg-card)' }}>
@@ -496,7 +496,7 @@ export default function Tickets() {
       {/* ══ RIGHT: Properties Panel ════════════════════════════════ */}
       {/* mobile backdrop */}
       {showProps && (
-        <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-black/60" style={{ top: 'var(--total-header)' }} onClick={() => setShowProps(false)} />
+        <div className="lg:hidden fixed inset-x-0 z-40 bg-black/60" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }} onClick={() => setShowProps(false)} />
       )}
       <aside className={`${showProps ? 'flex' : 'hidden'} lg:flex w-full sm:w-80 lg:w-60 flex-shrink-0 flex-col border-l border-white/5 absolute lg:static inset-y-0 right-0 z-50 shadow-2xl lg:shadow-none`} style={{ background: 'var(--bg-card)' }}>
         {/* mobile close */}
@@ -651,8 +651,8 @@ export default function Tickets() {
 
       {/* ══ Create Ticket Modal ════════════════════════════════════ */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[var(--bg-card)] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="bg-[var(--bg-card)] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
             {/* modal header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
               <div className="flex items-center gap-2">

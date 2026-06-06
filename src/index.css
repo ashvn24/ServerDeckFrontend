@@ -18,11 +18,18 @@
   --nav-height: 80px;
   --safe-top: env(safe-area-inset-top, 0px);
   --total-header: calc(var(--nav-height) + var(--safe-top));
+
+  /* Mobile bottom nav (h-16 + safe-area). 0 on desktop where it's hidden,
+     so fixed full-height panels can clear it without overlapping. */
+  --bottom-nav: 0px;
 }
 
 /* Mobile bar is shorter (Tailwind h-16). 767.98px matches the md breakpoint. */
 @media (max-width: 767.98px) {
-  :root { --nav-height: 64px; }
+  :root {
+    --nav-height: 64px;
+    --bottom-nav: calc(4rem + env(safe-area-inset-bottom));
+  }
 }
 
 * {
