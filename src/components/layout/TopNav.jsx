@@ -44,7 +44,7 @@ export default function TopNav() {
       className="fixed top-0 left-0 right-0 z-[100] bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-color)]"
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div className="px-4 sm:px-6 md:px-12 h-16 md:h-20 flex items-center justify-between">
+      <div className="px-4 sm:px-6 md:px-12 flex items-center justify-between" style={{ height: 'var(--nav-height)' }}>
         {/* Logo & Links */}
         <div className="flex items-center gap-6 md:gap-12">
           <Link to="/dashboard" className="flex items-center gap-3 md:gap-4 group">

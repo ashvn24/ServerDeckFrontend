@@ -13,8 +13,12 @@ export default function Layout() {
       {/* Fixed Top Navigation */}
       <TopNav />
 
-      {/* Main Content. Extra bottom padding on mobile clears the fixed bottom nav. */}
-      <main className="pt-20 md:pt-24 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-12 px-4 sm:px-6 md:px-12">
+      {/* Main Content. Top padding clears the fixed header + iOS safe area;
+          extra bottom padding on mobile clears the fixed bottom nav. */}
+      <main
+        className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-12 px-4 sm:px-6 md:px-12"
+        style={{ paddingTop: 'calc(var(--total-header) + 1rem)' }}
+      >
         <Outlet />
       </main>
 

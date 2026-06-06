@@ -201,7 +201,7 @@ export default function Tickets() {
 
   /* ═══════════════════════════════════════════════════════════════ */
   return (
-    <div className="fixed top-20 left-0 right-0 bottom-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ background: 'var(--bg-main)' }}>
+    <div className="fixed left-0 right-0 bottom-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ top: 'var(--total-header)', background: 'var(--bg-main)' }}>
 
       {/* ══ LEFT: Ticket List ══════════════════════════════════════ */}
       <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 flex-shrink-0 flex-col border-r border-white/5`} style={{ background: 'var(--bg-card)' }}>
@@ -496,7 +496,7 @@ export default function Tickets() {
       {/* ══ RIGHT: Properties Panel ════════════════════════════════ */}
       {/* mobile backdrop */}
       {showProps && (
-        <div className="lg:hidden fixed inset-0 top-20 z-40 bg-black/60" onClick={() => setShowProps(false)} />
+        <div className="lg:hidden fixed inset-x-0 bottom-0 z-40 bg-black/60" style={{ top: 'var(--total-header)' }} onClick={() => setShowProps(false)} />
       )}
       <aside className={`${showProps ? 'flex' : 'hidden'} lg:flex w-full sm:w-80 lg:w-60 flex-shrink-0 flex-col border-l border-white/5 absolute lg:static inset-y-0 right-0 z-50 shadow-2xl lg:shadow-none`} style={{ background: 'var(--bg-card)' }}>
         {/* mobile close */}
