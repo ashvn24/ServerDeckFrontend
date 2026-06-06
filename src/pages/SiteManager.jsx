@@ -65,17 +65,20 @@ export default function SiteManager() {
 
   if (!isAdmin) {
     return (
-      <div className="space-y-8">
-        <button onClick={() => navigate(`/servers/${serverId}`)} className="p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
-          <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
-        </button>
-        <RestrictedView title="Site Management Restricted" />
+      <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+        <div className="p-4 sm:p-6 md:p-10 lg:p-12 w-full mx-auto space-y-8">
+          <button onClick={() => navigate(`/servers/${serverId}`)} className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition-all group">
+            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
+          </button>
+          <RestrictedView title="Site Management Restricted" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      <div className="p-4 sm:p-6 md:p-10 lg:p-12 w-full mx-auto space-y-12">
       <ConfirmModal 
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
@@ -135,6 +138,7 @@ export default function SiteManager() {
       <Modal isOpen={showFrontendModal} onClose={() => setShowFrontendModal(false)} title="Create Frontend Site">
         <CreateFrontendSite serverId={serverId} sendCommand={sendCommand} onClose={() => setShowFrontendModal(false)} onSuccess={fetchData} />
       </Modal>
+      </div>
     </div>
   );
 }

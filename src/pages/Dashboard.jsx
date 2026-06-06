@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { Box, Server, Globe, Cpu, MemoryStick, HardDrive, Activity, Wifi, WifiOff, Clock } from 'lucide-react';
 import { serversAPI } from '../api/endpoints';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { useMobile } from '../hooks/useMobile';
 
 export default function Dashboard() {
   const [servers, setServers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isMobile = useMobile();
 
   useEffect(() => {
     const fetchServers = async () => {
@@ -43,6 +45,122 @@ export default function Dashboard() {
     ? (servers.reduce((acc, s) => acc + (s.disk_used_percent || 0), 0) / servers.length).toFixed(0)
     : 0;
 
+  /* ─── Mobile layout ─────────────────────────────────────────────── */
+  if (isMobile) {
+    return (
+      <div className="space-y-4">
+        {/* Mobile Header */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-black tracking-tight uppercase font-display">Overview</h1>
+          <div className="text-right">
+            <p className="text-xs font-black text-[var(--text-secondary)] uppercase tracking-widest">
+              {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+            </p>
+          </div>
+        </div>
+
+        {/* Status hero card */}
+        <div className="glass-card p-5 flex items-center justify-between">
+          <div>
+            <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Network Status</p>
+            <p className="text-4xl font-black tracking-tighter leading-none">{onlineServers.length}<span className="text-xl text-[var(--text-secondary)] font-bold">/{servers.length}</span></p>
+            <p className="text-[10px] font-black text-[var(--accent-mint)] uppercase tracking-widest mt-1">Nodes Online</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Sites</p>
+            <p className="text-4xl font-black tracking-tighter leading-none">{totalSites}</p>
+            <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mt-1">Active</p>
+          </div>
+        </div>
+
+        {/* Horizontal-scroll stat chips */}
+        <div className="mobile-stat-row">
+          {[
+            { label: 'CPU Load', value: `${avgCpu}%`, sub: 'Avg Cluster' },
+            { label: 'RAM', value: `${ramPercent}%`, sub: 'Allocated' },
+            { label: 'Disk', value: `${diskAvg}%`, sub: 'Utilized' },
+            { label: 'Uptime', value: '94%', sub: 'Avg Cluster' },
+          ].map(stat => (
+            <div key={stat.label} className="mobile-stat-chip">
+              <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-2">{stat.label}</p>
+              <p className="text-2xl font-black tracking-tighter leading-none">{stat.value}</p>
+              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">{stat.sub}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Mini bar charts row — CPU, RAM, Disk */}
+        <div className="glass-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold tracking-tight">Infrastructure Load</h2>
+            <button className="px-4 py-1.5 rounded-full border border-[var(--border-color)] text-[10px] font-bold uppercase tracking-widest">
+              Refresh
+            </button>
+          </div>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: 'CPU', value: avgCpu },
+              { label: 'RAM', value: ramPercent },
+              { label: 'Disk', value: diskAvg },
+            ].map(({ label, value }) => (
+              <div key={label} className="space-y-2">
+                <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">{label}</p>
+                <div className="flex items-end gap-0.5 h-16">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="flex-1 bg-[var(--bg-card-hover)] rounded-full relative overflow-hidden" style={{ height: `${20 + Math.random() * 80}%` }}>
+                      <div className="absolute inset-x-0 bottom-0 bg-white opacity-20" style={{ height: `${value}%` }} />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xl font-black tracking-tighter">0-{value}%</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom 2-col row */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Sites tracking */}
+          <div className="glass-card accent-bg-green p-4 flex flex-col justify-between min-h-[140px]">
+            <div>
+              <h3 className="text-base font-bold tracking-tight">Sites</h3>
+              <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest">Active Count</p>
+            </div>
+            <p className="text-4xl font-black tracking-tighter leading-none">{totalSites}</p>
+          </div>
+
+          {/* Summary sparkline */}
+          <div className="glass-card p-4 flex flex-col justify-between min-h-[140px]">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold tracking-tight">Nodes</h3>
+              <button className="px-2 py-1 rounded-full border border-[var(--border-color)] text-[9px] font-bold uppercase">Week</button>
+            </div>
+            <div className="flex items-end justify-between gap-1 h-10">
+              {[60, 80, 40, 70, 90, 50, 65].map((h, i) => (
+                <div key={i} className="flex-1 bg-[var(--bg-card-hover)] rounded-sm relative overflow-hidden">
+                  <div className="absolute inset-x-0 bottom-0 bg-white/10" style={{ height: `${h}%` }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Uptime card */}
+        <div className="glass-card p-5 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-bold tracking-tight">Service Health</h3>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Active system services</p>
+          </div>
+          <div className="text-right">
+            <p className="text-4xl font-black tracking-tighter leading-none">94%</p>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Avg Uptime</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* ─── Desktop layout (unchanged) ───────────────────────────────── */
   return (
     <div className="space-y-6 md:space-y-12">
       {/* Overview Header */}

@@ -108,51 +108,51 @@ export default function Organizations() {
       />
 
       {/* Header */}
-      <div className="mb-12">
-        <div className="flex items-center gap-4 mb-2">
-          <div className="p-3 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/10">
-            <Building2 className="w-7 h-7 text-amber-500" />
+      <div className="mb-6 md:mb-12">
+        <div className="flex items-center gap-3 md:gap-4 mb-2">
+          <div className="p-2 md:p-3 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/10">
+            <Building2 className="w-5 h-5 md:w-7 md:h-7 text-amber-500" />
           </div>
           <div>
-            <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Organizations</h1>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2">Platform-level tenant management</p>
+            <h1 className="text-2xl md:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Organizations</h1>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1 md:mt-2">Platform-level tenant management</p>
           </div>
         </div>
       </div>
 
       {/* Stats Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
-        <div className="glass-card p-6 flex items-center gap-5">
-          <div className="p-3 rounded-2xl bg-violet-500/10 border border-violet-500/10">
-            <Building2 className="w-5 h-5 text-violet-500" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-6 md:mb-10">
+        <div className="glass-card p-4 md:p-6 flex items-center gap-4 md:gap-5">
+          <div className="p-2 md:p-3 rounded-2xl bg-violet-500/10 border border-violet-500/10 shrink-0">
+            <Building2 className="w-4 h-4 md:w-5 md:h-5 text-violet-500" />
           </div>
           <div>
-            <p className="text-2xl font-black text-white">{orgs.length}</p>
+            <p className="text-xl md:text-2xl font-black text-white">{orgs.length}</p>
             <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Total Organizations</p>
           </div>
         </div>
-        <div className="glass-card p-6 flex items-center gap-5">
-          <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/10">
-            <Database className="w-5 h-5 text-emerald-500" />
+        <div className="glass-card p-4 md:p-6 flex items-center gap-4 md:gap-5">
+          <div className="p-2 md:p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/10 shrink-0">
+            <Database className="w-4 h-4 md:w-5 md:h-5 text-emerald-500" />
           </div>
           <div>
-            <p className="text-2xl font-black text-white">{orgs.length}</p>
+            <p className="text-xl md:text-2xl font-black text-white">{orgs.length}</p>
             <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Active Schemas</p>
           </div>
         </div>
-        <div className="glass-card p-6 flex items-center gap-5">
-          <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/10">
-            <Shield className="w-5 h-5 text-amber-500" />
+        <div className="glass-card p-4 md:p-6 flex items-center gap-4 md:gap-5">
+          <div className="p-2 md:p-3 rounded-2xl bg-amber-500/10 border border-amber-500/10 shrink-0">
+            <Shield className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
           </div>
           <div>
-            <p className="text-2xl font-black text-white">Isolated</p>
+            <p className="text-xl md:text-2xl font-black text-white">Isolated</p>
             <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Data Separation</p>
           </div>
         </div>
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-6 mb-8">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 md:gap-6 mb-5 md:mb-8">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
           <input
@@ -165,7 +165,7 @@ export default function Organizations() {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center justify-center gap-3 px-8 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all active:scale-95 shadow-lg shadow-amber-500/20"
+          className="flex items-center justify-center gap-3 px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
         >
           <Plus className="w-4 h-4" />
           Add Organization
@@ -207,41 +207,75 @@ export default function Organizations() {
 
             {/* Rows */}
             {filteredOrgs.map(org => (
-              <div key={org.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-8 py-5 items-center hover:bg-white/5 transition-all group">
-                <div className="col-span-3 flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/10 flex items-center justify-center font-black text-amber-500 text-sm">
-                    {org.name.charAt(0).toUpperCase()}
+              <div key={org.id} className="px-4 md:px-8 py-4 md:py-5 hover:bg-white/5 transition-all group">
+                {/* Mobile card row */}
+                <div className="md:hidden">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/10 flex items-center justify-center font-black text-amber-500 text-sm shrink-0">
+                        {org.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-white uppercase tracking-tight">{org.name}</p>
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)]">{org.domain}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleDelete(org)}
+                      className="p-2 rounded-xl bg-red-500/5 text-red-500 active:bg-red-500 active:text-white transition-all"
+                      title="Delete organization"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
-                  <div>
-                    <p className="text-sm font-black text-white uppercase tracking-tight">{org.name}</p>
-                    <p className="text-[10px] font-bold text-[var(--text-secondary)] md:hidden">{org.domain}</p>
+                  <div className="flex items-center gap-4 mt-2 ml-12">
+                    <div className="flex items-center gap-1.5">
+                      <Key className="w-3 h-3 text-violet-500" />
+                      <span className="text-[10px] font-mono font-bold text-violet-400">{org.org_key}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Database className="w-3 h-3 text-emerald-500" />
+                      <span className="text-[10px] font-mono font-bold text-emerald-400">{org.schema_name}</span>
+                    </div>
                   </div>
                 </div>
-                <div className="col-span-2 hidden md:flex items-center gap-2">
-                  <Globe className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                  <span className="text-xs font-bold text-[var(--text-secondary)]">{org.domain}</span>
-                </div>
-                <div className="col-span-2 hidden md:flex items-center gap-2">
-                  <Key className="w-3.5 h-3.5 text-violet-500" />
-                  <span className="text-xs font-mono font-bold text-violet-400">{org.org_key}</span>
-                </div>
-                <div className="col-span-2 hidden md:flex items-center gap-2">
-                  <Database className="w-3.5 h-3.5 text-emerald-500" />
-                  <span className="text-xs font-mono font-bold text-emerald-400">{org.schema_name}</span>
-                </div>
-                <div className="col-span-2 hidden md:block">
-                  <span className="text-xs font-bold text-[var(--text-secondary)]">
-                    {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
-                </div>
-                <div className="col-span-1 flex justify-end">
-                  <button
-                    onClick={() => handleDelete(org)}
-                    className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                    title="Delete organization"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+
+                {/* Desktop grid layout (unchanged) */}
+                <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                  <div className="col-span-3 flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/10 flex items-center justify-center font-black text-amber-500 text-sm">
+                      {org.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-white uppercase tracking-tight">{org.name}</p>
+                    </div>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Globe className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                    <span className="text-xs font-bold text-[var(--text-secondary)]">{org.domain}</span>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Key className="w-3.5 h-3.5 text-violet-500" />
+                    <span className="text-xs font-mono font-bold text-violet-400">{org.org_key}</span>
+                  </div>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <Database className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-xs font-mono font-bold text-emerald-400">{org.schema_name}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-xs font-bold text-[var(--text-secondary)]">
+                      {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
+                  </div>
+                  <div className="col-span-1 flex justify-end">
+                    <button
+                      onClick={() => handleDelete(org)}
+                      className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                      title="Delete organization"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}

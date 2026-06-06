@@ -3,6 +3,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { Terminal as TerminalIcon, X, RefreshCw, AlertCircle, WifiOff, Loader2, Maximize2, Minimize2 } from 'lucide-react';
 import { useIsPWA } from '../../hooks/useIsPWA';
+import { useMobile } from '../../hooks/useMobile';
 import '@xterm/xterm/css/xterm.css';
 
 const XTERM_THEME = {
@@ -30,6 +31,8 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   const [errorMsg,    setErrorMsg]    = useState('');
   const [isFullscreen, setIsFullscreen] = useState(false);
   const isPWA = useIsPWA();
+  const isMobile = useMobile();
+  const mobileLayout = isPWA || isMobile;
 
   useEffect(() => {
     const term = new Terminal({
@@ -233,7 +236,7 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       ref={wrapperRef}
       style={wrapperStyle}
       className={`flex flex-col overflow-hidden ${
-        pwaFullscreen ? '' : isFullscreen ? 'bg-black h-screen w-screen' : 'glass-card h-[600px]'
+        pwaFullscreen ? '' : isFullscreen ? 'bg-black h-screen w-screen' : `glass-card ${mobileLayout ? 'h-[420px]' : 'h-[600px]'}`
       }`}
     >
       {pwaFullscreen && (
@@ -246,13 +249,13 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
           <Minimize2 className="w-5 h-5" />
         </button>
       )}
-      <div className={`flex items-center justify-between p-6 border-b border-[var(--border-color)] ${isFullscreen ? 'bg-black' : 'bg-black/20'}`}>
-        <div className="flex items-center gap-5">
-           <div className="p-3 bg-black/40 rounded-2xl text-[var(--accent-violet)] border border-white/5">
-              <TerminalIcon className="w-6 h-6" />
+      <div className={`flex items-center justify-between ${mobileLayout ? 'p-4' : 'p-6'} border-b border-[var(--border-color)] ${isFullscreen ? 'bg-black' : 'bg-black/20'}`}>
+        <div className="flex items-center gap-3">
+           <div className={`${mobileLayout ? 'p-2' : 'p-3'} bg-black/40 rounded-2xl text-[var(--accent-violet)] border border-white/5`}>
+              <TerminalIcon className={mobileLayout ? 'w-5 h-5' : 'w-6 h-6'} />
            </div>
            <div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-white">Cloud Console</h3>
+              <h3 className={`${mobileLayout ? 'text-sm' : 'text-sm'} font-black uppercase tracking-widest text-white`}>Cloud Console</h3>
               <div className="flex items-center gap-2 mt-1">
                  <div className={`w-1.5 h-1.5 rounded-full ${dotClass}`} />
                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">{status.toUpperCase()}</span>
@@ -260,18 +263,18 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
            </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
           {status === 'connected' ? (
-            <button onClick={disconnect} className="px-6 py-2 rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all">
-               Close Session
+            <button onClick={disconnect} className={`${mobileLayout ? 'px-4 py-2' : 'px-6 py-2'} rounded-xl bg-red-500/10 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all`}>
+               {mobileLayout ? 'Close' : 'Close Session'}
             </button>
           ) : (
-            <button onClick={connect} disabled={!isOnline || !wsConnected} className="px-8 py-2 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-30">
-               Establish Connection
+            <button onClick={connect} disabled={!isOnline || !wsConnected} className={`${mobileLayout ? 'px-4 py-2' : 'px-8 py-2'} rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all disabled:opacity-30`}>
+               {mobileLayout ? 'Connect' : 'Establish Connection'}
             </button>
           )}
-          <button onClick={toggleFullscreen} className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
-             {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
+          <button onClick={toggleFullscreen} className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
+             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
         </div>
       </div>

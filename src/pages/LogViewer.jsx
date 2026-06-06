@@ -151,32 +151,31 @@ export default function LogViewer() {
   if (loading) return <LoadingSpinner size="lg" text="Syncing..." />;
 
   return (
-    <div className="min-h-screen p-8 lg:p-12">
+    <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      <div className={`p-4 sm:p-6 md:p-10 lg:p-12 w-full mx-auto h-full`}>
       {/* Header */}
       {!isFullscreen && (
-        <div className="flex items-center justify-between mb-12">
-          <div className="flex items-center gap-6">
-            <button onClick={() => navigate(`/servers/${serverId}`)} className="p-3 rounded-2xl bg-white/5 text-white hover:bg-white/10 transition-all">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <div>
-              <h1 className="text-3xl font-black uppercase tracking-tight font-display text-white">Live Stream Monitor</h1>
-              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">{server?.name}</p>
-            </div>
+        <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-12">
+          <button onClick={() => navigate(`/servers/${serverId}`)} className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 shrink-0 rounded-xl md:rounded-2xl bg-white/5 text-[var(--text-secondary)] hover:text-white hover:bg-white/10 transition-all border border-white/5">
+            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+          </button>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg sm:text-2xl md:text-4xl font-black uppercase tracking-tight font-display text-white leading-tight truncate">Live Stream Monitor</h1>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-0.5 truncate">{server?.name}</p>
           </div>
         </div>
       )}
 
-      <div ref={wrapperRef} className={`flex flex-col h-full ${isFullscreen ? 'bg-black p-10' : ''}`}>
+      <div ref={wrapperRef} className={`flex flex-col h-full ${isFullscreen ? 'bg-black p-4 sm:p-10' : ''}`}>
         {/* Controls Panel */}
-        <div className="glass-card p-10 mb-8">
-           <div className="flex flex-col lg:flex-row lg:items-end gap-10">
+        <div className="glass-card shrink-0 p-5 sm:p-8 md:p-10 mb-6 md:mb-8">
+           <div className="flex flex-col lg:flex-row lg:items-end gap-6 md:gap-10">
               <div className="w-full lg:w-64">
-                 <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-3">Service Scope</label>
+                 <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-2 md:mb-3">Service Scope</label>
                  <select 
                     value={source} 
                     onChange={(e) => { setSource(e.target.value); setServiceName(''); }}
-                    className="w-full px-6 py-4 bg-black/40 border border-[var(--border-color)] rounded-2xl text-sm text-white focus:border-[var(--accent-violet)] outline-none font-bold uppercase tracking-widest appearance-none"
+                    className="w-full px-4 sm:px-6 py-3.5 sm:py-4 bg-black/40 border border-[var(--border-color)] rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white focus:border-[var(--accent-violet)] outline-none font-bold uppercase tracking-widest appearance-none"
                     disabled={isStreaming || streamLoading}
                  >
                     <option value="systemd">SYSTEMD</option>
@@ -186,11 +185,11 @@ export default function LogViewer() {
               </div>
 
               <div className="flex-1 min-w-0">
-                 <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-3">Node Target</label>
+                 <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest block mb-2 md:mb-3">Node Target</label>
                  <select 
                     value={serviceName} 
                     onChange={(e) => setServiceName(e.target.value)}
-                    className="w-full px-6 py-4 bg-black/40 border border-[var(--border-color)] rounded-2xl text-sm text-white focus:border-[var(--accent-violet)] outline-none font-bold uppercase tracking-widest appearance-none"
+                    className="w-full px-4 sm:px-6 py-3.5 sm:py-4 bg-black/40 border border-[var(--border-color)] rounded-xl sm:rounded-2xl text-xs sm:text-sm text-white focus:border-[var(--accent-violet)] outline-none font-bold uppercase tracking-widest appearance-none"
                     disabled={isStreaming || streamLoading}
                  >
                     <option value="">SELECT TARGET...</option>
@@ -198,21 +197,21 @@ export default function LogViewer() {
                  </select>
               </div>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 mt-2 lg:mt-0">
                  <button
                     onClick={handleToggleStream}
                     disabled={!serviceName || streamLoading}
-                    className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30 ${
+                    className={`flex items-center justify-center gap-2 flex-1 sm:flex-none px-6 sm:px-10 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30 ${
                       isStreaming ? 'bg-red-500/20 text-red-500 border border-red-500/20' : 'bg-[var(--accent-violet)] text-white shadow-violet-500/20'
                     }`}
                  >
-                    {streamLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isStreaming ? <Square className="w-4 h-4 fill-current mr-2 inline" /> : <Play className="w-4 h-4 fill-current mr-2 inline" />}
-                    {isStreaming ? 'TERMINATE' : 'ESTABLISH'}
+                    {streamLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : isStreaming ? <Square className="w-4 h-4 fill-current" /> : <Play className="w-4 h-4 fill-current" />}
+                    <span>{isStreaming ? 'TERMINATE' : 'ESTABLISH'}</span>
                  </button>
                  
-                 <button onClick={() => setLogLines([])} className="px-8 py-4 rounded-2xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Clear</button>
+                 <button onClick={() => setLogLines([])} className="px-6 sm:px-8 py-3.5 sm:py-4 rounded-xl sm:rounded-2xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Clear</button>
                  
-                 <button onClick={toggleFullscreen} className="p-4 rounded-2xl bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
+                 <button onClick={toggleFullscreen} className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
                     {isFullscreen ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
                  </button>
               </div>
@@ -237,14 +236,15 @@ export default function LogViewer() {
             autoScroll={autoScroll} 
             style={{ 
                backgroundColor: '#000000', 
-               borderRadius: '2rem', 
+               borderRadius: '1.5rem', 
                border: '1px solid var(--border-color)',
-               padding: '2rem',
+               padding: window.innerWidth < 640 ? '1rem' : '2rem',
                height: '100%',
                maxHeight: isFullscreen ? 'unset' : '600px'
             }} 
           />
         </div>
+      </div>
       </div>
     </div>
   );

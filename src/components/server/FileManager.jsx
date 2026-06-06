@@ -8,6 +8,7 @@ import {
 import { formatBytes } from '../../utils/formatters';
 import ConfirmModal from '../common/ConfirmModal';
 import { useIsPWA } from '../../hooks/useIsPWA';
+import { useMobile } from '../../hooks/useMobile';
 
 export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }) {
   const [path, setPath] = useState('/');
@@ -27,6 +28,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   const [confirmConfig, setConfirmConfig] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'warning' });
 
   const isPWA = useIsPWA();
+  const isMobile = useMobile();
   const [pwaCreateSheet, setPwaCreateSheet] = useState(false);
   const [pwaRowSheet, setPwaRowSheet] = useState(null); // item targeted by the context menu
   const [pwaRename, setPwaRename] = useState(null);      // { full, name }
@@ -244,8 +246,8 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
     return { Icon: File, color: 'text-[var(--text-secondary)]' };
   };
 
-  /* ─────────── iOS Files-app style browser (PWA only) ─────────── */
-  if (isPWA) {
+  /* ─────────── iOS Files-app style browser (mobile + PWA) ─────────── */
+  if (isPWA || isMobile) {
     return (
       <div className="pwa-server space-y-3">
         <ConfirmModal

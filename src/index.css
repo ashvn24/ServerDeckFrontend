@@ -7,7 +7,7 @@
   --bg-card: #141414;
   --bg-card-hover: #1c1c1c;
   --accent-mint: #d4f2d4;
-  --accent-violet: #8b5cf6;
+  --accent-violet: var(--accent-mint);
   --text-primary: #ffffff;
   --text-secondary: #71717a;
   --border-color: rgba(255, 255, 255, 0.08);
@@ -101,7 +101,17 @@ body {
   .accent-bg-green {
     background-color: var(--accent-mint);
     color: #0a0a0a;
-}
+  }
+
+  /* Global text color override for buttons that previously used purple.
+     Because purple is now mapped to the pale mint green attached color, 
+     any white text on them will be invisible. This forces black text on those buttons. */
+  .bg-\[var\(--accent-violet\)\] {
+    color: #0a0a0a !important;
+  }
+  .bg-\[var\(--accent-violet\)\] .text-white {
+    color: #0a0a0a !important;
+  }
 
 /* Status pulse animation */
 @keyframes pulse-dot {
@@ -252,7 +262,7 @@ select option {
   --bg-card: #ffffff;           /* secondarySystemGroupedBackground */
   --bg-card-hover: #eaeaef;     /* tertiary fill */
   --accent-mint: #34c759;       /* systemGreen */
-  --accent-violet: #af52de;     /* systemPurple */
+  --accent-violet: var(--accent-mint);     /* overriding purple */
   --text-primary: #1d1d1f;      /* label */
   --text-secondary: #6e6e73;    /* secondaryLabel */
   --border-color: rgba(60, 60, 67, 0.29); /* separator */
@@ -281,6 +291,80 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
     box-shadow: none !important;
   }
 }
+
+/* ─── Mobile-first utilities ────────────────────────────────────────
+   Applied only on ≤767px. Keep desktop entirely untouched. */
+@media (max-width: 767px) {
+  /* Compact glass card on mobile — less padding, slightly tighter radius */
+  .glass-card {
+    border-radius: 16px;
+  }
+
+  /* All interactive buttons get at least 44px touch target */
+  button, a[role="button"] {
+    min-height: 44px;
+  }
+
+  /* Mobile modal — always full-width with small inset */
+  .mobile-modal-inner {
+    width: calc(100vw - 2rem) !important;
+    max-width: 100% !important;
+    margin: 0 1rem;
+    border-radius: 20px;
+  }
+
+  /* Mobile section spacing — tighter vertical gaps */
+  .mobile-section { gap: 1rem !important; }
+
+  /* Prevent any card from overflowing horizontally */
+  .glass-card, [class*="glass-"] {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  /* Minimum font for legibility — matches iOS auto-zoom threshold */
+  .text-\[9px\]  { font-size: 11px !important; }
+  .text-\[10px\] { font-size: 12px !important; }
+
+  /* Active press state for all clickable cards */
+  .glass-card:active {
+    transform: scale(0.985);
+    transition: transform 0.08s ease;
+  }
+
+  /* Bottom nav active pip */
+  .mobile-nav-pip {
+    position: absolute;
+    bottom: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--text-primary);
+  }
+
+  /* Mobile stat chip — horizontal scroll row */
+  .mobile-stat-row {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-stat-row::-webkit-scrollbar { display: none; }
+
+  .mobile-stat-chip {
+    flex-shrink: 0;
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    min-width: 110px;
+  }
+}
+
 
 /* neutral text → iOS label / system gray scale */
 [data-theme='light'] .text-white:not([class*="bg-"]) { color: #1d1d1f; }

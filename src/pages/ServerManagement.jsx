@@ -120,18 +120,20 @@ export default function ServerManagement() {
   };
 
   return (
-    <div className="space-y-6 md:space-y-12">
+    <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      <div className="p-4 sm:p-6 md:p-10 lg:p-12 space-y-4 md:space-y-12 w-full mx-auto">
       {/* Breadcrumbs & Header */}
-      <div className="space-y-6 md:space-y-10">
-        <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+      <div className="space-y-4 md:space-y-10">
+        {/* Breadcrumbs — horizontal scroll on mobile */}
+        <div className="flex items-center gap-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest overflow-x-auto no-scrollbar pb-1">
           <button 
             onClick={() => setCurrentFolderId(null)}
-            className={`hover:text-white transition-all ${!currentFolderId ? 'text-[var(--accent-mint)]' : ''}`}
+            className={`shrink-0 hover:text-white transition-all ${!currentFolderId ? 'text-[var(--accent-mint)]' : ''}`}
           >
             Infrastructure
           </button>
           {getBreadcrumbs().map(crumb => (
-            <div key={crumb.id} className="flex items-center gap-4">
+            <div key={crumb.id} className="flex items-center gap-3 shrink-0">
               <ChevronRight className="w-4 h-4 text-[var(--border-color)]" />
               <button 
                 onClick={() => setCurrentFolderId(crumb.id)}
@@ -143,26 +145,26 @@ export default function ServerManagement() {
           ))}
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-10">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-10">
           <div>
-            <h1 className="text-3xl sm:text-5xl font-black text-white uppercase tracking-tight font-display leading-none">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight font-display leading-none">
               {currentFolderId ? folders.find(f => f.id === currentFolderId)?.name : 'Node Explorer'}
             </h1>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-4">
-              {currentFolders.length} Containers <span className="mx-3 text-white/10">/</span> {currentServers.length} Provisioned Nodes
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 md:mt-4">
+              {currentFolders.length} Containers <span className="mx-2 text-white/10">/</span> {currentServers.length} Provisioned Nodes
             </p>
           </div>
           {isAdmin && (
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className="flex gap-3 md:gap-4">
               <button
                 onClick={() => setShowFolderModal(true)}
-                className="px-8 py-3 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all"
+                className="flex-1 md:flex-none px-5 py-3 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95"
               >
                 Create Group
               </button>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="px-10 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20"
+                className="flex-1 md:flex-none px-6 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-violet-500/20"
               >
                 Provision Node
               </button>
@@ -191,7 +193,7 @@ export default function ServerManagement() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {currentFolders.map((folder) => (
             <FolderCard 
               key={folder.id} 
@@ -332,6 +334,7 @@ export default function ServerManagement() {
            </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

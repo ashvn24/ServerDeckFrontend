@@ -110,33 +110,32 @@ export default function Activity() {
   if (loading && logs.length === 0) return <LoadingSpinner size="lg" text="Syncing audit trails..." />;
 
   return (
-    <div className="space-y-6 md:space-y-12">
+    <div className="space-y-4 md:space-y-12">
       <div className="flex flex-col gap-6 md:gap-10" ref={filterSectionRef}>
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-10">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] mt-4">Audit trails and infrastructure access logs</p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-10">
+        <div className="flex flex-col gap-2 md:gap-4">
+            <h1 className="text-xl sm:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
+            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Audit trails &amp; infrastructure access logs</p>
           </div>
-          
-          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-             <div className="relative group w-full sm:w-auto">
+          {/* Search */}
+          <div className="flex flex-col gap-3 w-full md:flex-row md:items-center md:w-auto">
+             <div className="relative group w-full md:w-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] group-focus-within:text-white transition-colors" />
                 <input
                   type="text"
-                  placeholder="SEARCH ACTIVITY..."
-                  className="pl-12 pr-6 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-full sm:w-64 transition-all"
+                  placeholder="Search activity..."
+                  className="pl-11 pr-4 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-full md:w-64 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
              </div>
-
              {/* Node selector + filter toggle, side by side */}
-             <div className="flex items-center gap-3 w-full sm:w-auto">
+             <div className="flex items-center gap-3 w-full md:w-auto">
                 {/* Custom Server Dropdown */}
-                <div className="relative flex-1 sm:flex-none">
+                <div className="relative flex-1 md:flex-none">
                 <button
                   onClick={() => setShowServerDropdown(!showServerDropdown)}
-                  className="flex items-center gap-3 pl-12 pr-12 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:min-w-[200px] relative text-left"
+                  className="flex items-center gap-3 pl-12 pr-12 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full md:min-w-[200px] relative text-left"
                 >
                   <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedServerName}</span>
@@ -299,33 +298,33 @@ export default function Activity() {
       </div>
 
 
-      {/* Top / Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-         <div className="glass-card p-8 flex items-center gap-6">
-            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-[var(--accent-violet)]">
-               <Shield className="w-6 h-6" />
+      {/* Stats - 3 cols always on mobile */}
+      <div className="grid grid-cols-3 md:grid-cols-3 gap-3 md:gap-6 lg:gap-8">
+         <div className="glass-card p-3 md:p-8 flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-6">
+            <div className="w-9 h-9 md:w-14 md:h-14 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-[var(--accent-violet)] shrink-0">
+               <Shield className="w-4 h-4 md:w-6 md:h-6" />
             </div>
-            <div>
-               <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Active Policies</p>
-               <p className="text-2xl font-black text-white uppercase tracking-tight font-display">Compliant</p>
-            </div>
-         </div>
-         <div className="glass-card p-8 flex items-center gap-6">
-            <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-[var(--accent-mint)]">
-               <ActivityIcon className="w-6 h-6" />
-            </div>
-            <div>
-               <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Transactions / 24h</p>
-               <p className="text-2xl font-black text-white uppercase tracking-tight font-display">{logs.length}</p>
+            <div className="text-center md:text-left">
+               <p className="text-[8px] md:text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-tight">Active<br className="md:hidden" /> Policies</p>
+               <p className="text-sm md:text-2xl font-black text-white uppercase tracking-tight font-display">OK</p>
             </div>
          </div>
-         <div className="glass-card p-8 flex items-center gap-6 border-emerald-500/10">
-            <div className="w-14 h-14 bg-emerald-500/5 rounded-2xl flex items-center justify-center text-emerald-500">
-               <Database className="w-6 h-6" />
+         <div className="glass-card p-3 md:p-8 flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-6">
+            <div className="w-9 h-9 md:w-14 md:h-14 bg-white/5 rounded-xl md:rounded-2xl flex items-center justify-center text-[var(--accent-mint)] shrink-0">
+               <ActivityIcon className="w-4 h-4 md:w-6 md:h-6" />
             </div>
-            <div>
-               <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Log Retention</p>
-               <p className="text-2xl font-black text-white uppercase tracking-tight font-display">90 Days</p>
+            <div className="text-center md:text-left">
+               <p className="text-[8px] md:text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-tight">Txns<br className="md:hidden" /> /24h</p>
+               <p className="text-sm md:text-2xl font-black text-white uppercase tracking-tight font-display">{logs.length}</p>
+            </div>
+         </div>
+         <div className="glass-card p-3 md:p-8 flex flex-col md:flex-row items-center md:items-center gap-2 md:gap-6 border-emerald-500/10">
+            <div className="w-9 h-9 md:w-14 md:h-14 bg-emerald-500/5 rounded-xl md:rounded-2xl flex items-center justify-center text-emerald-500 shrink-0">
+               <Database className="w-4 h-4 md:w-6 md:h-6" />
+            </div>
+            <div className="text-center md:text-left">
+               <p className="text-[8px] md:text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest leading-tight">Log<br className="md:hidden" /> Retention</p>
+               <p className="text-sm md:text-2xl font-black text-white uppercase tracking-tight font-display">90d</p>
             </div>
          </div>
       </div>
@@ -348,44 +347,80 @@ export default function Activity() {
                </div>
              ) : (
                filteredLogs.map((log) => (
-                 <div key={log.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-5 md:px-8 py-5 md:py-6 hover:bg-white/5 transition-all group items-center">
-                    <div className="md:col-span-3 flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white text-[10px] flex-shrink-0">
-                          {log.user.name.charAt(0)}
-                       </div>
-                       <div>
-                          <p className="text-sm font-black text-white uppercase tracking-tight">{log.user.name}</p>
-                          <p className="text-[9px] font-bold text-[var(--accent-violet)] uppercase tracking-widest mt-0.5">{log.action}</p>
-                       </div>
+                 <div key={log.id} className="px-4 md:px-8 py-4 md:py-6 hover:bg-white/5 transition-all group">
+                    {/* Mobile card layout */}
+                    <div className="md:hidden space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white text-[10px] flex-shrink-0">
+                            {log.user.name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-white uppercase tracking-tight">{log.user.name}</p>
+                            <p className="text-[10px] font-bold text-[var(--accent-violet)] uppercase tracking-widest">{log.action}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] font-black text-white uppercase tracking-tight">
+                            {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </p>
+                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
+                            {new Date(log.timestamp).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Server className="w-3.5 h-3.5 text-[var(--text-secondary)] shrink-0" />
+                        <span className="text-[10px] font-black text-white uppercase tracking-widest truncate">{log.server.name}</span>
+                      </div>
+                      <div className="bg-black/20 rounded-xl p-2.5 border border-white/5 flex items-center gap-2">
+                        <ActivityIcon className="w-3 h-3 text-[var(--accent-mint)] flex-shrink-0" />
+                        <span className="text-[9px] font-mono text-gray-400 truncate">
+                          {JSON.stringify(log.details) === '{}' ? 'Standard session' : JSON.stringify(log.details)}
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="md:col-span-3 flex items-center gap-3">
-                       <div className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)]">
-                          <Server className="w-4 h-4" />
+                    {/* Desktop grid layout (unchanged) */}
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                       <div className="col-span-3 flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white text-[10px] flex-shrink-0">
+                             {log.user.name.charAt(0)}
+                          </div>
+                          <div>
+                             <p className="text-sm font-black text-white uppercase tracking-tight">{log.user.name}</p>
+                             <p className="text-[9px] font-bold text-[var(--accent-violet)] uppercase tracking-widest mt-0.5">{log.action}</p>
+                          </div>
                        </div>
-                       <span className="text-[10px] font-black text-white uppercase tracking-widest truncate">{log.server.name}</span>
-                    </div>
 
-                    <div className="md:col-span-4">
-                       <div className="bg-black/20 rounded-xl p-3 border border-white/5 flex items-center gap-3">
-                          <ActivityIcon className="w-3.5 h-3.5 text-[var(--accent-mint)] flex-shrink-0" />
-                          <span className="text-[9px] font-mono text-gray-400 truncate tracking-tight">
-                             {JSON.stringify(log.details) === '{}' ? 'Standard handshaked session' : JSON.stringify(log.details)}
-                          </span>
+                       <div className="col-span-3 flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)]">
+                             <Server className="w-4 h-4" />
+                          </div>
+                          <span className="text-[10px] font-black text-white uppercase tracking-widest truncate">{log.server.name}</span>
                        </div>
-                    </div>
 
-                    <div className="md:col-span-2 md:text-right">
-                       <div className="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-0">
-                          <div className="flex items-center gap-2 text-white">
-                             <Clock className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-                             <span className="text-[10px] font-black uppercase tracking-tight">
-                                {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                       <div className="col-span-4">
+                          <div className="bg-black/20 rounded-xl p-3 border border-white/5 flex items-center gap-3">
+                             <ActivityIcon className="w-3.5 h-3.5 text-[var(--accent-mint)] flex-shrink-0" />
+                             <span className="text-[9px] font-mono text-gray-400 truncate tracking-tight">
+                                {JSON.stringify(log.details) === '{}' ? 'Standard handshaked session' : JSON.stringify(log.details)}
                              </span>
                           </div>
-                          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
-                             {new Date(log.timestamp).toLocaleDateString()}
-                          </p>
+                       </div>
+
+                       <div className="col-span-2 text-right">
+                          <div className="flex flex-col items-end gap-0">
+                             <div className="flex items-center gap-2 text-white">
+                                <Clock className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+                                <span className="text-[10px] font-black uppercase tracking-tight">
+                                   {new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                             </div>
+                             <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
+                                {new Date(log.timestamp).toLocaleDateString()}
+                             </p>
+                          </div>
                        </div>
                     </div>
                  </div>

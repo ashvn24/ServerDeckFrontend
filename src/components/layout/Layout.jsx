@@ -16,7 +16,7 @@ export default function Layout() {
       {/* Main Content. Top padding clears the fixed header + iOS safe area;
           extra bottom padding on mobile clears the fixed bottom nav. */}
       <main
-        className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-12 px-4 sm:px-6 md:px-12"
+        className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-12 px-3 sm:px-5 md:px-12"
         style={{ paddingTop: 'calc(var(--total-header) + 1rem)' }}
       >
         <Outlet />

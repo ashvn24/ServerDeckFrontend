@@ -9,71 +9,60 @@ import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { timeAgo } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
-import { API_BASE_URL } from '../utils/constants';
+import { useMobile } from '../hooks/useMobile';
+import { useIsPWA } from '../hooks/useIsPWA';
 
-/* ─── TEMP DEBUG (remove once iOS PWA ticket-fetch issue is identified) ──
-   Enabled in dev, or by appending ?debug=1 to the URL on the device. */
-const DEBUG_ENABLED =
-  import.meta.env.DEV ||
-  (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'));
-
-/* ─── helpers ───────────────────────────────────────────────────── */
 const STATUSES   = ['Open', 'In Progress', 'Waiting on Customer', 'Resolved', 'Closed'];
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
 
 function priorityMeta(p) {
   switch (p) {
-    case 'Urgent': return { cls: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',   dot: 'bg-rose-400' };
-    case 'High':   return { cls: 'bg-amber-500/10 text-amber-400 border border-amber-500/20', dot: 'bg-amber-400' };
-    case 'Medium': return { cls: 'bg-primary-500/10 text-primary-400 border border-primary-500/20', dot: 'bg-primary-400' };
-    default:       return { cls: 'bg-slate-500/10 text-slate-400 border border-slate-600/20',  dot: 'bg-slate-500' };
+    case 'Urgent': return { cls: 'bg-red-500/10 text-red-500 border border-red-500/20',   dot: 'bg-red-500' };
+    case 'High':   return { cls: 'bg-amber-500/10 text-amber-500 border border-amber-500/20', dot: 'bg-amber-500' };
+    case 'Medium': return { cls: 'bg-[var(--accent-mint)]/10 text-[var(--accent-mint)] border border-[var(--accent-mint)]/20', dot: 'bg-[var(--accent-mint)]' };
+    default:       return { cls: 'bg-white/5 text-[var(--text-secondary)] border border-white/5',  dot: 'bg-gray-500' };
   }
 }
 
 function statusMeta(s) {
   switch (s) {
-    case 'Open':                return { cls: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 status-open', bar: 'bg-emerald-400' };
-    case 'In Progress':         return { cls: 'bg-sky-500/10 text-sky-400 border border-sky-500/20',                         bar: 'bg-sky-400' };
-    case 'Waiting on Customer': return { cls: 'bg-orange-500/10 text-orange-400 border border-orange-500/20',                bar: 'bg-orange-400' };
-    case 'Resolved':            return { cls: 'bg-teal-500/10 text-teal-300 border border-teal-500/20',                      bar: 'bg-teal-400' };
-    case 'Closed':              return { cls: 'bg-gray-600/20 text-gray-500 border border-gray-600/20',                      bar: 'bg-gray-500' };
-    default:                    return { cls: 'bg-gray-700/20 text-gray-500 border border-transparent',                      bar: 'bg-gray-600' };
+    case 'Open':                return { cls: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 status-open' };
+    case 'In Progress':         return { cls: 'bg-sky-500/10 text-sky-500 border border-sky-500/20' };
+    case 'Waiting on Customer': return { cls: 'bg-orange-500/10 text-orange-500 border border-orange-500/20' };
+    case 'Resolved':            return { cls: 'bg-[var(--accent-mint)]/10 text-[var(--accent-mint)] border border-[var(--accent-mint)]/20' };
+    case 'Closed':              return { cls: 'bg-white/5 text-[var(--text-secondary)] border border-white/5' };
+    default:                    return { cls: 'bg-white/5 text-[var(--text-secondary)] border border-white/5' };
   }
 }
 
 function RoleBadge({ role }) {
   const map = {
-    owner:   'bg-amber-500/15 text-amber-400',
-    admin:   'bg-violet-500/15 text-violet-400',
-    support: 'bg-sky-500/15 text-sky-400',
-    member:  'bg-gray-600/30 text-gray-400',
+    owner:   'bg-amber-500/10 text-amber-500 border border-amber-500/10',
+    admin:   'bg-violet-500/10 text-violet-500 border border-violet-500/10',
+    support: 'bg-sky-500/10 text-sky-500 border border-sky-500/10',
+    member:  'bg-white/5 text-[var(--text-secondary)] border border-white/5',
   };
   return (
-    <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider ${map[role] ?? map.member}`}>
+    <span className={`text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest ${map[role] ?? map.member}`}>
       {role}
     </span>
   );
 }
 
-function Avatar({ name, role, size = 8 }) {
-  const colorMap = {
-    owner:   'bg-amber-500/20 text-amber-300',
-    admin:   'bg-violet-500/20 text-violet-300',
-    support: 'bg-sky-500/20 text-sky-300',
-    member:  'bg-gray-600/30 text-gray-300',
-  };
-  const s = { 8: 'w-8 h-8 text-sm', 6: 'w-6 h-6 text-xs' }[size] ?? 'w-8 h-8 text-sm';
+function Avatar({ name }) {
   return (
-    <div className={`${s} rounded-full flex items-center justify-center font-bold flex-shrink-0 ${colorMap[role] ?? colorMap.member}`}>
+    <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/5 flex items-center justify-center font-black text-[var(--text-primary)] uppercase tracking-widest text-sm shrink-0">
       {name?.charAt(0)?.toUpperCase() ?? '?'}
     </div>
   );
 }
 
-/* ─── main component ────────────────────────────────────────────── */
 export default function Tickets() {
   const { user } = useAuth();
   const ws        = useWebSocket();
+  const isMobile = useMobile();
+  const isPWA = useIsPWA();
+  const mobileLayout = isMobile || isPWA;
 
   const [tickets,        setTickets]        = useState([]);
   const [teamUsers,      setTeamUsers]      = useState([]);
@@ -90,8 +79,7 @@ export default function Tickets() {
   const [creating,       setCreating]       = useState(false);
   const [form,           setForm]           = useState({ title: '', description: '', priority: 'Medium' });
   const [sendingMsg,     setSendingMsg]     = useState(false);
-  const [showProps,      setShowProps]      = useState(false);  // mobile properties drawer
-  const [debugInfo,      setDebugInfo]      = useState(null);   // TEMP DEBUG (remove later)
+  const [showProps,      setShowProps]      = useState(false);
 
   const chatEndRef       = useRef(null);
   const selectedIdRef    = useRef(null);
@@ -104,38 +92,24 @@ export default function Tickets() {
     setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 60);
   }, []);
 
-  /* ── fetch list ── */
   const fetchTickets = useCallback(async () => {
     try {
       setListLoading(true);
       const res = await ticketsAPI.list(statusFilter || undefined, priorityFilter || undefined);
       setTickets(res.data);
-      setDebugInfo(null); // TEMP DEBUG: clear on success
     } catch (e) {
       console.error(e);
-      // TEMP DEBUG: capture failure details visibly (console.log is invisible on iOS)
-      setDebugInfo({
-        message: e?.message || String(e),
-        status: e?.response?.status ?? '(no response — network/CORS?)',
-        statusText: e?.response?.statusText || '',
-        body: e?.response?.data ? JSON.stringify(e.response.data).slice(0, 300) : '',
-        apiBaseUrl: API_BASE_URL,
-        requestUrl: e?.config ? `${e.config.baseURL || ''}${e.config.url || ''}` : '(unknown)',
-        hasToken: !!localStorage.getItem('serverdeck_token'),
-      });
     }
     finally { setListLoading(false); }
   }, [statusFilter, priorityFilter]);
 
   useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
-  /* ── fetch team users (for assignment) ── */
   useEffect(() => {
     if (!isSupportStaff) return;
     usersAPI.list().then(r => setTeamUsers(r.data)).catch(console.error);
   }, [isSupportStaff]);
 
-  /* ── websocket events ── */
   useEffect(() => {
     if (!ws?.on) return;
     const offMsg = ws.on('ticket_message', ({ message: m }) => {
@@ -159,14 +133,12 @@ export default function Tickets() {
     return () => { offMsg(); offUpd(); };
   }, [ws, scrollBottom]);
 
-  /* ── ws ticket subscription ── */
   useEffect(() => {
     if (!selectedId || !ws?.subscribeTicket) return;
     ws.subscribeTicket(selectedId);
     return () => ws.unsubscribeTicket(selectedId);
   }, [selectedId, ws]);
 
-  /* ── load detail ── */
   useEffect(() => {
     if (!selectedId) { setSelectedTicket(null); return; }
     setDetailLoading(true);
@@ -176,7 +148,6 @@ export default function Tickets() {
       .finally(() => setDetailLoading(false));
   }, [selectedId, scrollBottom]);
 
-  /* ── handlers ── */
   const handleSend = async (e) => {
     e.preventDefault();
     if (!msgBody.trim() || !selectedId || sendingMsg) return;
@@ -214,100 +185,73 @@ export default function Tickets() {
     finally { setCreating(false); }
   };
 
-  /* ── filtered list ── */
   const filtered = tickets.filter(t =>
     t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     t.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  /* ═══════════════════════════════════════════════════════════════ */
   return (
-    <div className="fixed left-0 right-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)', background: 'var(--bg-main)' }}>
-
-      {/* ══ TEMP DEBUG BOX (remove once iOS PWA issue is identified) ══ */}
-      {DEBUG_ENABLED && debugInfo && (
-        <div
-          className="fixed left-2 right-2 z-[300] rounded-xl border-2 border-red-500 bg-red-950/95 text-red-100 p-4 text-xs font-mono leading-relaxed shadow-2xl max-h-[60vh] overflow-y-auto"
-          style={{ top: 'calc(var(--total-header) + 0.5rem)' }}
-        >
-          <div className="flex items-center justify-between mb-2">
-            <span className="font-bold text-red-300 uppercase tracking-widest">Ticket fetch failed (debug)</span>
-            <button onClick={() => setDebugInfo(null)} className="text-red-300 hover:text-white">✕</button>
-          </div>
-          <div className="space-y-1 break-words">
-            <p><span className="text-red-400">hasToken:</span> {String(debugInfo.hasToken)}</p>
-            <p><span className="text-red-400">apiBaseUrl:</span> {debugInfo.apiBaseUrl}</p>
-            <p><span className="text-red-400">requestUrl:</span> {debugInfo.requestUrl}</p>
-            <p><span className="text-red-400">status:</span> {String(debugInfo.status)} {debugInfo.statusText}</p>
-            <p><span className="text-red-400">message:</span> {debugInfo.message}</p>
-            {debugInfo.body && <p><span className="text-red-400">body:</span> {debugInfo.body}</p>}
-          </div>
-        </div>
-      )}
-
-      {/* ══ LEFT: Ticket List ══════════════════════════════════════ */}
-      <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 flex-shrink-0 flex-col border-r border-white/5`} style={{ background: 'var(--bg-card)' }}>
-
-        {/* header */}
-        <div className="px-4 pt-5 pb-3 border-b border-white/5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <LifeBuoy className="w-4 h-4 text-primary-400" />
-              <h2 className="text-sm font-black uppercase tracking-widest text-white">Service Desk</h2>
+    <div className="fixed left-0 right-0 z-40 flex gap-0 overflow-hidden border-t border-[var(--border-color)] bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      {/* LEFT: Ticket List */}
+      <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-[350px] flex-shrink-0 flex-col border-r border-[var(--border-color)] bg-[var(--bg-card)]`}>
+        <div className="p-4 md:p-6 border-b border-[var(--border-color)]">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 accent-bg-green rounded-xl">
+                <LifeBuoy className="w-5 h-5" />
+              </div>
+              <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">Tickets</h2>
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="w-7 h-7 rounded-lg bg-primary-500 hover:bg-primary-600 flex items-center justify-center text-white transition-colors shadow-lg shadow-primary-500/20"
-              title="New ticket"
+              className="w-10 h-10 rounded-xl accent-bg-green hover:brightness-110 flex items-center justify-center transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-5 h-5 text-[#0a0a0a]" />
             </button>
           </div>
 
-          {/* search */}
-          <div className="relative mb-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
-            <input
-              type="text"
-              placeholder="Search tickets…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full border border-white/8 rounded-xl py-2 pl-9 pr-3 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/40 transition-colors"
-              style={{ background: 'var(--bg-card-hover)' }}
-            />
-          </div>
+          <div className="space-y-3">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+              <input
+                type="text"
+                placeholder="SEARCH TICKETS..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl py-3 pl-11 pr-4 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all"
+              />
+            </div>
 
-          {/* filters */}
-          <div className="flex gap-1.5">
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="flex-1 appearance-none border border-white/8 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-primary-500/50 transition-colors"
-              style={{ background: 'var(--bg-card-hover)' }}
-            >
-              <option value="" style={{ background: 'var(--bg-card-hover)' }}>All Status</option>
-              {STATUSES.map(s => <option key={s} value={s} style={{ background: 'var(--bg-card-hover)' }}>{s}</option>)}
-            </select>
-            <select
-              value={priorityFilter}
-              onChange={e => setPriorityFilter(e.target.value)}
-              className="flex-1 appearance-none border border-white/8 rounded-lg px-2 py-1.5 text-[11px] text-gray-300 focus:outline-none focus:border-primary-500/50 transition-colors"
-              style={{ background: 'var(--bg-card-hover)' }}
-            >
-              <option value="" style={{ background: 'var(--bg-card-hover)' }}>All Priority</option>
-              {PRIORITIES.map(p => <option key={p} value={p} style={{ background: 'var(--bg-card-hover)' }}>{p}</option>)}
-            </select>
+            <div className="flex gap-2">
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
+              >
+                <option value="">ALL STATUS</option>
+                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select
+                value={priorityFilter}
+                onChange={e => setPriorityFilter(e.target.value)}
+                className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
+              >
+                <option value="">ALL PRIORITY</option>
+                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* ticket items */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar py-2">
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
           {listLoading ? (
             <div className="flex justify-center pt-10"><LoadingSpinner size="md" /></div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center pt-14 gap-3 text-center px-4">
-              <AlertCircle className="w-7 h-7 text-gray-600" />
-              <p className="text-xs text-gray-500 uppercase tracking-widest font-bold">No tickets</p>
+            <div className="flex flex-col items-center justify-center pt-14 gap-4 text-center px-4">
+              <div className="p-4 bg-white/5 rounded-2xl">
+                <AlertCircle className="w-8 h-8 text-[var(--text-secondary)]" />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">No tickets found</p>
             </div>
           ) : filtered.map(t => {
             const pm = priorityMeta(t.priority);
@@ -317,155 +261,143 @@ export default function Tickets() {
               <button
                 key={t.id}
                 onClick={() => setSelectedId(t.id)}
-                className={`w-full text-left px-3 py-3 border-l-2 transition-all relative group
+                className={`w-full text-left p-4 rounded-2xl border transition-all relative group
                   ${active
-                    ? 'border-l-primary-500 bg-primary-500/5'
-                    : 'border-l-transparent hover:border-l-white/10 hover:bg-white/3'}`}
+                    ? 'border-[var(--accent-mint)] bg-[var(--accent-mint)]/10'
+                    : 'border-transparent hover:border-[var(--border-color)] hover:bg-[var(--bg-card-hover)]'}`}
               >
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <span className="text-[10px] font-bold text-gray-500">#{t.id.slice(0, 8)}</span>
-                  <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider ${sm.cls}`}>
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">#{t.id.slice(0, 8)}</span>
+                  <span className={`text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest ${sm.cls}`}>
                     {t.status}
                   </span>
                 </div>
-                <h4 className={`text-xs font-bold truncate mb-2 ${active ? 'text-white' : 'text-gray-300 group-hover:text-white'} transition-colors`}>
+                <h4 className={`text-sm font-black uppercase tracking-tight truncate mb-3 ${active ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'} transition-colors`}>
                   {t.title}
                 </h4>
                 <div className="flex items-center justify-between">
-                  <div className={`flex items-center gap-1 text-[10px] ${pm.cls} px-1.5 py-0.5 rounded font-bold`}>
+                  <div className={`flex items-center gap-1.5 text-[9px] px-2 py-1 rounded-lg font-black uppercase tracking-widest ${pm.cls}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${pm.dot}`} />
                     {t.priority}
                   </div>
-                  <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)] flex items-center gap-1.5">
                     <Clock className="w-3 h-3" />{timeAgo(t.updated_at)}
                   </span>
                 </div>
-                {t.assigned_to && (
-                  <div className="flex items-center gap-1 mt-1.5 text-[10px] text-primary-400 font-medium">
-                    <UserCheck className="w-3 h-3" />{t.assigned_to.name}
-                  </div>
-                )}
               </button>
             );
           })}
         </div>
 
-        {/* footer stats */}
-        <div className="px-4 py-3 border-t border-white/5 flex items-center justify-between text-[10px] text-gray-500 font-bold uppercase tracking-wider">
-          <span>{tickets.filter(t => t.status === 'Open').length} open</span>
-          <button onClick={fetchTickets} className="hover:text-white transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" />
+        <div className="p-4 border-t border-[var(--border-color)] flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] bg-[var(--bg-card-hover)]">
+          <span>{tickets.filter(t => t.status === 'Open').length} OPEN TICKETS</span>
+          <button onClick={fetchTickets} className="p-2 rounded-lg hover:bg-white/10 hover:text-[var(--text-primary)] transition-all">
+            <RefreshCw className="w-4 h-4" />
           </button>
         </div>
       </aside>
 
-      {/* ══ MIDDLE: Conversation ══════════════════════════════════ */}
-      <main className={`${selectedId ? 'flex' : 'hidden lg:flex'} flex-1 flex-col min-w-0 border-r border-white/5`}>
+      {/* MIDDLE: Conversation */}
+      <main className={`${selectedId ? 'flex' : 'hidden lg:flex'} flex-1 flex-col min-w-0 border-r border-[var(--border-color)] relative`}>
         {!selectedId ? (
-          /* empty state */
-          <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
-            <div className="w-16 h-16 rounded-2xl bg-white/3 border border-white/5 flex items-center justify-center">
-              <LifeBuoy className="w-7 h-7 text-gray-600" />
+          <div className="flex-1 flex flex-col items-center justify-center gap-6 text-center p-8">
+            <div className="w-20 h-20 rounded-[2rem] bg-white/5 border border-[var(--border-color)] flex items-center justify-center shadow-inner">
+              <MessageSquare className="w-8 h-8 text-[var(--text-secondary)]" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-white mb-1">Select a Ticket</h3>
-              <p className="text-xs text-gray-500 max-w-xs leading-relaxed">
-                Choose a ticket from the left panel to view the conversation, or create a new one.
+              <h3 className="text-xl font-black uppercase tracking-tight font-display text-[var(--text-primary)] mb-2">Select a Ticket</h3>
+              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest max-w-xs leading-relaxed">
+                Choose an issue from the panel to view the conversation, or raise a new request.
               </p>
             </div>
             <button
               onClick={() => setShowCreate(true)}
-              className="mt-2 flex items-center gap-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl transition-colors shadow-lg shadow-primary-500/20"
+              className="mt-4 flex items-center gap-2 px-6 py-3 accent-bg-green text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-emerald-500/20"
             >
-              <Plus className="w-3.5 h-3.5" /> New Ticket
+              <Plus className="w-4 h-4 text-[#0a0a0a]" /> New Ticket
             </button>
           </div>
         ) : detailLoading ? (
           <div className="flex-1 flex items-center justify-center">
-            <LoadingSpinner size="lg" text="Loading conversation…" />
+            <LoadingSpinner size="lg" text="SYNCING THREAD..." />
           </div>
         ) : selectedTicket ? (
           <>
-            {/* chat header */}
-            <div className="px-4 sm:px-5 py-4 border-b border-white/5 flex items-start gap-3 flex-shrink-0">
+            {/* Chat Header */}
+            <div className="px-4 md:px-6 py-4 md:py-5 border-b border-[var(--border-color)] flex items-center gap-4 bg-[var(--bg-card-hover)]">
               <button
                 onClick={() => { setSelectedId(null); setShowProps(false); }}
-                className="lg:hidden -ml-1 mt-0.5 w-8 h-8 rounded-lg hover:bg-white/8 text-gray-400 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
-                title="Back to list"
+                className="lg:hidden p-2 -ml-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
-                <ArrowLeft className="w-4 h-4" />
+                <ArrowLeft className="w-5 h-5" />
               </button>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1 flex-wrap">
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${statusMeta(selectedTicket.status).cls}`}>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  <span className={`text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest ${statusMeta(selectedTicket.status).cls}`}>
                     {selectedTicket.status}
                   </span>
-                  <span className={`text-[10px] px-2 py-0.5 rounded font-bold uppercase tracking-wide ${priorityMeta(selectedTicket.priority).cls}`}>
+                  <span className={`text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest ${priorityMeta(selectedTicket.priority).cls}`}>
                     {selectedTicket.priority}
                   </span>
-                  <span className="text-[10px] text-gray-500 font-mono">#{selectedTicket.id.slice(0, 8)}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">#{selectedTicket.id.slice(0, 8)}</span>
                 </div>
-                <h3 className="text-base font-bold text-white truncate">{selectedTicket.title}</h3>
-                <p className="text-[11px] text-gray-500 mt-0.5">
-                  Opened by <span className="text-gray-300 font-semibold">{selectedTicket.created_by?.name}</span>
-                  {' '}· {timeAgo(selectedTicket.created_at)}
-                </p>
+                <h3 className="text-base md:text-lg font-black text-[var(--text-primary)] uppercase tracking-tight truncate">{selectedTicket.title}</h3>
               </div>
               <button
                 onClick={() => setShowProps(true)}
-                className="lg:hidden mt-0.5 w-8 h-8 rounded-lg hover:bg-white/8 text-gray-400 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
-                title="Ticket properties"
+                className="lg:hidden p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
-                <Info className="w-4 h-4" />
+                <Info className="w-5 h-5" />
               </button>
             </div>
 
-            {/* message stream */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-5 py-5 space-y-4">
-
-              {/* original description */}
-              <div className="rounded-2xl border border-primary-500/10 p-4" style={{ background: 'rgba(59,130,246,0.04)' }}>
-                <div className="flex items-center gap-3 mb-3">
-                  <Avatar name={selectedTicket.created_by?.name} role={selectedTicket.created_by?.role} />
+            {/* Message Stream */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-6 space-y-6">
+              <div className="rounded-2xl border border-[var(--border-color)] bg-[var(--bg-card)] p-5">
+                <div className="flex items-center gap-4 mb-4 pb-4 border-b border-[var(--border-color)]">
+                  <Avatar name={selectedTicket.created_by?.name} />
                   <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-white">{selectedTicket.created_by?.name}</span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-black uppercase tracking-tight text-[var(--text-primary)]">{selectedTicket.created_by?.name}</span>
                       <RoleBadge role={selectedTicket.created_by?.role} />
                     </div>
-                    <span className="text-[10px] text-gray-500">{timeAgo(selectedTicket.created_at)}</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">{timeAgo(selectedTicket.created_at)}</span>
                   </div>
-                  <span className="ml-auto text-[10px] text-gray-600 uppercase tracking-widest font-bold">Original Issue</span>
+                  <span className="ml-auto text-[9px] font-black uppercase tracking-widest text-[var(--accent-mint)] px-2 py-1 rounded-lg bg-[var(--accent-mint)]/10 border border-[var(--accent-mint)]/20">Original Issue</span>
                 </div>
-                <p className="text-sm text-gray-300 leading-relaxed whitespace-pre-wrap">{selectedTicket.description}</p>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed whitespace-pre-wrap font-medium">{selectedTicket.description}</p>
               </div>
 
-              {/* replies */}
               {selectedTicket.messages?.map(msg => {
                 const isMe = msg.sender_id === user?.id;
 
                 if (msg.is_internal) return (
-                  <div key={msg.id} className="msg-bubble-internal p-3 my-1">
-                    <div className="flex items-center gap-2 mb-2 text-[10px] font-bold uppercase tracking-wider text-amber-400">
-                      <Lock className="w-3 h-3" />
+                  <div key={msg.id} className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 my-2">
+                    <div className="flex items-center gap-2 mb-3 pb-3 border-b border-amber-500/10 text-[9px] font-black uppercase tracking-widest text-amber-500">
+                      <Lock className="w-3.5 h-3.5" />
                       <span>Internal Note</span>
-                      <span className="ml-auto flex items-center gap-1.5 normal-case font-semibold tracking-normal">
+                      <span className="ml-auto flex items-center gap-1.5 text-amber-500/70">
                         {msg.sender?.name} · {timeAgo(msg.created_at)}
                       </span>
                     </div>
-                    <p className="text-sm leading-relaxed">{msg.body}</p>
+                    <p className="text-sm text-amber-500/90 leading-relaxed font-medium">{msg.body}</p>
                   </div>
                 );
 
                 return (
-                  <div key={msg.id} className={`flex gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-                    <Avatar name={msg.sender?.name} role={msg.sender?.role} />
-                    <div className={`max-w-[72%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                      <div className={`flex items-center gap-1.5 ${isMe ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-xs font-semibold text-gray-300">{msg.sender?.name}</span>
+                  <div key={msg.id} className={`flex gap-4 ${isMe ? 'flex-row-reverse' : ''}`}>
+                    <Avatar name={msg.sender?.name} />
+                    <div className={`max-w-[85%] md:max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                      <div className={`flex items-center gap-2 mb-1 ${isMe ? 'flex-row-reverse' : ''}`}>
+                        <span className="text-xs font-black uppercase tracking-tight text-[var(--text-secondary)]">{msg.sender?.name}</span>
                         <RoleBadge role={msg.sender?.role} />
-                        <span className="text-[10px] text-gray-500">{timeAgo(msg.created_at)}</span>
+                        <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">{timeAgo(msg.created_at)}</span>
                       </div>
-                      <div className={`px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${isMe ? 'msg-bubble-user' : 'msg-bubble-other'}`}>
+                      <div className={`px-5 py-3.5 text-sm font-medium leading-relaxed whitespace-pre-wrap shadow-lg ${
+                        isMe 
+                          ? 'bg-gradient-to-br from-[var(--accent-mint)] to-emerald-500 text-[#0a0a0a] rounded-[22px] rounded-tr-[4px] border border-emerald-400/20 shadow-emerald-500/20' 
+                          : 'bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-card-hover)] text-[var(--text-primary)] rounded-[22px] rounded-tl-[4px] border border-[var(--border-color)] shadow-black/5'
+                      }`}>
                         {msg.body}
                       </div>
                     </div>
@@ -475,58 +407,67 @@ export default function Tickets() {
               <div ref={chatEndRef} />
             </div>
 
-            {/* composer */}
+            {/* Composer */}
             {isTicketClosed ? (
-              <div className="px-5 py-4 border-t border-white/5 flex items-center justify-center gap-2 text-xs text-gray-500 font-bold uppercase tracking-widest">
-                <Lock className="w-4 h-4" /> Ticket Closed
+              <div className="p-6 border-t border-[var(--border-color)] bg-[var(--bg-card-hover)] flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">
+                  <Lock className="w-4 h-4" /> Ticket Closed
+                </div>
                 {isSupportStaff && (
                   <button
                     onClick={() => handleProp('status', 'Open')}
-                    className="ml-4 px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-lg hover:bg-emerald-500/20 transition-colors text-[10px]"
+                    className="px-6 py-3 accent-bg-green rounded-xl text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-lg shadow-emerald-500/20"
                   >
-                    Re-open
+                    Re-open Ticket
                   </button>
                 )}
               </div>
             ) : (
-              <form onSubmit={handleSend} className="px-4 pb-4 pt-3 border-t border-white/5 flex-shrink-0">
+              <form onSubmit={handleSend} className="p-4 md:p-6 border-t border-[var(--border-color)] bg-[var(--bg-card-hover)]">
                 {isSupportStaff && (
-                  <label className="flex items-center gap-2 mb-2 cursor-pointer w-fit select-none">
+                  <label className="flex items-center gap-2 mb-3 cursor-pointer w-fit select-none group">
                     <input
                       type="checkbox"
                       checked={isInternal}
                       onChange={e => setIsInternal(e.target.checked)}
-                      className="rounded border-white/10 bg-transparent text-amber-500 focus:ring-0 focus:ring-offset-0"
+                      className="w-4 h-4 rounded border-[var(--border-color)] bg-white/5 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
                     />
-                    <span className={`text-[11px] font-bold flex items-center gap-1 ${isInternal ? 'text-amber-400' : 'text-gray-500'}`}>
-                      {isInternal ? <Lock className="w-3 h-3" /> : <MessageSquare className="w-3 h-3" />}
+                    <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors ${isInternal ? 'text-amber-500' : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'}`}>
+                      {isInternal ? <Lock className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
                       {isInternal ? 'Internal note (staff only)' : 'Public reply'}
                     </span>
                   </label>
                 )}
-                <div
-                  className={`flex items-end gap-2 rounded-xl border px-3 py-2 transition-colors ${isInternal ? 'border-amber-500/20' : 'border-white/8 focus-within:border-primary-500/40'}`}
-                  style={{ background: isInternal ? 'rgba(245,158,11,0.04)' : '#1c1c1c' }}
-                >
+                <div className={`flex items-end gap-2 rounded-[24px] border bg-[var(--bg-card)] p-1.5 transition-all ${isInternal ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-[var(--border-color)] focus-within:border-[var(--accent-mint)]'}`}>
                   <textarea
-                    placeholder={isInternal ? 'Write an internal note…' : 'Type a reply… (Shift+Enter for newline)'}
+                    placeholder={isInternal ? 'WRITE INTERNAL NOTE...' : 'TYPE REPLY...'}
                     value={msgBody}
-                    onChange={e => setMsgBody(e.target.value)}
-                    rows={2}
-                    className="flex-1 bg-transparent border-0 outline-none text-sm text-white placeholder-gray-500 resize-none py-1 focus:ring-0"
+                    onChange={e => {
+                      setMsgBody(e.target.value);
+                      e.target.style.height = 'auto';
+                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                    }}
+                    rows={1}
+                    style={{ minHeight: '40px', maxHeight: '120px' }}
+                    className={`flex-1 bg-transparent border-0 outline-none text-sm font-bold resize-none py-2.5 px-4 focus:ring-0 custom-scrollbar ${isInternal ? 'text-amber-500 placeholder-amber-500/40' : 'text-[var(--text-primary)] placeholder-[var(--text-secondary)] uppercase tracking-wider'}`}
                     onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e); }
+                      if (e.key === 'Enter' && !e.shiftKey) { 
+                        e.preventDefault(); 
+                        handleSend(e);
+                        e.target.style.height = 'auto'; // Reset height on send
+                      }
                     }}
                   />
                   <button
                     type="submit"
                     disabled={!msgBody.trim() || sendingMsg}
-                    className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-white transition-all
-                      ${isInternal
-                        ? 'bg-amber-500 hover:bg-amber-600 disabled:opacity-30'
-                        : 'bg-primary-500 hover:bg-primary-600 disabled:opacity-30'}`}
+                    className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-all ${
+                      isInternal
+                        ? 'bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-30 disabled:hover:scale-100 shadow-lg shadow-amber-500/20'
+                        : 'accent-bg-green hover:brightness-110 disabled:opacity-30 disabled:hover:scale-100 shadow-lg shadow-emerald-500/20'
+                    } ${!(!msgBody.trim() || sendingMsg) && 'hover:scale-105 active:scale-95'}`}
                   >
-                    <Send className="w-3.5 h-3.5" />
+                    <Send className={`w-4 h-4 ml-0.5 ${!isInternal && 'text-[#0a0a0a]'}`} />
                   </button>
                 </div>
               </form>
@@ -535,91 +476,84 @@ export default function Tickets() {
         ) : null}
       </main>
 
-      {/* ══ RIGHT: Properties Panel ════════════════════════════════ */}
-      {/* mobile backdrop */}
+      {/* RIGHT: Properties Panel */}
       {showProps && (
-        <div className="lg:hidden fixed inset-x-0 z-40 bg-black/60" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }} onClick={() => setShowProps(false)} />
+        <div className="lg:hidden fixed inset-0 z-[200] bg-black/80 backdrop-blur-sm" onClick={() => setShowProps(false)} />
       )}
-      <aside className={`${showProps ? 'flex' : 'hidden'} lg:flex w-full sm:w-80 lg:w-60 flex-shrink-0 flex-col border-l border-white/5 absolute lg:static inset-y-0 right-0 z-50 shadow-2xl lg:shadow-none`} style={{ background: 'var(--bg-card)' }}>
-        {/* mobile close */}
-        <button
-          onClick={() => setShowProps(false)}
-          className="lg:hidden absolute top-3 right-3 z-10 w-7 h-7 rounded-lg hover:bg-white/8 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
-          title="Close"
-        >
-          <X className="w-4 h-4" />
-        </button>
+      <aside className={`${showProps ? 'fixed inset-y-0 right-0 z-[210] w-80 shadow-2xl border-l border-[var(--border-color)] bg-[var(--bg-main)]' : 'hidden'} lg:flex lg:static lg:w-72 lg:shadow-none lg:border-l lg:border-[var(--border-color)] lg:bg-[var(--bg-card)] flex-shrink-0 flex-col`}>
+        <div className="p-6 border-b border-[var(--border-color)] flex items-center justify-between">
+          <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Ticket Details</h4>
+          <button
+            onClick={() => setShowProps(false)}
+            className="lg:hidden p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        
         {selectedTicket ? (
-          <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 pb-3 border-b border-white/5">Ticket Properties</h4>
-
-            {/* Status */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                <CheckCircle className="w-3 h-3 text-emerald-400" /> Status
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-8">
+            
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-2">
+                <CheckCircle className="w-3.5 h-3.5" /> Status
               </label>
               <select
                 value={selectedTicket.status}
                 onChange={e => handleProp('status', e.target.value)}
-                className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary-500/60 transition-colors"
-                style={{ background: 'var(--bg-card-hover)' }}
+                className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
               >
-                {STATUSES.map(s => <option key={s} value={s} style={{ background: 'var(--bg-card-hover)' }}>{s}</option>)}
+                {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
 
-            {/* Priority */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                <AlertTriangle className="w-3 h-3 text-amber-400" /> Priority
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-2">
+                <AlertTriangle className="w-3.5 h-3.5" /> Priority
               </label>
               <select
                 value={selectedTicket.priority}
                 onChange={e => handleProp('priority', e.target.value)}
                 disabled={!isSupportStaff}
-                className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary-500/60 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: 'var(--bg-card-hover)' }}
+                className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none disabled:opacity-50"
               >
-                {PRIORITIES.map(p => <option key={p} value={p} style={{ background: 'var(--bg-card-hover)' }}>{p}</option>)}
+                {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
 
-            {/* Assign to */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                <UserCheck className="w-3 h-3 text-sky-400" /> Assigned to
+            <div className="space-y-3">
+              <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest flex items-center gap-2">
+                <UserCheck className="w-3.5 h-3.5" /> Assigned Agent
               </label>
               {isSupportStaff ? (
                 <select
                   value={selectedTicket.assigned_to_id ?? 'unassigned'}
                   onChange={e => handleProp('assigned_to_id', e.target.value)}
-                  className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-primary-500/60 transition-colors"
-                  style={{ background: 'var(--bg-card-hover)' }}
+                  className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
                 >
-                  <option value="unassigned" style={{ background: 'var(--bg-card-hover)' }}>Unassigned</option>
+                  <option value="unassigned">UNASSIGNED</option>
                   {teamUsers
                     .filter(u => ['owner','admin','support'].includes(u.role))
                     .map(u => (
-                      <option key={u.id} value={u.id} style={{ background: 'var(--bg-card-hover)' }}>
-                        {u.name} ({u.role})
+                      <option key={u.id} value={u.id}>
+                        {u.name.toUpperCase()} ({u.role.toUpperCase()})
                       </option>
                   ))}
                 </select>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2 border border-white/8 rounded-lg" style={{ background: 'var(--bg-card-hover)' }}>
-                  <User className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="text-xs text-gray-300 font-medium">
-                    {selectedTicket.assigned_to?.name ?? 'Unassigned'}
+                <div className="flex items-center gap-3 px-4 py-3 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl">
+                  <User className="w-4 h-4 text-[var(--text-secondary)]" />
+                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)]">
+                    {selectedTicket.assigned_to?.name ?? 'UNASSIGNED'}
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Escalate (support staff only) */}
             {isSupportStaff && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                  <ArrowUpRight className="w-3 h-3 text-rose-400" /> Escalate to
+              <div className="space-y-3">
+                <label className="text-[9px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2">
+                  <ArrowUpRight className="w-3.5 h-3.5" /> Escalate Issue
                 </label>
                 <select
                   value=""
@@ -629,140 +563,125 @@ export default function Tickets() {
                       handleProp('priority', selectedTicket.priority === 'Urgent' ? 'Urgent' : 'High');
                     }
                   }}
-                  className="w-full appearance-none border border-white/10 rounded-lg px-3 py-2 text-xs text-gray-100 focus:outline-none focus:border-rose-500/40 transition-colors"
-                  style={{ background: 'var(--bg-card-hover)' }}
+                  className="w-full bg-rose-500/5 border border-rose-500/20 rounded-xl px-4 py-3 text-[10px] font-black uppercase tracking-widest text-rose-500 focus:border-rose-500 outline-none transition-all appearance-none"
                 >
-                  <option value="" style={{ background: 'var(--bg-card-hover)' }}>Choose agent…</option>
+                  <option value="">CHOOSE SENIOR AGENT...</option>
                   {teamUsers
                     .filter(u => ['owner','admin'].includes(u.role) && u.id !== selectedTicket.assigned_to_id)
                     .map(u => (
-                      <option key={u.id} value={u.id} style={{ background: 'var(--bg-card-hover)' }}>
-                        ↑ {u.name} ({u.role})
+                      <option key={u.id} value={u.id}>
+                        ↑ {u.name.toUpperCase()} ({u.role.toUpperCase()})
                       </option>
                   ))}
                 </select>
               </div>
             )}
 
-            {/* Divider */}
-            <div className="border-t border-white/5 pt-4 space-y-4">
-              {/* Reporter */}
+            <div className="pt-8 border-t border-[var(--border-color)] space-y-6">
               <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1.5">Reporter</p>
-                <div className="flex items-center gap-2">
-                  <Avatar name={selectedTicket.created_by?.name} role={selectedTicket.created_by?.role} size={6} />
-                  <div>
-                    <p className="text-xs font-semibold text-gray-200">{selectedTicket.created_by?.name}</p>
-                    <p className="text-[10px] text-gray-500 truncate">{selectedTicket.created_by?.email}</p>
+                <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-3">Reporter Info</p>
+                <div className="flex items-center gap-3">
+                  <Avatar name={selectedTicket.created_by?.name} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-black uppercase tracking-tight text-[var(--text-primary)] truncate">{selectedTicket.created_by?.name}</p>
+                    <p className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)] truncate mt-0.5">{selectedTicket.created_by?.email}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Created */}
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Created</p>
-                <p className="text-xs text-gray-300">
-                  {new Date(selectedTicket.created_at).toLocaleDateString('en-US', { day:'numeric', month:'short', year:'numeric' })}
-                </p>
-                <p className="text-[10px] text-gray-500">
-                  {new Date(selectedTicket.created_at).toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit' })}
-                </p>
-              </div>
-
-              {/* Last Activity */}
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Last Activity</p>
-                <p className="text-xs text-gray-300">{timeAgo(selectedTicket.updated_at)}</p>
-              </div>
-
-              {/* Message count */}
-              <div>
-                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Replies</p>
-                <p className="text-xs text-gray-300">{selectedTicket.messages?.length ?? 0} messages</p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1.5">Created</p>
+                  <p className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
+                    {new Date(selectedTicket.created_at).toLocaleDateString('en-US', { day:'numeric', month:'short' })}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-1.5">Last Reply</p>
+                  <p className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">{timeAgo(selectedTicket.updated_at)}</p>
+                </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center p-4">
-            <p className="text-[10px] text-gray-600 uppercase tracking-widest font-bold text-center leading-relaxed">
-              Select a ticket<br/>to view properties
+          <div className="flex-1 flex items-center justify-center p-6 text-center">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] leading-relaxed">
+              Select a ticket<br/>to view details
             </p>
           </div>
         )}
       </aside>
 
-      {/* ══ Create Ticket Modal ════════════════════════════════════ */}
+      {/* Create Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="bg-[var(--bg-card)] border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-            {/* modal header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
-              <div className="flex items-center gap-2">
-                <LifeBuoy className="w-4 h-4 text-primary-400" />
-                <h3 className="text-sm font-black text-white uppercase tracking-widest">Raise New Issue</h3>
+        <div className="fixed inset-0 z-[250] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !creating && setShowCreate(false)} />
+          <div className="glass-card w-full max-w-xl relative z-10 p-6 md:p-10 max-h-[90vh] overflow-y-auto custom-scrollbar bg-[var(--bg-card)]">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 accent-bg-green rounded-2xl">
+                  <LifeBuoy className="w-6 h-6 text-[#0a0a0a]" />
+                </div>
+                <div>
+                  <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight font-display text-[var(--text-primary)]">Raise Issue</h3>
+                  <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Submit a new support ticket</p>
+                </div>
               </div>
-              <button
-                onClick={() => setShowCreate(false)}
-                className="w-7 h-7 rounded-lg hover:bg-white/8 text-gray-500 hover:text-white flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4" />
+              <button onClick={() => setShowCreate(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                <X className="w-6 h-6 text-[var(--text-secondary)]" />
               </button>
             </div>
 
-            {/* modal form */}
-            <form onSubmit={handleCreate} className="px-6 py-5 space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Title *</label>
+            <form onSubmit={handleCreate} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Issue Title</label>
                 <input
                   required
                   type="text"
-                  placeholder="Brief summary of the issue…"
+                  placeholder="BRIEF SUMMARY..."
                   value={form.title}
                   onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-                  className="w-full border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 transition-colors"
-                  style={{ background: 'var(--bg-card-hover)' }}
+                  className="w-full px-5 py-4 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl text-sm font-bold text-[var(--text-primary)] placeholder-[var(--text-secondary)] uppercase focus:border-[var(--accent-mint)] outline-none transition-all"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Description *</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Detailed Description</label>
                 <textarea
                   required
-                  rows={4}
-                  placeholder="Describe the issue in detail, including steps to reproduce, error messages, and expected vs actual behavior…"
+                  rows={5}
+                  placeholder="DESCRIBE THE ISSUE IN DETAIL..."
                   value={form.description}
                   onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                  className="w-full border border-white/10 rounded-xl py-2.5 px-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-primary-500/50 transition-colors resize-none"
-                  style={{ background: 'var(--bg-card-hover)' }}
+                  className="w-full px-5 py-4 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl text-sm font-bold text-[var(--text-primary)] placeholder-[var(--text-secondary)] uppercase resize-none focus:border-[var(--accent-mint)] outline-none transition-all"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Priority</label>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Priority Level</label>
                 <select
                   value={form.priority}
                   onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
-                  className="w-full appearance-none border border-white/10 rounded-xl py-2.5 px-3 text-sm text-gray-100 focus:outline-none focus:border-primary-500/50 transition-colors"
-                  style={{ background: 'var(--bg-card-hover)' }}
+                  className="w-full px-5 py-4 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl text-sm font-bold text-[var(--text-primary)] uppercase focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
                 >
-                  {PRIORITIES.map(p => <option key={p} value={p} style={{ background: 'var(--bg-card-hover)' }}>{p}</option>)}
+                  {PRIORITIES.map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
               </div>
 
-              <div className="flex items-center gap-3 pt-2">
+              <div className="flex gap-4 pt-4">
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
-                  className="flex-1 py-2.5 rounded-xl border border-white/8 text-xs font-bold text-gray-400 hover:text-white hover:border-white/15 transition-colors uppercase tracking-widest"
+                  className="flex-1 py-4 rounded-xl bg-white/5 text-[var(--text-primary)] text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all border border-[var(--border-color)]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={!form.title.trim() || !form.description.trim() || creating}
-                  className="flex-1 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-40 disabled:pointer-events-none text-xs font-bold text-white transition-colors uppercase tracking-widest shadow-lg shadow-primary-500/15"
+                  className="flex-1 py-4 rounded-xl accent-bg-green text-[10px] font-black uppercase tracking-widest hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-emerald-500/20 disabled:opacity-50 disabled:hover:scale-100"
                 >
-                  {creating ? 'Submitting…' : 'Submit Issue'}
+                  {creating ? 'Submitting...' : 'Submit Issue'}
                 </button>
               </div>
             </form>

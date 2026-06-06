@@ -4,6 +4,7 @@ import { ArrowLeft, Globe, FileText, Shield, Cpu, HardDrive, MemoryStick, Clock,
 import { serversAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
 import { useIsPWA } from '../hooks/useIsPWA';
+import { useMobile } from '../hooks/useMobile';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNotification } from '../context/NotificationContext';
 import { formatUptime, formatMB } from '../utils/formatters';
@@ -37,6 +38,9 @@ export default function ServerDetail() {
   const { watchServer, unwatchServer, sendCommand, on, send, connected } = useWebSocket();
   const [alertConfig, setAlertConfig] = useState({ open: false, title: '', message: '', type: 'error' });
   const isPWA = useIsPWA();
+  const isMobile = useMobile();
+  // Use native mobile layout on any mobile screen (PWA or browser)
+  const useMobileLayout = isPWA || isMobile;
   const tabStripRef = useRef(null);
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
@@ -128,7 +132,8 @@ export default function ServerDetail() {
   };
 
   return (
-    <div className={isPWA ? 'pwa-server space-y-5' : 'space-y-12'}>
+    <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      <div className={`p-4 sm:p-6 md:p-10 lg:p-12 w-full mx-auto ${useMobileLayout ? 'pwa-server space-y-4' : 'space-y-12'}`}>
       <AlertModal
         isOpen={alertConfig.open}
         onClose={() => setAlertConfig({ ...alertConfig, open: false })}
@@ -138,16 +143,15 @@ export default function ServerDetail() {
       />
 
       {/* Header */}
-      {isPWA ? (
+      {useMobileLayout ? (
         <>
-          {/* iOS-style sticky navigation bar */}
+          {/* Mobile / PWA sticky navigation bar */}
           <div
-            className="sticky z-30 -mx-4 px-4 py-2.5 flex items-center gap-3 bg-[var(--bg-main)]/85 backdrop-blur-xl border-b border-[var(--border-color)]"
-            style={{ top: 'var(--total-header)' }}
+            className="sticky top-0 z-30 -mt-4 -mx-4 sm:-mt-6 sm:-mx-6 md:-mt-10 md:-mx-10 lg:-mt-12 lg:-mx-12 px-4 sm:px-6 md:px-10 lg:px-12 py-2.5 mb-4 flex items-center gap-3 bg-[var(--bg-main)]/85 backdrop-blur-xl border-b border-[var(--border-color)]"
           >
             <button
               onClick={() => navigate('/servers')}
-              className="flex items-center justify-center w-10 h-10 -ml-1 rounded-full text-[var(--accent-violet)] active:scale-95 transition-transform"
+              className="flex items-center justify-center w-10 h-10 -ml-1 rounded-full text-[var(--accent-mint)] active:scale-95 transition-transform"
               aria-label="Back to servers"
             >
               <ArrowLeft className="w-6 h-6" />
@@ -171,7 +175,7 @@ export default function ServerDetail() {
             </button>
             <button
               onClick={() => handleQuickAction('ssh')}
-              className={`flex-1 h-11 rounded-2xl text-sm font-semibold text-white shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50' : 'bg-[var(--accent-violet)] shadow-violet-500/20'}`}
+              className={`flex-1 h-11 rounded-2xl text-sm font-semibold text-[#0a0a0a] shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50 text-white' : 'accent-bg-green shadow-emerald-500/20'}`}
             >
               Launch SSH
             </button>
@@ -228,8 +232,8 @@ export default function ServerDetail() {
       )}
 
       {/* Tabs */}
-      {isPWA ? (
-        <div ref={tabStripRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 py-1">
+      {useMobileLayout ? (
+        <div ref={tabStripRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-3 px-3 py-1">
           {TABS.map((tab, idx) => (
             <button
               key={tab}
@@ -261,7 +265,7 @@ export default function ServerDetail() {
       {/* Tab Content */}
       <div className="pt-4">
         {activeTab === 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-8">
             <StatCard icon={Cpu} label="CPU Load" value={`${(server.cpu_percent || 0).toFixed(0)}%`} color="white">
                <div className="mt-6 flex items-end gap-1 h-12">
                  {[...Array(12)].map((_, i) => (
@@ -294,22 +298,22 @@ export default function ServerDetail() {
         )}
 
         {activeTab === 1 && (
-          <div className="glass-card p-10">
-            <h3 className="text-xl font-bold tracking-tight mb-8">Nginx Sites</h3>
+          <div className="glass-card p-5 md:p-10">
+            <h3 className="text-lg font-bold tracking-tight mb-5 md:mb-8">Nginx Sites</h3>
             <ServiceList serverId={id} services={server.nginx_sites || []} type="nginx" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
           </div>
         )}
 
         {activeTab === 2 && (
-          <div className="glass-card p-10">
-            <h3 className="text-xl font-bold tracking-tight mb-8">PM2 Applications</h3>
+          <div className="glass-card p-5 md:p-10">
+            <h3 className="text-lg font-bold tracking-tight mb-5 md:mb-8">PM2 Applications</h3>
             <ServiceList serverId={id} services={server.pm2_apps || []} type="pm2" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
           </div>
         )}
 
         {activeTab === 3 && (
-          <div className="glass-card p-10">
-            <h3 className="text-xl font-bold tracking-tight mb-8">Systemd Services</h3>
+          <div className="glass-card p-5 md:p-10">
+            <h3 className="text-lg font-bold tracking-tight mb-5 md:mb-8">Systemd Services</h3>
             <ServiceList serverId={id} services={server.systemd_services || []} type="systemd" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
           </div>
         )}
@@ -345,23 +349,24 @@ export default function ServerDetail() {
         onConfirm={handleDeleteServer}
         requiresVerification={true}
       />
+      </div>
     </div>
   );
 }
 
 function StatCard({ icon: Icon, label, value, subtitle, color, children }) {
   return (
-    <div className="glass-card p-10 flex flex-col justify-between min-h-[280px]">
-      <div className="flex items-center justify-between mb-10">
-        <div className="p-3 rounded-xl bg-white/5 border border-white/10">
-          <Icon className="w-6 h-6 text-white" />
+    <div className="glass-card p-5 md:p-10 flex flex-col justify-between min-h-[160px] md:min-h-[280px]">
+      <div className="flex items-center justify-between mb-4 md:mb-10">
+        <div className="p-2 md:p-3 rounded-xl bg-white/5 border border-white/10">
+          <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
-        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40">...</div>
+        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/40 text-xs">...</div>
       </div>
       <div>
-        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-2">{label}</p>
+        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-1 md:mb-2">{label}</p>
         <div className="flex items-baseline gap-2">
-          <p className="text-6xl font-black tracking-tighter leading-none">{value}</p>
+          <p className="text-3xl md:text-6xl font-black tracking-tighter leading-none">{value}</p>
           {subtitle && <span className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest">{subtitle}</span>}
         </div>
         {children}

@@ -1,9 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Cpu, Search, Trash2, Loader2, RefreshCw, X, AlertTriangle } from 'lucide-react';
 import { useIsPWA } from '../../hooks/useIsPWA';
+import { useMobile } from '../../hooks/useMobile';
 
 export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
   const isPWA = useIsPWA();
+  const isMobile = useMobile();
+  const mobileLayout = isPWA || isMobile;
   const [processes, setProcesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -52,8 +55,8 @@ export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
   }, [processes, search]);
 
   return (
-    <div className={`glass-card ${isPWA ? 'p-4' : 'p-10'}`}>
-      <div className={`flex flex-col lg:flex-row lg:items-center justify-between ${isPWA ? 'gap-4 mb-6' : 'gap-8 mb-12'}`}>
+    <div className={`glass-card ${mobileLayout ? 'p-4' : 'p-10'}`}>
+      <div className={`flex flex-col lg:flex-row lg:items-center justify-between ${mobileLayout ? 'gap-4 mb-6' : 'gap-8 mb-12'}`}>
         <div className="flex items-center gap-6">
           <div className="p-4 bg-red-500 rounded-2xl shadow-lg shadow-red-500/20 text-white">
             <Cpu className="w-6 h-6" />
@@ -99,7 +102,7 @@ export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
         </div>
       ) : (
         <div className="space-y-3">
-          {!isPWA && (
+          {!mobileLayout && (
             <div className="grid grid-cols-6 px-6 mb-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
               <span>PID</span>
               <span className="col-span-2">Task</span>
@@ -108,7 +111,7 @@ export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
               <span className="text-right">Action</span>
             </div>
           )}
-          {filteredProcesses.map((p) => isPWA ? (
+          {filteredProcesses.map((p) => mobileLayout ? (
             /* iOS-style stacked process card: CPU and Memory on their own line */
             <div key={p.pid} className="p-4 bg-white/5 border border-white/5 rounded-2xl flex flex-col gap-3">
               <div className="flex items-start justify-between gap-3">

@@ -28,7 +28,7 @@ export default function BottomNav() {
       className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[var(--bg-main)]/90 backdrop-blur-xl border-t border-[var(--border-color)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <ul className="flex items-stretch justify-around h-16">
+      <ul className="flex items-stretch justify-around" style={{ height: '64px' }}>
         {links.map((link) => {
           const Icon = link.icon;
           const isActive =
@@ -38,15 +38,29 @@ export default function BottomNav() {
             <li key={link.path} className="flex-1">
               <Link
                 to={link.path}
-                className={`h-full flex flex-col items-center justify-center gap-1 transition-colors ${
+                className={`relative h-full flex flex-col items-center justify-center gap-0.5 transition-all active:scale-90 ${
                   isActive
                     ? 'text-[var(--text-primary)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                    : 'text-[var(--text-secondary)]'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
+                style={{ minHeight: '44px' }}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'scale-110' : ''} transition-transform`} strokeWidth={isActive ? 2.5 : 2} />
-                <span className="text-[9px] font-black uppercase tracking-[0.15em]">{link.name}</span>
+                {/* Active glow background */}
+                {isActive && (
+                  <span className="absolute inset-x-2 top-1.5 h-8 rounded-xl bg-white/8 -z-10" />
+                )}
+                <Icon
+                  className={`w-5 h-5 transition-all duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                />
+                <span className="text-[10px] font-black uppercase tracking-[0.12em] leading-tight">
+                  {link.name}
+                </span>
+                {/* Active pip indicator */}
+                {isActive && (
+                  <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-[var(--text-primary)]" />
+                )}
               </Link>
             </li>
           );
