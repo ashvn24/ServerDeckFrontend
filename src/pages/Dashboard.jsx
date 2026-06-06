@@ -59,22 +59,22 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Main Stats Card (Reference Style) */}
-        <div className="lg:col-span-2 glass-card p-6 md:p-10 flex flex-col justify-between min-h-[400px]">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 md:mb-12">
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight">Total infrastructure load</h2>
+        <div className="lg:col-span-2 glass-card p-5 sm:p-6 md:p-10 flex flex-col justify-between min-h-0 lg:min-h-[400px]">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5 sm:mb-8 md:mb-12">
+            <h2 className="text-lg sm:text-2xl font-bold tracking-tight">Total infrastructure load</h2>
             <button className="self-start sm:self-auto px-5 py-2 rounded-full border border-[var(--border-color)] text-xs font-bold uppercase tracking-widest hover:bg-[var(--bg-card-hover)] transition-colors">
               Refresh Node
             </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 sm:gap-6 lg:gap-8 mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 sm:gap-6 lg:gap-8 mb-6 md:mb-10">
             {/* CPU Bar */}
-            <div className="space-y-6 sm:space-y-8">
+            <div className="space-y-3 sm:space-y-8">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">
                 <span>CPU Usage ↑</span>
                 <span className="text-white">...</span>
               </div>
-              <div className="flex items-end gap-1.5 h-32">
+              <div className="flex items-end gap-1.5 h-20 sm:h-32">
                 {[...Array(12)].map((_, i) => (
                   <div key={i} className="flex-1 bg-[var(--bg-card-hover)] rounded-full relative overflow-hidden" style={{ height: `${20 + Math.random() * 80}%` }}>
                     <div className="absolute inset-x-0 bottom-0 bg-white opacity-20" style={{ height: `${avgCpu}%` }} />
@@ -82,18 +82,18 @@ export default function Dashboard() {
                 ))}
               </div>
               <div>
-                <p className="text-4xl lg:text-6xl font-black tracking-tighter">0-{avgCpu}</p>
+                <p className="text-3xl sm:text-4xl lg:text-6xl font-black tracking-tighter">0-{avgCpu}</p>
                 <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">% Load across cluster</p>
               </div>
             </div>
 
             {/* RAM Bar */}
-            <div className="space-y-6 sm:space-y-8">
+            <div className="space-y-3 sm:space-y-8">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">
                 <span>RAM Allocation ↓</span>
                 <span className="text-white">...</span>
               </div>
-              <div className="flex items-end gap-1.5 h-32">
+              <div className="flex items-end gap-1.5 h-20 sm:h-32">
                 {[...Array(12)].map((_, i) => (
                   <div key={i} className="flex-1 bg-[var(--bg-card-hover)] rounded-full relative overflow-hidden" style={{ height: `${30 + Math.random() * 70}%` }}>
                     <div className="absolute inset-x-0 bottom-0 bg-white opacity-20" style={{ height: `${ramPercent}%` }} />
@@ -101,18 +101,18 @@ export default function Dashboard() {
                 ))}
               </div>
               <div>
-                <p className="text-4xl lg:text-6xl font-black tracking-tighter">0-{ramPercent}</p>
+                <p className="text-3xl sm:text-4xl lg:text-6xl font-black tracking-tighter">0-{ramPercent}</p>
                 <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">% Memory allocated</p>
               </div>
             </div>
 
             {/* Disk Bar */}
-            <div className="space-y-6 sm:space-y-8">
+            <div className="space-y-3 sm:space-y-8">
               <div className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-[var(--text-secondary)]">
                 <span>Storage ↓</span>
                 <span className="text-white">...</span>
               </div>
-              <div className="flex items-end gap-1.5 h-32">
+              <div className="flex items-end gap-1.5 h-20 sm:h-32">
                 {[...Array(12)].map((_, i) => (
                   <div key={i} className="flex-1 bg-[var(--bg-card-hover)] rounded-full relative overflow-hidden" style={{ height: `${40 + Math.random() * 60}%` }}>
                     <div className="absolute inset-x-0 bottom-0 bg-white opacity-20" style={{ height: `${diskAvg}%` }} />
@@ -120,7 +120,7 @@ export default function Dashboard() {
                 ))}
               </div>
               <div>
-                <p className="text-4xl lg:text-6xl font-black tracking-tighter">0-{diskAvg}</p>
+                <p className="text-3xl sm:text-4xl lg:text-6xl font-black tracking-tighter">0-{diskAvg}</p>
                 <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">% Disk utilized</p>
               </div>
             </div>
@@ -128,15 +128,15 @@ export default function Dashboard() {
         </div>
 
         {/* Right Section Cards */}
-        <div className="space-y-8">
-          <div className="glass-card p-8 flex flex-col justify-between h-[280px]">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold tracking-tight">Active Nodes</h3>
+        <div className="space-y-6 lg:space-y-8">
+          <div className="glass-card p-6 sm:p-8 flex flex-col justify-between h-[220px] sm:h-[280px]">
+            <div className="flex items-center justify-between mb-4 sm:mb-8">
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight">Active Nodes</h3>
               <div className="w-8 h-8 rounded-lg bg-[var(--bg-card-hover)] flex items-center justify-center text-white">...</div>
             </div>
             <div className="flex-1 flex flex-col justify-center">
               <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mb-4">Cluster Health</p>
-              <div className="relative aspect-square w-24 mx-auto mb-4 border-2 border-dashed border-[var(--border-color)] rounded-2xl flex items-center justify-center overflow-hidden">
+              <div className="relative aspect-square w-16 sm:w-24 mx-auto mb-4 border-2 border-dashed border-[var(--border-color)] rounded-2xl flex items-center justify-center overflow-hidden">
                 <div className="cube-container">
                   <div className="cube">
                     <div className="cube-face face-front"></div>
@@ -161,9 +161,9 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="glass-card p-8 h-[200px] flex flex-col justify-between">
+          <div className="glass-card p-6 sm:p-8 h-[160px] sm:h-[200px] flex flex-col justify-between">
             <div className="flex items-center justify-between">
-              <h3 className="text-xl font-bold tracking-tight">Status</h3>
+              <h3 className="text-lg sm:text-xl font-bold tracking-tight">Status</h3>
               <div className="w-8 h-8 rounded-lg bg-[var(--bg-card-hover)] flex items-center justify-center text-white">...</div>
             </div>
             <div>
@@ -177,7 +177,7 @@ export default function Dashboard() {
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-        <div className="glass-card accent-bg-green p-8 flex flex-col justify-between h-[240px]">
+        <div className="glass-card accent-bg-green p-6 sm:p-8 flex flex-col justify-between h-[200px] sm:h-[240px]">
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-xl font-bold tracking-tight">Tracking</h3>
@@ -186,12 +186,12 @@ export default function Dashboard() {
             <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest">Active Site Count</p>
           </div>
           <div>
-            <p className="text-6xl font-black tracking-tighter leading-none">{totalSites}</p>
+            <p className="text-4xl sm:text-6xl font-black tracking-tighter leading-none">{totalSites}</p>
             <p className="text-[10px] font-bold text-black/60 uppercase tracking-widest mt-2">Global Sites</p>
           </div>
         </div>
 
-        <div className="lg:col-span-1 glass-card p-8 flex flex-col justify-between h-[240px]">
+        <div className="lg:col-span-1 glass-card p-6 sm:p-8 flex flex-col justify-between h-[200px] sm:h-[240px]">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-xl font-bold tracking-tight">Summary</h3>
             <button className="px-3 py-1 rounded-full border border-[var(--border-color)] text-[10px] font-bold uppercase tracking-widest">Week ↓</button>
@@ -212,7 +212,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="lg:col-span-2 glass-card p-8 flex flex-col justify-between h-[240px]">
+        <div className="lg:col-span-2 glass-card p-6 sm:p-8 flex flex-col justify-between h-[200px] sm:h-[240px]">
            <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-bold tracking-tight">Service Health usage</h3>
             <button className="px-4 py-1.5 rounded-full bg-white text-black text-[10px] font-bold uppercase tracking-widest">Change</button>
@@ -221,7 +221,7 @@ export default function Dashboard() {
           
           <div className="flex items-end justify-between gap-6">
             <div className="shrink-0">
-              <p className="text-5xl lg:text-6xl font-black tracking-tighter leading-none">94%</p>
+              <p className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tighter leading-none">94%</p>
               <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2">Avg Uptime Cluster</p>
             </div>
             <div className="flex-1 ml-0 sm:ml-12 pb-2">

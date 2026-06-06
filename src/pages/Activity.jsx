@@ -19,6 +19,7 @@ export default function Activity() {
   const [searchQuery, setSearchQuery] = useState('');
   
   // Dropdown States
+  const [showFilters, setShowFilters] = useState(false);
   const [showServerDropdown, setShowServerDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [showDateDropdown, setShowDateDropdown] = useState(false);
@@ -109,31 +110,33 @@ export default function Activity() {
   if (loading && logs.length === 0) return <LoadingSpinner size="lg" text="Syncing audit trails..." />;
 
   return (
-    <div className="space-y-12">
-      <div className="flex flex-col gap-10" ref={filterSectionRef}>
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10">
+    <div className="space-y-6 md:space-y-12">
+      <div className="flex flex-col gap-6 md:gap-10" ref={filterSectionRef}>
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 lg:gap-10">
           <div>
-            <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
+            <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
             <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] mt-4">Audit trails and infrastructure access logs</p>
           </div>
           
-          <div className="flex items-center gap-4">
-             <div className="relative group">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+             <div className="relative group w-full sm:w-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] group-focus-within:text-white transition-colors" />
                 <input
                   type="text"
                   placeholder="SEARCH ACTIVITY..."
-                  className="pl-12 pr-6 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-64 transition-all"
+                  className="pl-12 pr-6 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-full sm:w-64 transition-all"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
              </div>
-             
-             {/* Custom Server Dropdown */}
-             <div className="relative">
-                <button 
+
+             {/* Node selector + filter toggle, side by side */}
+             <div className="flex items-center gap-3 w-full sm:w-auto">
+                {/* Custom Server Dropdown */}
+                <div className="relative flex-1 sm:flex-none">
+                <button
                   onClick={() => setShowServerDropdown(!showServerDropdown)}
-                  className="flex items-center gap-3 pl-12 pr-12 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[200px] relative text-left"
+                  className="flex items-center gap-3 pl-12 pr-12 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:min-w-[200px] relative text-left"
                 >
                   <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedServerName}</span>
@@ -163,23 +166,34 @@ export default function Activity() {
                     </div>
                   </div>
                 )}
+                </div>
+
+                {isOwner && (
+                  <button
+                    onClick={() => setShowFilters(v => !v)}
+                    className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 ${showFilters ? 'bg-[var(--accent-violet)] border-[var(--accent-violet)] text-white' : 'bg-white/5 border-white/5 text-white hover:bg-white/10'}`}
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span>Filters</span>
+                  </button>
+                )}
              </div>
           </div>
         </div>
 
         {/* Owner Specific Filters */}
-        {isOwner && (
-          <div className="flex flex-wrap items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-             <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-[var(--accent-violet)]/10 border border-[var(--accent-violet)]/20">
+        {isOwner && showFilters && (
+          <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3 sm:gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+             <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-[var(--accent-violet)]/10 border border-[var(--accent-violet)]/20 self-start">
                 <Filter className="w-4 h-4 text-[var(--accent-violet)]" />
                 <span className="text-[10px] font-black text-[var(--accent-violet)] uppercase tracking-widest">Enhanced Filters</span>
              </div>
 
              {/* User Dropdown */}
-             <div className="relative">
+             <div className="relative w-full sm:w-auto">
                 <button 
                   onClick={() => { setShowUserDropdown(!showUserDropdown); setShowDateDropdown(false); setShowTimeDropdown(false); }}
-                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[180px] relative text-left"
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[180px] relative text-left"
                 >
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedUserName}</span>
@@ -209,10 +223,10 @@ export default function Activity() {
              </div>
 
              {/* Date Dropdown */}
-             <div className="relative">
+             <div className="relative w-full sm:w-auto">
                 <button 
                   onClick={() => { setShowDateDropdown(!showDateDropdown); setShowUserDropdown(false); setShowTimeDropdown(false); }}
-                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[160px] relative text-left"
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[160px] relative text-left"
                 >
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedDate || 'ALL DATES'}</span>
@@ -242,10 +256,10 @@ export default function Activity() {
              </div>
 
              {/* Time Dropdown */}
-             <div className="relative">
+             <div className="relative w-full sm:w-auto">
                 <button 
                   onClick={() => { setShowTimeDropdown(!showTimeDropdown); setShowUserDropdown(false); setShowDateDropdown(false); }}
-                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[140px] relative text-left"
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[140px] relative text-left"
                 >
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedTime || 'ALL TIME'}</span>
@@ -274,9 +288,9 @@ export default function Activity() {
                 )}
              </div>
 
-             <button 
+             <button
                 onClick={() => { setSelectedUser(''); setSelectedDate(''); setSelectedTime(''); setSearchQuery(''); }}
-                className="ml-auto text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-white transition-colors"
+                className="self-start sm:self-auto sm:ml-auto py-2 text-[10px] font-black text-red-500 uppercase tracking-widest hover:text-white transition-colors"
              >
                 Reset All
              </button>
@@ -286,7 +300,7 @@ export default function Activity() {
 
 
       {/* Top / Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
          <div className="glass-card p-8 flex items-center gap-6">
             <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-[var(--accent-violet)]">
                <Shield className="w-6 h-6" />
@@ -317,7 +331,7 @@ export default function Activity() {
       </div>
 
       <div className="glass-card overflow-hidden">
-        <div className="grid grid-cols-12 gap-4 px-8 py-4 border-b border-white/5 bg-white/2">
+        <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 border-b border-white/5 bg-white/2">
            <div className="col-span-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Operator & Action</div>
            <div className="col-span-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Endpoint Node</div>
            <div className="col-span-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Transaction Details</div>
@@ -334,9 +348,9 @@ export default function Activity() {
                </div>
              ) : (
                filteredLogs.map((log) => (
-                 <div key={log.id} className="grid grid-cols-12 gap-4 px-8 py-6 hover:bg-white/5 transition-all group items-center">
-                    <div className="col-span-3 flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white text-[10px]">
+                 <div key={log.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 px-5 md:px-8 py-5 md:py-6 hover:bg-white/5 transition-all group items-center">
+                    <div className="md:col-span-3 flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white text-[10px] flex-shrink-0">
                           {log.user.name.charAt(0)}
                        </div>
                        <div>
@@ -345,24 +359,24 @@ export default function Activity() {
                        </div>
                     </div>
 
-                    <div className="col-span-3 flex items-center gap-3">
+                    <div className="md:col-span-3 flex items-center gap-3">
                        <div className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)]">
                           <Server className="w-4 h-4" />
                        </div>
                        <span className="text-[10px] font-black text-white uppercase tracking-widest truncate">{log.server.name}</span>
                     </div>
 
-                    <div className="col-span-4">
+                    <div className="md:col-span-4">
                        <div className="bg-black/20 rounded-xl p-3 border border-white/5 flex items-center gap-3">
-                          <ActivityIcon className="w-3.5 h-3.5 text-[var(--accent-mint)]" />
+                          <ActivityIcon className="w-3.5 h-3.5 text-[var(--accent-mint)] flex-shrink-0" />
                           <span className="text-[9px] font-mono text-gray-400 truncate tracking-tight">
                              {JSON.stringify(log.details) === '{}' ? 'Standard handshaked session' : JSON.stringify(log.details)}
                           </span>
                        </div>
                     </div>
 
-                    <div className="col-span-2 text-right">
-                       <div className="flex flex-col items-end">
+                    <div className="md:col-span-2 md:text-right">
+                       <div className="flex flex-row md:flex-col items-center md:items-end gap-2 md:gap-0">
                           <div className="flex items-center gap-2 text-white">
                              <Clock className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                              <span className="text-[10px] font-black uppercase tracking-tight">

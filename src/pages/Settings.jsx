@@ -101,16 +101,16 @@ export default function Settings() {
         confirmText="Remove Operator"
         onConfirm={confirmDeleteUser}
       />
-      <div className="mb-12">
-        <h1 className="text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security & Team</h1>
+      <div className="mb-8 md:mb-12">
+        <h1 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security & Team</h1>
         <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-4">Workspace authorization and operator management</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
+
         {/* Profile Column */}
         <div className="lg:col-span-1 space-y-8">
-          <div className="glass-card p-10">
+          <div className="glass-card p-6 sm:p-10">
             <div className="flex flex-col items-center text-center mb-10">
               <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center mb-6 border border-white/5 ring-4 ring-white/5">
                 <User className="w-10 h-10 text-white" />
@@ -155,8 +155,8 @@ export default function Settings() {
         {/* Team Management Column */}
         <div className="lg:col-span-2">
           {isAdmin ? (
-            <div className="glass-card p-10">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-8 mb-12">
+            <div className="glass-card p-6 sm:p-10">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 md:mb-12">
                 <div className="flex items-center gap-6">
                   <div className="p-4 rounded-2xl bg-white/5 text-white border border-white/5">
                     <Users className="w-6 h-6" />
@@ -166,9 +166,9 @@ export default function Settings() {
                     <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Direct access control for the cluster</p>
                   </div>
                 </div>
-                <button 
+                <button
                   onClick={() => setShowInviteModal(true)}
-                  className="px-8 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all active:scale-95 shadow-lg shadow-violet-500/20"
+                  className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all active:scale-95 shadow-lg shadow-violet-500/20"
                 >
                   Provision Access
                 </button>
@@ -204,9 +204,9 @@ export default function Settings() {
                           {u.role}
                         </span>
                         {u.id !== user?.id && u.role !== 'owner' && (
-                          <button 
+                          <button
                             onClick={() => handleDeleteUser(u.id)}
-                            className="p-3 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                            className="p-3 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -218,7 +218,7 @@ export default function Settings() {
               )}
             </div>
           ) : (
-            <div className="glass-card p-10 flex flex-col items-center justify-center text-center py-32">
+            <div className="glass-card p-6 sm:p-10 flex flex-col items-center justify-center text-center py-20 md:py-32">
               <div className="p-6 rounded-[2.5rem] bg-white/5 text-white/10 mb-8 border border-white/5">
                 <Shield className="w-12 h-12" />
               </div>
@@ -233,9 +233,9 @@ export default function Settings() {
 
       {/* Invite Modal */}
       {showInviteModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => !inviting && setShowInviteModal(false)} />
-           <div className="glass-card w-full max-w-lg p-10 relative z-10">
+           <div className="glass-card w-full max-w-lg p-6 sm:p-10 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
               <div className="flex items-center justify-between mb-10">
                  <h3 className="text-2xl font-black uppercase tracking-tight font-display">Provision Access</h3>
                  <button onClick={() => setShowInviteModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">

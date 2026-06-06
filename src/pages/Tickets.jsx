@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   LifeBuoy, Plus, Search, Send, Clock, User, CheckCircle,
   MessageSquare, AlertTriangle, Lock, UserCheck, X, AlertCircle,
-  ArrowUpRight, Tag, ChevronDown, RefreshCw, Filter
+  ArrowUpRight, Tag, ChevronDown, RefreshCw, Filter, ArrowLeft, Info
 } from 'lucide-react';
 import { ticketsAPI, usersAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
@@ -83,6 +83,7 @@ export default function Tickets() {
   const [creating,       setCreating]       = useState(false);
   const [form,           setForm]           = useState({ title: '', description: '', priority: 'Medium' });
   const [sendingMsg,     setSendingMsg]     = useState(false);
+  const [showProps,      setShowProps]      = useState(false);  // mobile properties drawer
 
   const chatEndRef       = useRef(null);
   const selectedIdRef    = useRef(null);
@@ -203,7 +204,7 @@ export default function Tickets() {
     <div className="fixed top-20 left-0 right-0 bottom-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ background: 'var(--bg-main)' }}>
 
       {/* ══ LEFT: Ticket List ══════════════════════════════════════ */}
-      <aside className="w-72 flex-shrink-0 flex flex-col border-r border-white/5" style={{ background: 'var(--bg-card)' }}>
+      <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 flex-shrink-0 flex-col border-r border-white/5`} style={{ background: 'var(--bg-card)' }}>
 
         {/* header */}
         <div className="px-4 pt-5 pb-3 border-b border-white/5">
@@ -317,7 +318,7 @@ export default function Tickets() {
       </aside>
 
       {/* ══ MIDDLE: Conversation ══════════════════════════════════ */}
-      <main className="flex-1 flex flex-col min-w-0 border-r border-white/5">
+      <main className={`${selectedId ? 'flex' : 'hidden lg:flex'} flex-1 flex-col min-w-0 border-r border-white/5`}>
         {!selectedId ? (
           /* empty state */
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-center p-8">
@@ -344,8 +345,15 @@ export default function Tickets() {
         ) : selectedTicket ? (
           <>
             {/* chat header */}
-            <div className="px-5 py-4 border-b border-white/5 flex items-start justify-between gap-4 flex-shrink-0">
-              <div className="min-w-0">
+            <div className="px-4 sm:px-5 py-4 border-b border-white/5 flex items-start gap-3 flex-shrink-0">
+              <button
+                onClick={() => { setSelectedId(null); setShowProps(false); }}
+                className="lg:hidden -ml-1 mt-0.5 w-8 h-8 rounded-lg hover:bg-white/8 text-gray-400 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
+                title="Back to list"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1 flex-wrap">
                   <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${statusMeta(selectedTicket.status).cls}`}>
                     {selectedTicket.status}
@@ -361,6 +369,13 @@ export default function Tickets() {
                   {' '}· {timeAgo(selectedTicket.created_at)}
                 </p>
               </div>
+              <button
+                onClick={() => setShowProps(true)}
+                className="lg:hidden mt-0.5 w-8 h-8 rounded-lg hover:bg-white/8 text-gray-400 hover:text-white flex items-center justify-center flex-shrink-0 transition-colors"
+                title="Ticket properties"
+              >
+                <Info className="w-4 h-4" />
+              </button>
             </div>
 
             {/* message stream */}
@@ -479,7 +494,19 @@ export default function Tickets() {
       </main>
 
       {/* ══ RIGHT: Properties Panel ════════════════════════════════ */}
-      <aside className="w-60 flex-shrink-0 flex flex-col border-l border-white/5" style={{ background: 'var(--bg-card)' }}>
+      {/* mobile backdrop */}
+      {showProps && (
+        <div className="lg:hidden fixed inset-0 top-20 z-40 bg-black/60" onClick={() => setShowProps(false)} />
+      )}
+      <aside className={`${showProps ? 'flex' : 'hidden'} lg:flex w-full sm:w-80 lg:w-60 flex-shrink-0 flex-col border-l border-white/5 absolute lg:static inset-y-0 right-0 z-50 shadow-2xl lg:shadow-none`} style={{ background: 'var(--bg-card)' }}>
+        {/* mobile close */}
+        <button
+          onClick={() => setShowProps(false)}
+          className="lg:hidden absolute top-3 right-3 z-10 w-7 h-7 rounded-lg hover:bg-white/8 text-gray-400 hover:text-white flex items-center justify-center transition-colors"
+          title="Close"
+        >
+          <X className="w-4 h-4" />
+        </button>
         {selectedTicket ? (
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1 pb-3 border-b border-white/5">Ticket Properties</h4>
