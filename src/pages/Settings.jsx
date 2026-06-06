@@ -249,14 +249,14 @@ export default function Settings() {
                 <button
                   type="button"
                   onClick={() => setCreateMode('invite')}
-                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${createMode === 'invite' ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${createMode === 'invite' ? 'bg-white text-[#2c2c2e]' : 'text-[var(--text-secondary)] hover:text-white'}`}
                 >
                   Invitation
                 </button>
                 <button
                   type="button"
                   onClick={() => setCreateMode('direct')}
-                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${createMode === 'direct' ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white'}`}
+                  className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${createMode === 'direct' ? 'bg-white text-[#2c2c2e]' : 'text-[var(--text-secondary)] hover:text-white'}`}
                 >
                   Direct Entry
                 </button>

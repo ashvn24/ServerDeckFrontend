@@ -48,7 +48,7 @@ export default function Login() {
       <div className="relative w-full max-w-md z-10">
         {/* Branding */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-5 bg-white text-black rounded-[2rem] mb-6 shadow-2xl shadow-white/10">
+          <div className="inline-flex items-center justify-center p-5 bg-white text-[#2c2c2e] rounded-[2rem] mb-6 shadow-2xl shadow-white/10">
             <Server className="w-10 h-10" />
           </div>
           <h1 className="text-4xl font-black text-white uppercase tracking-tighter font-display leading-none">ServerDeck</h1>
@@ -100,7 +100,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 mt-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
+              className="w-full py-4 mt-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />

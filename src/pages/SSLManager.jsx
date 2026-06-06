@@ -124,7 +124,7 @@ export default function SSLManager() {
         </div>
         <button 
           onClick={() => setShowIssueModal(true)} 
-          className="px-10 py-4 rounded-2xl bg-[var(--accent-mint)] text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-mint-500/10"
+          className="px-10 py-4 rounded-2xl bg-[var(--accent-mint)] text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-mint-500/10"
         >
           <Plus className="w-4 h-4 inline-block mr-2" /> Provision New Token
         </button>
@@ -142,7 +142,7 @@ export default function SSLManager() {
           </p>
           <button
             onClick={() => setShowIssueModal(true)}
-            className="px-12 py-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+            className="px-12 py-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
           >
             Start Provisioning
           </button>
@@ -201,7 +201,7 @@ export default function SSLManager() {
                     disabled={renewingCert === cert.name}
                     className={`flex items-center gap-3 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                       expiringSoon 
-                        ? 'bg-amber-500 text-black hover:scale-105 shadow-lg shadow-amber-500/20' 
+                        ? 'bg-amber-500 text-[#2c2c2e] hover:scale-105 shadow-lg shadow-amber-500/20' 
                         : 'bg-white/5 text-white hover:bg-white/10'
                     }`}
                   >
@@ -265,7 +265,7 @@ export default function SSLManager() {
           <button 
             type="submit" 
             disabled={issuing || !issueDomain} 
-            className="w-full py-5 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all shadow-2xl shadow-white/10"
+            className="w-full py-5 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 transition-all shadow-2xl shadow-white/10"
           >
             {issuing ? 'PROVISIONING SECURITY LAYER...' : 'EXECUTE PROVISIONING'}
           </button>

@@ -216,7 +216,7 @@ export default function Tickets() {
               onClick={() => setShowCreate(true)}
               className="w-10 h-10 rounded-xl accent-bg-green hover:brightness-110 flex items-center justify-center transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
-              <Plus className="w-5 h-5 text-[#0a0a0a]" />
+              <Plus className="w-5 h-5 text-[#2c2c2e]" />
             </button>
           </div>
 
@@ -332,7 +332,7 @@ export default function Tickets() {
               onClick={() => setShowCreate(true)}
               className="mt-4 flex items-center gap-2 px-6 py-3 accent-bg-green text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-emerald-500/20"
             >
-              <Plus className="w-4 h-4 text-[#0a0a0a]" /> New Ticket
+              <Plus className="w-4 h-4 text-[#2c2c2e]" /> New Ticket
             </button>
           </div>
         ) : detailLoading ? (
@@ -342,28 +342,19 @@ export default function Tickets() {
         ) : selectedTicket ? (
           <>
             {/* Chat Header */}
-            <div className="px-4 md:px-6 py-4 md:py-5 border-b border-[var(--border-color)] flex items-center gap-4 bg-[var(--bg-card-hover)]">
+            <div className="px-4 md:px-6 py-3 border-b border-[var(--border-color)] flex items-center gap-3 md:gap-4 bg-[var(--bg-card-hover)]">
               <button
                 onClick={() => { setSelectedId(null); handleCloseProps(); }}
-                className="lg:hidden p-2 -ml-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                className="lg:hidden p-1.5 -ml-1.5 rounded-xl bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  <span className={`text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest ${statusMeta(selectedTicket.status).cls}`}>
-                    {selectedTicket.status}
-                  </span>
-                  <span className={`text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest ${priorityMeta(selectedTicket.priority).cls}`}>
-                    {selectedTicket.priority}
-                  </span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">#{selectedTicket.id.slice(0, 8)}</span>
-                </div>
-                <h3 className="text-base md:text-lg font-black text-[var(--text-primary)] uppercase tracking-tight truncate">{selectedTicket.title}</h3>
+              <div className="min-w-0 flex-1 flex flex-col justify-center">
+                <h3 className="text-sm md:text-base font-black text-[var(--text-primary)] uppercase tracking-tight truncate leading-tight">{selectedTicket.title}</h3>
               </div>
               <button
                 onClick={() => setShowProps(true)}
-                className="lg:hidden p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
+                className="lg:hidden p-1.5 -mr-1.5 rounded-xl bg-black/5 dark:bg-white/5 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all"
               >
                 <Info className="w-5 h-5" />
               </button>
@@ -413,7 +404,7 @@ export default function Tickets() {
                       </div>
                       <div className={`px-5 py-3.5 text-sm font-medium leading-relaxed whitespace-pre-wrap shadow-lg ${
                         isMe 
-                          ? 'bg-gradient-to-br from-[var(--accent-mint)] to-emerald-500 text-[#0a0a0a] rounded-[22px] rounded-tr-[4px] border border-emerald-400/20 shadow-emerald-500/20' 
+                          ? 'bg-gradient-to-br from-[var(--accent-mint)] to-emerald-500 text-[#2c2c2e] rounded-[22px] rounded-tr-[4px] border border-emerald-400/20 shadow-emerald-500/20' 
                           : 'bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-card-hover)] text-[var(--text-primary)] rounded-[22px] rounded-tl-[4px] border border-[var(--border-color)] shadow-black/5'
                       }`}>
                         {msg.body}
@@ -422,7 +413,7 @@ export default function Tickets() {
                   </div>
                 );
               })}
-              <div ref={chatEndRef} />
+              <div ref={chatEndRef} className="h-6 shrink-0" />
             </div>
 
             {/* Composer */}
@@ -441,51 +432,54 @@ export default function Tickets() {
                 )}
               </div>
             ) : (
-              <form onSubmit={handleSend} className="p-4 md:p-6 border-t border-[var(--border-color)] bg-[var(--bg-card-hover)]">
-                {isSupportStaff && (
-                  <label className="flex items-center gap-2 mb-3 cursor-pointer w-fit select-none group">
-                    <input
-                      type="checkbox"
-                      checked={isInternal}
-                      onChange={e => setIsInternal(e.target.checked)}
-                      className="w-4 h-4 rounded border-[var(--border-color)] bg-white/5 text-amber-500 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+              <form onSubmit={handleSend} className="p-2 md:p-4 bg-[var(--bg-main)]">
+                <div className="flex items-end gap-2 w-full max-w-4xl mx-auto">
+                  {/* Text Field Bubble */}
+                  <div className={`flex-1 flex items-end gap-1 rounded-3xl bg-[var(--bg-card)] transition-all pr-1.5 ${isInternal ? 'ring-1 ring-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'ring-1 ring-[var(--border-color)] focus-within:ring-[var(--accent-mint)]'}`}>
+                    <textarea
+                      placeholder={isInternal ? 'Internal note...' : 'Message...'}
+                      value={msgBody}
+                      onChange={e => {
+                        setMsgBody(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                      }}
+                      rows={1}
+                      style={{ minHeight: '40px', maxHeight: '120px' }}
+                      className={`flex-1 bg-transparent border-0 outline-none text-sm font-medium resize-none py-3 pl-4 pr-1 focus:ring-0 custom-scrollbar ${isInternal ? 'text-amber-500 placeholder-amber-500/40' : 'text-[var(--text-primary)] placeholder-[var(--text-secondary)]'}`}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && !e.shiftKey) { 
+                          e.preventDefault(); 
+                          handleSend(e);
+                          e.target.style.height = 'auto';
+                        }
+                      }}
                     />
-                    <span className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-colors ${isInternal ? 'text-amber-500' : 'text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]'}`}>
-                      {isInternal ? <Lock className="w-3.5 h-3.5" /> : <MessageSquare className="w-3.5 h-3.5" />}
-                      {isInternal ? 'Internal note (staff only)' : 'Public reply'}
-                    </span>
-                  </label>
-                )}
-                <div className={`flex items-end gap-2 rounded-[24px] border bg-[var(--bg-card)] p-1.5 transition-all ${isInternal ? 'border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'border-[var(--border-color)] focus-within:border-[var(--accent-mint)]'}`}>
-                  <textarea
-                    placeholder={isInternal ? 'WRITE INTERNAL NOTE...' : 'TYPE REPLY...'}
-                    value={msgBody}
-                    onChange={e => {
-                      setMsgBody(e.target.value);
-                      e.target.style.height = 'auto';
-                      e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                    }}
-                    rows={1}
-                    style={{ minHeight: '40px', maxHeight: '120px' }}
-                    className={`flex-1 bg-transparent border-0 outline-none text-sm font-bold resize-none py-2.5 px-4 focus:ring-0 custom-scrollbar ${isInternal ? 'text-amber-500 placeholder-amber-500/40' : 'text-[var(--text-primary)] placeholder-[var(--text-secondary)] uppercase tracking-wider'}`}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' && !e.shiftKey) { 
-                        e.preventDefault(); 
-                        handleSend(e);
-                        e.target.style.height = 'auto'; // Reset height on send
-                      }
-                    }}
-                  />
+                    
+                    {/* Right Toggle Button (Public/Internal) inside the bubble */}
+                    {isSupportStaff && (
+                      <button
+                        type="button"
+                        onClick={() => setIsInternal(!isInternal)}
+                        className={`shrink-0 mb-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${isInternal ? 'bg-amber-500/20 text-amber-500' : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'}`}
+                        title={isInternal ? "Internal Note" : "Public Reply"}
+                      >
+                        {isInternal ? <Lock className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Send Button */}
                   <button
                     type="submit"
                     disabled={!msgBody.trim() || sendingMsg}
-                    className={`w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-all ${
+                    className={`shrink-0 mb-1 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                       isInternal
                         ? 'bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-30 disabled:hover:scale-100 shadow-lg shadow-amber-500/20'
                         : 'accent-bg-green hover:brightness-110 disabled:opacity-30 disabled:hover:scale-100 shadow-lg shadow-emerald-500/20'
                     } ${!(!msgBody.trim() || sendingMsg) && 'hover:scale-105 active:scale-95'}`}
                   >
-                    <Send className={`w-4 h-4 ml-0.5 ${!isInternal && 'text-[#0a0a0a]'}`} />
+                    <Send className={`w-4 h-4 ml-0.5 ${!isInternal && 'text-[#2c2c2e]'}`} />
                   </button>
                 </div>
               </form>
@@ -638,7 +632,7 @@ export default function Tickets() {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-4">
                 <div className="p-3 accent-bg-green rounded-2xl">
-                  <LifeBuoy className="w-6 h-6 text-[#0a0a0a]" />
+                  <LifeBuoy className="w-6 h-6 text-[#2c2c2e]" />
                 </div>
                 <div>
                   <h3 className="text-xl md:text-2xl font-black uppercase tracking-tight font-display text-[var(--text-primary)]">Raise Issue</h3>

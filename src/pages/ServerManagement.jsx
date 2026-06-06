@@ -187,7 +187,7 @@ export default function ServerManagement() {
           {isAdmin && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="px-12 py-4 rounded-2xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
+              className="px-12 py-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
             >
               Start Deployment
             </button>
@@ -268,7 +268,7 @@ export default function ServerManagement() {
                       </button>
                     </div>
                   </div>
-                  <button onClick={closeAddModal} className="w-full py-4 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+                  <button onClick={closeAddModal} className="w-full py-4 rounded-xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
                     COMPLETE SETUP
                   </button>
                 </div>
@@ -297,7 +297,7 @@ export default function ServerManagement() {
                 </div>
                 <div className="flex gap-4">
                    <button type="button" onClick={() => setShowFolderModal(false)} className="flex-1 py-3.5 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest">CANCEL</button>
-                   <button type="submit" className="flex-1 py-3.5 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest">CREATE</button>
+                   <button type="submit" className="flex-1 py-3.5 rounded-xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest">CREATE</button>
                 </div>
               </form>
            </div>

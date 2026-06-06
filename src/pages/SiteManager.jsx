@@ -101,10 +101,10 @@ export default function SiteManager() {
           </div>
         </div>
         <div className="flex flex-row flex-wrap sm:flex-nowrap items-center gap-3 md:gap-4 w-full md:w-auto">
-          <button onClick={() => setShowBackendModal(true)} className="flex-1 md:flex-none flex items-center justify-center px-4 md:px-8 py-3.5 rounded-xl bg-[var(--accent-violet)] text-[#0a0a0a] text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-500/20">
+          <button onClick={() => setShowBackendModal(true)} className="flex-1 md:flex-none flex items-center justify-center px-4 md:px-8 py-3.5 rounded-xl bg-[var(--accent-violet)] text-[#2c2c2e] text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-500/20">
             <Plus className="w-4 h-4 mr-2 shrink-0" /> Backend Site
           </button>
-          <button onClick={() => setShowFrontendModal(true)} className="flex-1 md:flex-none flex items-center justify-center px-4 md:px-8 py-3.5 rounded-xl bg-[var(--accent-mint)] text-black text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
+          <button onClick={() => setShowFrontendModal(true)} className="flex-1 md:flex-none flex items-center justify-center px-4 md:px-8 py-3.5 rounded-xl bg-[var(--accent-mint)] text-[#2c2c2e] text-[9px] sm:text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">
             <Plus className="w-4 h-4 mr-2 shrink-0" /> Frontend Site
           </button>
         </div>
@@ -115,7 +115,7 @@ export default function SiteManager() {
         <div className="glass-card py-20 md:py-32 px-6 flex flex-col items-center justify-center text-center">
           <p className="text-[var(--text-secondary)] text-[10px] font-black uppercase tracking-widest mb-8">No sites configured on this server</p>
           <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 w-full sm:w-auto">
-            <button onClick={() => setShowBackendModal(true)} className="flex items-center justify-center px-8 py-4 rounded-2xl bg-[var(--accent-violet)] text-[#0a0a0a] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-500/20">
+            <button onClick={() => setShowBackendModal(true)} className="flex items-center justify-center px-8 py-4 rounded-2xl bg-[var(--accent-violet)] text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-500/20">
               Create Backend Site
             </button>
             <button onClick={() => setShowFrontendModal(true)} className="flex items-center justify-center px-8 py-4 rounded-2xl bg-[var(--text-primary)] text-[var(--bg-main)] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">

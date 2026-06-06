@@ -175,7 +175,7 @@ export default function ServerDetail() {
             </button>
             <button
               onClick={() => handleQuickAction('ssh')}
-              className={`server-action-btn flex-1 h-11 rounded-2xl text-sm font-semibold text-[#0a0a0a] shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50 text-white' : 'accent-bg-green shadow-emerald-500/20'}`}
+              className={`server-action-btn flex-1 h-11 rounded-2xl text-sm font-semibold text-[#2c2c2e] shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50 text-white' : 'accent-bg-green shadow-emerald-500/20'}`}
             >
               Launch SSH
             </button>
@@ -239,7 +239,7 @@ export default function ServerDetail() {
               key={tab}
               data-active={activeTab === idx}
               onClick={() => setActiveTab(idx)}
-              className={`shrink-0 px-4 h-9 rounded-full text-sm font-semibold whitespace-nowrap transition-transform active:scale-[0.97] ${activeTab === idx ? 'bg-white text-black' : 'bg-[var(--bg-card)] text-[var(--text-secondary)]'}`}
+              className={`shrink-0 px-4 h-9 rounded-full text-sm font-semibold whitespace-nowrap transition-transform active:scale-[0.97] ${activeTab === idx ? 'bg-white text-[#2c2c2e]' : 'bg-[var(--bg-card)] text-[var(--text-secondary)]'}`}
             >
               {tab}
             </button>
@@ -253,7 +253,7 @@ export default function ServerDetail() {
               onClick={() => setActiveTab(idx)}
               className={`py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap
                 ${activeTab === idx
-                  ? 'bg-white text-black shadow-lg'
+                  ? 'bg-white text-[#2c2c2e] shadow-lg'
                   : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
             >
               {tab}

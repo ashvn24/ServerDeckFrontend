@@ -280,7 +280,7 @@ export default function CreateBackendSite({ serverId, onClose, onSuccess, sendCo
         )}
       </div>
 
-      <button type="submit" className="w-full py-3.5 mt-2 rounded-xl bg-[var(--accent-violet)] text-[#0a0a0a] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg shadow-[var(--accent-violet)]/20">
+      <button type="submit" className="w-full py-3.5 mt-2 rounded-xl bg-[var(--accent-violet)] text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-[1.02] transition-all shadow-lg shadow-[var(--accent-violet)]/20">
         Create Backend Site
       </button>
     </form>
