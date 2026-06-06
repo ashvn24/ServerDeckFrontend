@@ -96,7 +96,7 @@ export default function Organizations() {
   );
 
   return (
-    <div className="max-w-7xl">
+    <div className="w-full">
       <ConfirmModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
@@ -160,7 +160,7 @@ export default function Organizations() {
             placeholder="Search organizations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all placeholder:text-gray-600"
+            className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-[var(--border-color)] text-white text-sm font-bold focus:border-amber-500 outline-none transition-all placeholder:text-gray-400"
           />
         </div>
         <button
