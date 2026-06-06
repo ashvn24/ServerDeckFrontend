@@ -273,6 +273,15 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
 .pwa-server .text-\[10px\],
 .pwa-server .text-\[9px\] { font-size: 12px !important; }
 
+/* Files grid: borderless cells on mobile (iOS Files look); cards kept on desktop. */
+@media (max-width: 768px) {
+  .file-grid-cell {
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
 /* neutral text → iOS label / system gray scale */
 [data-theme='light'] .text-white:not([class*="bg-"]) { color: #1d1d1f; }
 [data-theme='light'] .text-gray-100:not([class*="bg-"]),

@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Cpu, Search, Trash2, Loader2, RefreshCw, X, AlertTriangle } from 'lucide-react';
+import { useIsPWA } from '../../hooks/useIsPWA';
 
 export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
+  const isPWA = useIsPWA();
   const [processes, setProcesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -50,8 +52,8 @@ export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
   }, [processes, search]);
 
   return (
-    <div className="glass-card p-10">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
+    <div className={`glass-card ${isPWA ? 'p-4' : 'p-10'}`}>
+      <div className={`flex flex-col lg:flex-row lg:items-center justify-between ${isPWA ? 'gap-4 mb-6' : 'gap-8 mb-12'}`}>
         <div className="flex items-center gap-6">
           <div className="p-4 bg-red-500 rounded-2xl shadow-lg shadow-red-500/20 text-white">
             <Cpu className="w-6 h-6" />
@@ -97,14 +99,52 @@ export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="grid grid-cols-6 px-6 mb-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
-            <span>PID</span>
-            <span className="col-span-2">Task</span>
-            <span>CPU</span>
-            <span>Memory</span>
-            <span className="text-right">Action</span>
-          </div>
-          {filteredProcesses.map((p) => (
+          {!isPWA && (
+            <div className="grid grid-cols-6 px-6 mb-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+              <span>PID</span>
+              <span className="col-span-2">Task</span>
+              <span>CPU</span>
+              <span>Memory</span>
+              <span className="text-right">Action</span>
+            </div>
+          )}
+          {filteredProcesses.map((p) => isPWA ? (
+            /* iOS-style stacked process card: CPU and Memory on their own line */
+            <div key={p.pid} className="p-4 bg-white/5 border border-white/5 rounded-2xl flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">{p.name}</p>
+                  <p className="text-xs text-[var(--text-secondary)]">PID {p.pid} · {p.user}</p>
+                </div>
+                {isAdmin && (
+                  <button
+                    onClick={() => handleKill(p.pid)}
+                    disabled={actionLoading === p.pid}
+                    aria-label="Kill process"
+                    className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl text-red-500 bg-red-500/10"
+                  >
+                    {actionLoading === p.pid ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-4 text-xs">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <span className="text-[var(--text-secondary)] shrink-0">CPU</span>
+                  <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full ${p.cpu_percent > 80 ? 'bg-red-500' : p.cpu_percent > 50 ? 'bg-amber-500' : 'accent-bg-green'}`}
+                      style={{ width: `${Math.min(p.cpu_percent, 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-white font-semibold shrink-0">{p.cpu_percent.toFixed(0)}%</span>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-[var(--text-secondary)]">MEM</span>
+                  <span className="text-white font-semibold">{p.memory_mb} MB</span>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div key={p.pid} className="grid grid-cols-6 items-center p-5 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all group">
               <span className="text-xs font-bold text-[var(--text-secondary)]">{p.pid}</span>
               <div className="col-span-2 min-w-0">
@@ -114,7 +154,7 @@ export default function ProcessManager({ serverId, sendCommand, isAdmin }) {
               <div>
                 <div className="flex items-center gap-3">
                    <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full rounded-full ${p.cpu_percent > 80 ? 'bg-red-500' : p.cpu_percent > 50 ? 'bg-amber-500' : 'accent-bg-green'}`}
                         style={{ width: `${Math.min(p.cpu_percent, 100)}%` }}
                       />

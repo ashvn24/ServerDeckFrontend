@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Shield, Plus, Trash2, Loader2, RefreshCw, AlertCircle, X } from 'lucide-react';
 import ConfirmModal from '../common/ConfirmModal';
+import { useIsPWA } from '../../hooks/useIsPWA';
 
 export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
+  const isPWA = useIsPWA();
   const [rules, setRules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -81,8 +83,8 @@ export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
         onConfirm={confirmDeleteRule}
         requiresVerification={true}
       />
-      <div className="glass-card p-10">
-        <div className="flex items-center justify-between mb-12">
+      <div className={`glass-card ${isPWA ? 'p-4' : 'p-10'}`}>
+        <div className={`flex items-center justify-between gap-3 ${isPWA ? 'mb-6' : 'mb-12'}`}>
           <div className="flex items-center gap-6">
             <div className="p-4 bg-[var(--accent-violet)] rounded-2xl shadow-lg shadow-violet-500/20 text-white">
               <Shield className="w-6 h-6" />
@@ -122,15 +124,39 @@ export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="grid grid-cols-4 px-6 mb-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
-              <span>Rule ID</span>
-              <span>Network Protocol</span>
-              <span>Status</span>
-              <span className="text-right">Action</span>
-            </div>
+            {!isPWA && (
+              <div className="grid grid-cols-4 px-6 mb-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+                <span>Rule ID</span>
+                <span>Network Protocol</span>
+                <span>Status</span>
+                <span className="text-right">Action</span>
+              </div>
+            )}
             {rules.map((rule) => {
               const isAllowed = rule.rule.toLowerCase().includes('allow');
-              return (
+              return isPWA ? (
+                /* iOS-style firewall rule row */
+                <div key={rule.number} className="flex items-center gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-white truncate">{rule.rule}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">Rule #{rule.number}</p>
+                  </div>
+                  <span className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isAllowed ? 'accent-bg-green' : 'bg-red-500/20 text-red-500'}`}>
+                    <span className={`w-1 h-1 rounded-full ${isAllowed ? 'bg-black' : 'bg-red-500'}`} />
+                    {isAllowed ? 'Allowed' : 'Denied'}
+                  </span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => handleDeleteRule(rule.number)}
+                      disabled={actionLoading === `delete-${rule.number}`}
+                      aria-label="Delete rule"
+                      className="w-9 h-9 shrink-0 flex items-center justify-center rounded-xl text-red-500 bg-red-500/10"
+                    >
+                      {actionLoading === `delete-${rule.number}` ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    </button>
+                  )}
+                </div>
+              ) : (
                 <div key={rule.number} className="grid grid-cols-4 items-center p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all group">
                   <span className="text-xs font-bold text-[var(--text-secondary)]">{rule.number}</span>
                   <span className="text-xs font-black text-white uppercase tracking-tight">{rule.rule}</span>
@@ -161,9 +187,9 @@ export default function FirewallManager({ serverId, sendCommand, isAdmin }) {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-8">
+        <div className={`fixed inset-0 z-[200] flex items-center justify-center ${isPWA ? 'p-4' : 'p-8'}`}>
            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => !actionLoading && setShowAddModal(false)} />
-           <div className="glass-card w-full max-w-lg relative z-10 p-10">
+           <div className={`glass-card w-full max-w-lg relative z-10 ${isPWA ? 'p-5 max-h-[85vh] overflow-y-auto custom-scrollbar' : 'p-10'}`}>
               <div className="flex items-center justify-between mb-10">
                  <h3 className="text-2xl font-black uppercase tracking-tight font-display">New Policy Rule</h3>
                  <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">

@@ -1,12 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  Folder, File, ChevronRight, Home, ArrowLeft, RefreshCw, 
-  Trash2, Edit3, Plus, Save, X, Search, MoreVertical, 
-  Download, AlertTriangle, FileText, WifiOff, Maximize2, Minimize2,
-  ShieldAlert
+import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Folder, File, ChevronRight, Home, ArrowLeft, RefreshCw,
+  Trash2, Edit3, Plus, Save, X, Search, MoreVertical,
+  Download, Upload, Loader2, AlertTriangle, FileText, WifiOff, Maximize2, Minimize2,
+  ShieldAlert, TerminalSquare, Settings, ScrollText, Braces, Code2
 } from 'lucide-react';
 import { formatBytes } from '../../utils/formatters';
 import ConfirmModal from '../common/ConfirmModal';
+import { useIsPWA } from '../../hooks/useIsPWA';
 
 export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }) {
   const [path, setPath] = useState('/');
@@ -24,6 +25,15 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   
   const [isUploading, setIsUploading] = useState(false);
   const [confirmConfig, setConfirmConfig] = useState({ open: false, title: '', message: '', onConfirm: null, type: 'warning' });
+
+  const isPWA = useIsPWA();
+  const [pwaCreateSheet, setPwaCreateSheet] = useState(false);
+  const [pwaRowSheet, setPwaRowSheet] = useState(null); // item targeted by the context menu
+  const [pwaRename, setPwaRename] = useState(null);      // { full, name }
+  const [renameInput, setRenameInput] = useState('');
+  const uploadInputRef = useRef(null);
+  const longPressTimer = useRef(null);
+  const longPressedRef = useRef(false);
 
   const fetchFiles = useCallback(async (targetPath) => {
     if (!isOnline) return;
@@ -174,6 +184,37 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
     reader.readAsDataURL(file);
   };
 
+  const renameItem = async () => {
+    if (!pwaRename) return;
+    const val = renameInput.trim();
+    if (!val || val === pwaRename.name) { setPwaRename(null); return; }
+    const parent = pwaRename.full.slice(0, pwaRename.full.lastIndexOf('/'));
+    const newFull = `${parent}/${val}`;
+    try {
+      // The agent has no files.rename in its ACTION_ALLOWLIST — rename via the
+      // existing automation.run handler (shell `mv`).
+      const res = await sendCommand(serverId, 'automation.run', { script: `mv "${pwaRename.full}" "${newFull}"` });
+      if (res.error) throw new Error(res.error);
+      if (res.returncode !== 0) throw new Error(res.stderr || 'Rename failed');
+      fetchFiles(path);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setPwaRename(null);
+    }
+  };
+
+  // Long-press → iOS context menu (without blocking a normal tap).
+  const startLongPress = (item) => {
+    longPressedRef.current = false;
+    longPressTimer.current = setTimeout(() => { longPressedRef.current = true; setPwaRowSheet(item); }, 450);
+  };
+  const cancelLongPress = () => clearTimeout(longPressTimer.current);
+  const handleCellTap = (open) => {
+    if (longPressedRef.current) { longPressedRef.current = false; return; }
+    open();
+  };
+
   const parts = path.split('/').filter(Boolean);
   const breadcrumbs = [{ name: 'ROOT', path: '/' }];
   let current = '';
@@ -187,6 +228,237 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
       <div className="flex flex-col items-center justify-center py-32 glass-card text-[var(--text-secondary)]">
         <WifiOff className="w-16 h-16 mb-6 opacity-20" />
         <p className="text-[10px] font-black uppercase tracking-widest">Connect to cloud node to index files</p>
+      </div>
+    );
+  }
+
+  // Icon + tint for a file by extension (iOS Files style).
+  const fileMeta = (name) => {
+    const ext = name.split('.').pop()?.toLowerCase();
+    if (['sh', 'bash', 'zsh'].includes(ext)) return { Icon: TerminalSquare, color: 'text-emerald-400' };
+    if (['conf', 'env', 'ini', 'cfg', 'toml'].includes(ext)) return { Icon: Settings, color: 'text-[var(--text-secondary)]' };
+    if (ext === 'log') return { Icon: ScrollText, color: 'text-[var(--text-secondary)]' };
+    if (['json', 'yaml', 'yml'].includes(ext)) return { Icon: Braces, color: 'text-sky-400' };
+    if (ext === 'py') return { Icon: Code2, color: 'text-yellow-400' };
+    if (['txt', 'md', 'markdown', 'rtf'].includes(ext)) return { Icon: FileText, color: 'text-white/80' };
+    return { Icon: File, color: 'text-[var(--text-secondary)]' };
+  };
+
+  /* ─────────── iOS Files-app style browser (PWA only) ─────────── */
+  if (isPWA) {
+    return (
+      <div className="pwa-server space-y-3">
+        <ConfirmModal
+          isOpen={confirmConfig.open}
+          onClose={() => setConfirmConfig({ ...confirmConfig, open: false })}
+          title={confirmConfig.title}
+          message={confirmConfig.message}
+          type={confirmConfig.type}
+          confirmText={confirmConfig.confirmText}
+          onConfirm={confirmConfig.onConfirm}
+          requiresVerification={confirmConfig.requiresVerification}
+        />
+
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar -mx-4 px-4 py-1">
+          {breadcrumbs.map((bc, i) => (
+            <div key={bc.path} className="flex items-center shrink-0">
+              {i > 0 && <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] mx-0.5" />}
+              <button
+                onClick={() => navigateTo(bc.path)}
+                className={`text-sm font-semibold whitespace-nowrap ${i === breadcrumbs.length - 1 ? 'text-[var(--accent-mint)]' : 'text-[var(--text-secondary)]'}`}
+              >
+                {bc.name}
+              </button>
+            </div>
+          ))}
+          <button
+            onClick={() => fetchFiles(path)}
+            aria-label="Refresh"
+            className="ml-auto shrink-0 w-9 h-9 flex items-center justify-center rounded-full text-[var(--text-secondary)]"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+        </div>
+
+        {!isAdmin && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <ShieldAlert className="w-4 h-4 text-amber-500" />
+            <span className="text-xs font-semibold text-amber-500">View Only Mode</span>
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-red-500/10 border border-red-500/20">
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+            <span className="text-xs font-semibold text-red-500">{error}</span>
+          </div>
+        )}
+
+        {/* File grid — iOS Files folder grid; slides in on navigation (push feel) */}
+        <div key={path} className="grid grid-cols-3 gap-3 animate-in slide-in-from-right-4 fade-in duration-200">
+          {items.map((item) => {
+            const full = `${path === '/' ? '' : path}/${item.name}`;
+            const open = () => (item.is_dir ? navigateTo(full) : openFile(full));
+            const meta = item.is_dir ? { Icon: Folder, color: 'text-amber-500' } : fileMeta(item.name);
+            const Icon = meta.Icon;
+            return (
+              <button
+                key={item.name}
+                onClick={() => handleCellTap(open)}
+                onContextMenu={(e) => { e.preventDefault(); setPwaRowSheet(item); }}
+                onTouchStart={() => startLongPress(item)}
+                onTouchEnd={cancelLongPress}
+                onTouchMove={cancelLongPress}
+                className="file-grid-cell flex flex-col items-center text-center gap-1 p-2 rounded-xl bg-white/5 active:scale-95 active:opacity-80 transition-all"
+              >
+                <Icon className={`w-8 h-8 ${meta.color} ${item.is_dir ? 'fill-amber-500/30' : ''}`} />
+                <p className="text-xs text-white leading-tight line-clamp-2 break-all w-full">{item.name}</p>
+                <p className={`text-[var(--text-secondary)] uppercase tracking-wide ${item.is_dir ? 'hidden md:block' : ''}`} style={{ fontSize: '10px' }}>{item.is_dir ? 'DIRECTORY' : formatBytes(item.size)}</p>
+              </button>
+            );
+          })}
+          {!loading && items.length === 0 && !error && (
+            <div className="col-span-3 flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
+              <Folder className="w-10 h-10 mb-3 opacity-20" />
+              <p className="text-xs font-semibold">No items here</p>
+            </div>
+          )}
+        </div>
+
+        {/* + FAB */}
+        {isAdmin && (
+          <button
+            onClick={() => setPwaCreateSheet(true)}
+            aria-label="Add"
+            className="fixed right-4 z-30 w-14 h-14 rounded-full bg-[var(--accent-violet)] text-white shadow-lg shadow-violet-500/30 flex items-center justify-center active:scale-95 transition-transform"
+            style={{ bottom: 'calc(var(--bottom-nav) + 1rem)' }}
+          >
+            <Plus className="w-7 h-7" />
+          </button>
+        )}
+        <input ref={uploadInputRef} type="file" className="hidden" onChange={handleFileUpload} />
+
+        {/* Row action sheet */}
+        {pwaRowSheet && (
+          <div className="fixed inset-0 z-[200] flex items-end">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setPwaRowSheet(null)} />
+            <div className="relative w-full p-3 space-y-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+              <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
+                <p className="px-4 py-3 text-center text-xs text-[var(--text-secondary)] truncate">{pwaRowSheet.name}</p>
+                {isAdmin && (
+                  <button
+                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const n = pwaRowSheet.name; setPwaRowSheet(null); setRenameInput(n); setPwaRename({ full: f, name: n }); }}
+                    className="w-full py-4 text-sm font-semibold text-white active:bg-white/5"
+                  >
+                    Rename
+                  </button>
+                )}
+                {!pwaRowSheet.is_dir && (
+                  <button
+                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; setPwaRowSheet(null); downloadItem(f); }}
+                    className="w-full py-4 text-sm font-semibold text-white active:bg-white/5"
+                  >
+                    Download
+                  </button>
+                )}
+                {isAdmin && (
+                  <button
+                    onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const d = pwaRowSheet.is_dir; setPwaRowSheet(null); deleteItem(f, d); }}
+                    className="w-full py-4 text-sm font-semibold text-red-500 active:bg-white/5"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+              <button onClick={() => setPwaRowSheet(null)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-white">Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* Create / upload action sheet */}
+        {pwaCreateSheet && (
+          <div className="fixed inset-0 z-[200] flex items-end">
+            <div className="absolute inset-0 bg-black/50" onClick={() => setPwaCreateSheet(false)} />
+            <div className="relative w-full p-3 space-y-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
+              <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
+                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('folder'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-white active:bg-white/5"><Folder className="w-4 h-4 text-amber-500" /> New Folder</button>
+                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('file'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-white active:bg-white/5"><FileText className="w-4 h-4 text-[var(--accent-violet)]" /> New File</button>
+                <button onClick={() => { setPwaCreateSheet(false); uploadInputRef.current?.click(); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-white active:bg-white/5"><Upload className="w-4 h-4 text-[var(--accent-mint)]" /> {isUploading ? 'Uploading…' : 'Upload File'}</button>
+              </div>
+              <button onClick={() => setPwaCreateSheet(false)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-white">Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {/* New file/dir name prompt */}
+        {newItemType && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setNewItemType(null)} />
+            <div className="glass-card w-full max-w-sm p-5 relative z-10">
+              <h3 className="text-base font-bold mb-4">{newItemType === 'file' ? 'New File' : 'New Folder'}</h3>
+              <input
+                autoFocus
+                type="text"
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white text-base mb-5 focus:border-[var(--accent-violet)] outline-none"
+                placeholder="Name…"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+              />
+              <div className="flex gap-3">
+                <button onClick={() => setNewItemType(null)} className="flex-1 h-11 rounded-xl bg-white/5 text-white text-sm font-semibold">Cancel</button>
+                <button onClick={createItem} className="flex-1 h-11 rounded-xl bg-[var(--accent-violet)] text-white text-sm font-semibold">Create</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rename prompt */}
+        {pwaRename && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setPwaRename(null)} />
+            <div className="glass-card w-full max-w-sm p-5 relative z-10">
+              <h3 className="text-base font-bold mb-4">Rename</h3>
+              <input
+                autoFocus
+                type="text"
+                className="w-full px-4 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white text-base mb-5 focus:border-[var(--accent-violet)] outline-none"
+                value={renameInput}
+                onChange={(e) => setRenameInput(e.target.value)}
+              />
+              <div className="flex gap-3">
+                <button onClick={() => setPwaRename(null)} className="flex-1 h-11 rounded-xl bg-white/5 text-white text-sm font-semibold">Cancel</button>
+                <button onClick={renameItem} className="flex-1 h-11 rounded-xl bg-[var(--accent-violet)] text-white text-sm font-semibold">Rename</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full-screen editor */}
+        {editingFile && (
+          <div
+            className="fixed inset-0 z-[300] flex flex-col bg-[var(--bg-main)]"
+            style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
+            <div className="flex items-center gap-3 px-4 py-3 border-b border-[var(--border-color)]">
+              <button onClick={() => setEditingFile(null)} className="text-[var(--accent-violet)] text-sm font-semibold">Close</button>
+              <p className="flex-1 text-center text-sm font-semibold truncate">{editingFile.path.split('/').pop()}</p>
+              {isAdmin ? (
+                <button onClick={saveFile} disabled={isSaving} className="text-[var(--accent-violet)] text-sm font-bold flex items-center gap-1 disabled:opacity-50">
+                  {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Save'}
+                </button>
+              ) : (
+                <span className="text-xs font-semibold text-amber-500">Read only</span>
+              )}
+            </div>
+            <textarea
+              className="flex-1 w-full p-4 bg-black text-gray-200 font-mono text-sm outline-none resize-none"
+              value={editingFile.content}
+              onChange={(e) => isAdmin && setEditingFile({ ...editingFile, content: e.target.value })}
+              readOnly={!isAdmin}
+              spellCheck="false"
+            />
+          </div>
+        )}
       </div>
     );
   }
@@ -272,53 +544,45 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8 gap-3">
             {path !== '/' && (
-              <div 
+              <button
                 onClick={() => navigateTo(path.split('/').slice(0, -1).join('/') || '/')}
-                className="p-6 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 transition-all cursor-pointer group flex items-center gap-4"
+                className="file-grid-cell flex flex-col items-center text-center gap-1 p-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
               >
-                <div className="p-2.5 rounded-xl bg-white/5 text-[var(--text-secondary)] group-hover:text-white transition-all">
-                  <ArrowLeft className="w-5 h-5" />
-                </div>
-                <span className="text-xs font-black text-[var(--text-secondary)] group-hover:text-white uppercase tracking-widest">Parent Node</span>
-              </div>
+                <ArrowLeft className="w-8 h-8 text-[var(--text-secondary)]" />
+                <p className="text-xs text-white leading-tight w-full truncate">..</p>
+                <p className="text-[var(--text-secondary)] uppercase tracking-wide" style={{ fontSize: '10px' }}>PARENT</p>
+              </button>
             )}
 
-            {items.map(item => (
-              <div 
-                key={item.name}
-                className="group p-6 bg-white/5 border border-white/5 rounded-3xl hover:bg-white/10 transition-all flex flex-col justify-between min-h-[160px] relative overflow-hidden"
-              >
-                <div className="absolute -right-8 -top-8 w-24 h-24 bg-white/5 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                
-                <div 
-                  className="flex-1 cursor-pointer z-10"
-                  onClick={() => item.is_dir ? navigateTo(`${path === '/' ? '' : path}/${item.name}`) : openFile(`${path === '/' ? '' : path}/${item.name}`)}
-                >
-                  <div className={`w-12 h-12 rounded-2xl mb-4 flex items-center justify-center transition-all ${
-                    item.is_dir ? 'bg-amber-500/10 text-amber-500' : 'bg-[var(--accent-violet)]/10 text-[var(--accent-violet)]'
-                  }`}>
-                    {item.is_dir ? <Folder className="w-6 h-6 fill-current" /> : <FileText className="w-6 h-6" />}
+            {items.map((item) => {
+              const full = `${path === '/' ? '' : path}/${item.name}`;
+              const meta = item.is_dir ? { Icon: Folder, color: 'text-amber-500' } : fileMeta(item.name);
+              const Icon = meta.Icon;
+              return (
+                <div key={item.name} className="relative group">
+                  <button
+                    onClick={() => (item.is_dir ? navigateTo(full) : openFile(full))}
+                    className="file-grid-cell w-full flex flex-col items-center text-center gap-1 p-2 rounded-xl bg-white/5 hover:bg-white/10 active:scale-95 transition-all"
+                  >
+                    <Icon className={`w-8 h-8 ${meta.color} ${item.is_dir ? 'fill-amber-500/30' : ''}`} />
+                    <p className="text-xs text-white leading-tight line-clamp-2 break-all w-full">{item.name}</p>
+                    <p className={`text-[var(--text-secondary)] uppercase tracking-wide ${item.is_dir ? 'hidden md:block' : ''}`} style={{ fontSize: '10px' }}>{item.is_dir ? 'DIRECTORY' : formatBytes(item.size)}</p>
+                  </button>
+                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => downloadItem(full)} className="p-1.5 rounded-lg bg-black/40 text-[var(--text-secondary)] hover:text-white transition-all">
+                      <Download className="w-3.5 h-3.5" />
+                    </button>
+                    {isAdmin && (
+                      <button onClick={() => deleteItem(full, item.is_dir)} className="p-1.5 rounded-lg bg-black/40 text-[var(--text-secondary)] hover:text-red-500 transition-all">
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
-                  <p className="text-sm font-black text-white uppercase tracking-tight truncate mb-1">{item.name}</p>
-                  <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
-                    {item.is_dir ? 'Directory' : formatBytes(item.size)}
-                  </p>
                 </div>
-
-                <div className="flex items-center gap-2 mt-6 z-10 opacity-0 group-hover:opacity-100 transition-all">
-                   <button onClick={() => downloadItem(`${path === '/' ? '' : path}/${item.name}`)} className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
-                      <Download className="w-4 h-4" />
-                   </button>
-                   {isAdmin && (
-                     <button onClick={() => deleteItem(`${path === '/' ? '' : path}/${item.name}`, item.is_dir)} className="p-2 rounded-lg bg-white/5 text-[var(--text-secondary)] hover:text-red-500 transition-all">
-                        <Trash2 className="w-4 h-4" />
-                     </button>
-                   )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {!loading && items.length === 0 && !error && (
