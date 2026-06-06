@@ -166,16 +166,16 @@ export default function ServerDetail() {
           </div>
 
           {/* Action row */}
-          <div className="flex items-center gap-2.5">
+          <div className="server-action-buttons flex items-center gap-2.5">
             <button
               onClick={() => handleQuickAction('sites')}
-              className={`flex-1 h-11 rounded-2xl text-sm font-semibold transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-[var(--bg-card)] opacity-50' : 'bg-[var(--bg-card)] border border-[var(--border-color)]'}`}
+              className={`server-action-btn flex-1 h-11 rounded-2xl text-sm font-semibold transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-[var(--bg-card)] opacity-50' : 'bg-[var(--bg-card)] border border-[var(--border-color)]'}`}
             >
               Quick Sites
             </button>
             <button
               onClick={() => handleQuickAction('ssh')}
-              className={`flex-1 h-11 rounded-2xl text-sm font-semibold text-[#0a0a0a] shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50 text-white' : 'accent-bg-green shadow-emerald-500/20'}`}
+              className={`server-action-btn flex-1 h-11 rounded-2xl text-sm font-semibold text-[#0a0a0a] shadow-lg transition-transform active:scale-[0.97] ${!isAdmin ? 'bg-gray-500/30 opacity-50 text-white' : 'accent-bg-green shadow-emerald-500/20'}`}
             >
               Launch SSH
             </button>
