@@ -34,6 +34,13 @@ body {
   @media (max-width: 768px) {
     body { zoom: 1; }
     html, body { width: 100%; overflow-x: hidden; }
+
+    /* iOS Safari auto-zooms when a focused field's font-size is < 16px.
+       Force 16px on mobile only — keeps the small desktop inputs intact
+       and avoids the accessibility-breaking maximum-scale viewport hack. */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
   }
 
   /* Respect iOS safe areas on standalone PWA installs. */
