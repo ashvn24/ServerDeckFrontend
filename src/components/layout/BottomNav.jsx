@@ -54,9 +54,6 @@ export default function BottomNav() {
                   className={`w-5 h-5 transition-all duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}
                   strokeWidth={isActive ? 2.5 : 1.8}
                 />
-                <span className="text-[10px] font-black uppercase tracking-[0.12em] leading-tight">
-                  {link.name}
-                </span>
                 {/* Active pip indicator */}
                 {isActive && (
                   <span className="absolute bottom-1.5 w-1 h-1 rounded-full bg-[var(--text-primary)]" />
