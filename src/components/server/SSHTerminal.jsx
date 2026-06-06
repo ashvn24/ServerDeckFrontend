@@ -19,6 +19,8 @@ const XTERM_THEME = {
   brightCyan: '#9aedfe', brightWhite: '#e6e6e6',
 };
 
+const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+
 export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on, isActive }) {
   const containerRef  = useRef(null);
   const wrapperRef    = useRef(null);
@@ -33,6 +35,14 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   const isPWA = useIsPWA();
   const isMobile = useMobile();
   const mobileLayout = isPWA || isMobile;
+  const useCssFullscreen = isPWA || isIOS;
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('ssh-ios-fullscreen-active');
+    };
+  }, []);
 
   useEffect(() => {
     const term = new Terminal({
@@ -185,19 +195,29 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   }, [serverId, send]);
 
   const toggleFullscreen = useCallback(() => {
-    // iOS PWA has no element Fullscreen API — use a CSS fixed overlay instead.
-    if (isPWA) {
-      setIsFullscreen((v) => !v);
+    // iOS and PWA have no/broken element Fullscreen API — use a CSS fixed overlay instead.
+    if (useCssFullscreen) {
+      setIsFullscreen((v) => {
+        const next = !v;
+        if (next) {
+          document.body.style.overflow = 'hidden';
+          document.body.classList.add('ssh-ios-fullscreen-active');
+        } else {
+          document.body.style.overflow = '';
+          document.body.classList.remove('ssh-ios-fullscreen-active');
+        }
+        return next;
+      });
       return;
     }
     if (!document.fullscreenElement) {
-      wrapperRef.current?.requestFullscreen();
+      wrapperRef.current?.requestFullscreen().catch(() => {});
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {});
       setIsFullscreen(false);
     }
-  }, [isPWA]);
+  }, [useCssFullscreen]);
 
   // Refit xterm whenever fullscreen toggles (size changes).
   useEffect(() => {
@@ -220,14 +240,16 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
     connected: 'accent-bg-green animate-pulse-dot', error: 'bg-red-500', closed: 'bg-white/10',
   }[status];
 
-  // PWA fullscreen: fixed overlay covering the whole screen (incl. behind nav bars).
-  const pwaFullscreen = isPWA && isFullscreen;
-  const wrapperStyle = pwaFullscreen
+  // CSS fullscreen: fixed overlay covering the whole screen (incl. behind nav bars).
+  const cssFullscreen = useCssFullscreen && isFullscreen;
+  const wrapperStyle = cssFullscreen
     ? {
         position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
         zIndex: 9999, background: '#000',
         paddingTop: 'env(safe-area-inset-top)',
         paddingBottom: 'env(safe-area-inset-bottom)',
+        transition: 'none',
+        willChange: 'transform'
       }
     : undefined;
 
@@ -236,10 +258,10 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       ref={wrapperRef}
       style={wrapperStyle}
       className={`flex flex-col overflow-hidden ${
-        pwaFullscreen ? '' : isFullscreen ? 'bg-black h-screen w-screen' : `glass-card ${mobileLayout ? 'h-[420px]' : 'h-[600px]'}`
+        cssFullscreen ? '' : isFullscreen ? 'bg-black h-screen w-screen' : `glass-card ${mobileLayout ? 'h-[420px]' : 'h-[600px]'}`
       }`}
     >
-      {pwaFullscreen && (
+      {cssFullscreen && (
         <button
           onClick={toggleFullscreen}
           aria-label="Exit fullscreen"
