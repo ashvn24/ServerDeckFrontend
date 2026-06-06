@@ -120,7 +120,7 @@ export default function TopNav() {
 
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute top-full right-0 mt-4 w-64 glass-card p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="absolute top-full right-0 mt-4 min-w-[240px] sm:min-w-[280px] max-w-[calc(100vw-2rem)] glass-card p-2 sm:p-4 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200 z-50 origin-top-right">
                <div className="p-4 mb-2">
                   <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest mb-1">Signed in as</p>
                   <p className="text-sm font-black text-white uppercase tracking-tight truncate">{user?.email}</p>

@@ -350,7 +350,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                 {isAdmin && (
                   <button
                     onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const n = pwaRowSheet.name; setPwaRowSheet(null); setRenameInput(n); setPwaRename({ full: f, name: n }); }}
-                    className="w-full py-4 text-sm font-semibold text-white active:bg-white/5"
+                    className="w-full py-4 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"
                   >
                     Rename
                   </button>
@@ -358,7 +358,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                 {!pwaRowSheet.is_dir && (
                   <button
                     onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; setPwaRowSheet(null); downloadItem(f); }}
-                    className="w-full py-4 text-sm font-semibold text-white active:bg-white/5"
+                    className="w-full py-4 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"
                   >
                     Download
                   </button>
@@ -366,13 +366,13 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                 {isAdmin && (
                   <button
                     onClick={() => { const f = `${path === '/' ? '' : path}/${pwaRowSheet.name}`; const d = pwaRowSheet.is_dir; setPwaRowSheet(null); deleteItem(f, d); }}
-                    className="w-full py-4 text-sm font-semibold text-red-500 active:bg-white/5"
+                    className="w-full py-4 text-sm font-semibold text-red-500 active:bg-[var(--text-primary)]/5"
                   >
                     Delete
                   </button>
                 )}
               </div>
-              <button onClick={() => setPwaRowSheet(null)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-white">Cancel</button>
+              <button onClick={() => setPwaRowSheet(null)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5">Cancel</button>
             </div>
           </div>
         )}
@@ -383,11 +383,11 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
             <div className="absolute inset-0 bg-black/50" onClick={() => setPwaCreateSheet(false)} />
             <div className="relative w-full p-3 space-y-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 0.75rem)' }}>
               <div className="glass-card rounded-2xl overflow-hidden divide-y divide-[var(--border-color)]">
-                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('folder'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-white active:bg-white/5"><Folder className="w-4 h-4 text-amber-500" /> New Folder</button>
-                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('file'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-white active:bg-white/5"><FileText className="w-4 h-4 text-[var(--accent-violet)]" /> New File</button>
-                <button onClick={() => { setPwaCreateSheet(false); uploadInputRef.current?.click(); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-white active:bg-white/5"><Upload className="w-4 h-4 text-[var(--accent-mint)]" /> {isUploading ? 'Uploading…' : 'Upload File'}</button>
+                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('folder'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Folder className="w-4 h-4 text-amber-500" /> New Folder</button>
+                <button onClick={() => { setPwaCreateSheet(false); setNewItemType('file'); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><FileText className="w-4 h-4 text-[var(--accent-violet)]" /> New File</button>
+                <button onClick={() => { setPwaCreateSheet(false); uploadInputRef.current?.click(); }} className="w-full py-4 flex items-center justify-center gap-2 text-sm font-semibold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5"><Upload className="w-4 h-4 text-[var(--accent-mint)]" /> {isUploading ? 'Uploading…' : 'Upload File'}</button>
               </div>
-              <button onClick={() => setPwaCreateSheet(false)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-white">Cancel</button>
+              <button onClick={() => setPwaCreateSheet(false)} className="w-full glass-card rounded-2xl py-4 text-sm font-bold text-[var(--text-primary)] active:bg-[var(--text-primary)]/5">Cancel</button>
             </div>
           </div>
         )}
@@ -407,7 +407,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                 onChange={(e) => setNewItemName(e.target.value)}
               />
               <div className="flex gap-3">
-                <button onClick={() => setNewItemType(null)} className="flex-1 h-11 rounded-xl bg-white/5 text-white text-sm font-semibold">Cancel</button>
+                <button onClick={() => setNewItemType(null)} className="flex-1 h-11 rounded-xl border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-sm font-semibold">Cancel</button>
                 <button onClick={createItem} className="flex-1 h-11 rounded-xl bg-[var(--accent-violet)] text-white text-sm font-semibold">Create</button>
               </div>
             </div>
@@ -428,7 +428,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
                 onChange={(e) => setRenameInput(e.target.value)}
               />
               <div className="flex gap-3">
-                <button onClick={() => setPwaRename(null)} className="flex-1 h-11 rounded-xl bg-white/5 text-white text-sm font-semibold">Cancel</button>
+                <button onClick={() => setPwaRename(null)} className="flex-1 h-11 rounded-xl border border-[var(--border-color)] text-[var(--text-primary)] hover:bg-[var(--text-primary)]/5 text-sm font-semibold">Cancel</button>
                 <button onClick={renameItem} className="flex-1 h-11 rounded-xl bg-[var(--accent-violet)] text-white text-sm font-semibold">Rename</button>
               </div>
             </div>
