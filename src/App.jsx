@@ -23,8 +23,8 @@ import About from './pages/About';
 import Security from './pages/Security';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
-
-
+import { SSHFullscreenProvider } from './context/SSHFullscreenContext';
+import SSHFullscreenOverlay from './components/server/SSHFullscreenOverlay';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -109,7 +109,10 @@ export default function App() {
       <AuthProvider>
         <ThemeProvider>
           <NotificationProvider>
-            <AppRoutes />
+            <SSHFullscreenProvider>
+              <AppRoutes />
+              <SSHFullscreenOverlay />
+            </SSHFullscreenProvider>
           </NotificationProvider>
         </ThemeProvider>
       </AuthProvider>

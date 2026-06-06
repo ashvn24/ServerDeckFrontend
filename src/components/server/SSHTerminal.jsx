@@ -4,6 +4,7 @@ import { FitAddon } from '@xterm/addon-fit';
 import { Terminal as TerminalIcon, X, RefreshCw, AlertCircle, WifiOff, Loader2, Maximize2, Minimize2 } from 'lucide-react';
 import { useIsPWA } from '../../hooks/useIsPWA';
 import { useMobile } from '../../hooks/useMobile';
+import { useSSHFullscreen } from '../../context/SSHFullscreenContext';
 import '@xterm/xterm/css/xterm.css';
 
 const XTERM_THEME = {
@@ -19,9 +20,13 @@ const XTERM_THEME = {
   brightCyan: '#9aedfe', brightWhite: '#e6e6e6',
 };
 
-const isIOS = typeof navigator !== 'undefined' && (/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1));
+const isIOS = typeof navigator !== 'undefined' && (
+  /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ||
+  window.navigator.standalone === true
+);
 
-export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on, isActive }) {
+export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on, isActive, forceOverlay = false }) {
   const containerRef  = useRef(null);
   const wrapperRef    = useRef(null);
   const xtermRef      = useRef(null);
@@ -35,12 +40,11 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   const isPWA = useIsPWA();
   const isMobile = useMobile();
   const mobileLayout = isPWA || isMobile;
-  const useCssFullscreen = isPWA || isIOS;
+  const { setSshFullscreen } = useSSHFullscreen();
 
   useEffect(() => {
     return () => {
       document.body.style.overflow = '';
-      document.body.classList.remove('ssh-ios-fullscreen-active');
     };
   }, []);
 
@@ -63,9 +67,9 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
 
     if (containerRef.current) {
       term.open(containerRef.current);
-      setTimeout(() => {
+      requestAnimationFrame(() => {
          try { fitAddon.fit(); } catch (_) {}
-      }, 100);
+      });
     }
 
     term.onData((data) => {
@@ -195,19 +199,12 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
   }, [serverId, send]);
 
   const toggleFullscreen = useCallback(() => {
-    // iOS and PWA have no/broken element Fullscreen API — use a CSS fixed overlay instead.
-    if (useCssFullscreen) {
-      setIsFullscreen((v) => {
-        const next = !v;
-        if (next) {
-          document.body.style.overflow = 'hidden';
-          document.body.classList.add('ssh-ios-fullscreen-active');
-        } else {
-          document.body.style.overflow = '';
-          document.body.classList.remove('ssh-ios-fullscreen-active');
-        }
-        return next;
-      });
+    if (forceOverlay) {
+      setSshFullscreen(null);
+      return;
+    }
+    if (isIOS) {
+      setSshFullscreen({ serverId });
       return;
     }
     if (!document.fullscreenElement) {
@@ -217,7 +214,7 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
       document.exitFullscreen().catch(() => {});
       setIsFullscreen(false);
     }
-  }, [useCssFullscreen]);
+  }, [forceOverlay, isIOS, setSshFullscreen, serverId]);
 
   // Refit xterm whenever fullscreen toggles (size changes).
   useEffect(() => {
@@ -240,38 +237,14 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
     connected: 'accent-bg-green animate-pulse-dot', error: 'bg-red-500', closed: 'bg-white/10',
   }[status];
 
-  // CSS fullscreen: fixed overlay covering the whole screen (incl. behind nav bars).
-  const cssFullscreen = useCssFullscreen && isFullscreen;
-  const wrapperStyle = cssFullscreen
-    ? {
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-        zIndex: 9999, background: '#000',
-        paddingTop: 'env(safe-area-inset-top)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        transition: 'none',
-        willChange: 'transform'
-      }
-    : undefined;
-
   return (
     <div
       ref={wrapperRef}
-      style={wrapperStyle}
       className={`flex flex-col overflow-hidden ${
-        cssFullscreen ? '' : isFullscreen ? 'bg-black h-screen w-screen' : `glass-card ${mobileLayout ? 'h-[420px]' : 'h-[600px]'}`
+        forceOverlay ? 'h-full w-full' : isFullscreen ? 'bg-black h-screen w-screen' : `glass-card ${mobileLayout ? 'h-[420px]' : 'h-[600px]'}`
       }`}
     >
-      {cssFullscreen && (
-        <button
-          onClick={toggleFullscreen}
-          aria-label="Exit fullscreen"
-          className="fixed right-4 z-[10000] w-11 h-11 flex items-center justify-center rounded-full bg-white/15 backdrop-blur text-white active:scale-95 transition-transform"
-          style={{ top: 'calc(env(safe-area-inset-top) + 0.75rem)' }}
-        >
-          <Minimize2 className="w-5 h-5" />
-        </button>
-      )}
-      <div className={`flex items-center justify-between ${mobileLayout ? 'p-4' : 'p-6'} border-b border-[var(--border-color)] ${isFullscreen ? 'bg-black' : 'bg-black/20'}`}>
+      <div className={`flex items-center justify-between ${mobileLayout ? 'p-4' : 'p-6'} border-b border-[var(--border-color)] ${isFullscreen || forceOverlay ? 'bg-black' : 'bg-black/20'}`}>
         <div className="flex items-center gap-3">
            <div className={`${mobileLayout ? 'p-2' : 'p-3'} bg-black/40 rounded-2xl text-[var(--accent-violet)] border border-white/5`}>
               <TerminalIcon className={mobileLayout ? 'w-5 h-5' : 'w-6 h-6'} />
@@ -296,7 +269,7 @@ export default function SSHTerminal({ serverId, isOnline, wsConnected, send, on,
             </button>
           )}
           <button onClick={toggleFullscreen} className="p-2 rounded-xl bg-white/5 text-[var(--text-secondary)] hover:text-white transition-all">
-             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+             {isFullscreen || forceOverlay ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
           </button>
         </div>
       </div>

@@ -434,9 +434,4 @@ body { transition: background-color 0.3s ease, color 0.3s ease; }
   color: #1d1d1f;
 }
 
-/* ── iOS SSH Fullscreen Header Hiding ── */
-body.ssh-ios-fullscreen-active nav,
-body.ssh-ios-fullscreen-active header {
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
+
