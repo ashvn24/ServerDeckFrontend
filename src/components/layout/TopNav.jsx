@@ -40,15 +40,18 @@ export default function TopNav() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-[100] bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-color)]">
-      <div className="px-6 md:px-12 h-20 flex items-center justify-between">
+    <nav
+      className="fixed top-0 left-0 right-0 z-[100] bg-[var(--bg-main)]/80 backdrop-blur-md border-b border-[var(--border-color)]"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
+      <div className="px-4 sm:px-6 md:px-12 h-16 md:h-20 flex items-center justify-between">
         {/* Logo & Links */}
-        <div className="flex items-center gap-12">
-          <Link to="/dashboard" className="flex items-center gap-4 group">
-            <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
-              <Box className="w-6 h-6 text-black" />
+        <div className="flex items-center gap-6 md:gap-12">
+          <Link to="/dashboard" className="flex items-center gap-3 md:gap-4 group">
+            <div className="w-9 h-9 md:w-10 md:h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
+              <Box className="w-5 h-5 md:w-6 md:h-6 text-black" />
             </div>
-            <span className="text-xl font-black tracking-tighter uppercase font-display text-white">ServerDeck</span>
+            <span className="text-base md:text-xl font-black tracking-tighter uppercase font-display text-white">ServerDeck</span>
           </Link>
 
 

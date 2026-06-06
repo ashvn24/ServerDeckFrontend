@@ -27,6 +27,21 @@ body {
     color: var(--text-primary);
     zoom: 0.85;
     min-height: 100vh;
+    overscroll-behavior-y: contain;
+  }
+
+  /* Disable the global zoom on mobile (it shrinks already-cramped UI). */
+  @media (max-width: 768px) {
+    body { zoom: 1; }
+    html, body { width: 100%; overflow-x: hidden; }
+  }
+
+  /* Respect iOS safe areas on standalone PWA installs. */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+    }
   }
   
   /* Hide scrollbars globally while maintaining functionality */
