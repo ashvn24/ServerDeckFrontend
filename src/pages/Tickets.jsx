@@ -9,6 +9,13 @@ import { useAuth } from '../context/AuthContext';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { timeAgo } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { API_BASE_URL } from '../utils/constants';
+
+/* ─── TEMP DEBUG (remove once iOS PWA ticket-fetch issue is identified) ──
+   Enabled in dev, or by appending ?debug=1 to the URL on the device. */
+const DEBUG_ENABLED =
+  import.meta.env.DEV ||
+  (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('debug'));
 
 /* ─── helpers ───────────────────────────────────────────────────── */
 const STATUSES   = ['Open', 'In Progress', 'Waiting on Customer', 'Resolved', 'Closed'];
@@ -84,6 +91,7 @@ export default function Tickets() {
   const [form,           setForm]           = useState({ title: '', description: '', priority: 'Medium' });
   const [sendingMsg,     setSendingMsg]     = useState(false);
   const [showProps,      setShowProps]      = useState(false);  // mobile properties drawer
+  const [debugInfo,      setDebugInfo]      = useState(null);   // TEMP DEBUG (remove later)
 
   const chatEndRef       = useRef(null);
   const selectedIdRef    = useRef(null);
@@ -102,7 +110,20 @@ export default function Tickets() {
       setListLoading(true);
       const res = await ticketsAPI.list(statusFilter || undefined, priorityFilter || undefined);
       setTickets(res.data);
-    } catch (e) { console.error(e); }
+      setDebugInfo(null); // TEMP DEBUG: clear on success
+    } catch (e) {
+      console.error(e);
+      // TEMP DEBUG: capture failure details visibly (console.log is invisible on iOS)
+      setDebugInfo({
+        message: e?.message || String(e),
+        status: e?.response?.status ?? '(no response — network/CORS?)',
+        statusText: e?.response?.statusText || '',
+        body: e?.response?.data ? JSON.stringify(e.response.data).slice(0, 300) : '',
+        apiBaseUrl: API_BASE_URL,
+        requestUrl: e?.config ? `${e.config.baseURL || ''}${e.config.url || ''}` : '(unknown)',
+        hasToken: !!localStorage.getItem('serverdeck_token'),
+      });
+    }
     finally { setListLoading(false); }
   }, [statusFilter, priorityFilter]);
 
@@ -202,6 +223,27 @@ export default function Tickets() {
   /* ═══════════════════════════════════════════════════════════════ */
   return (
     <div className="fixed left-0 right-0 z-40 flex gap-0 overflow-hidden border-t border-white/5" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)', background: 'var(--bg-main)' }}>
+
+      {/* ══ TEMP DEBUG BOX (remove once iOS PWA issue is identified) ══ */}
+      {DEBUG_ENABLED && debugInfo && (
+        <div
+          className="fixed left-2 right-2 z-[300] rounded-xl border-2 border-red-500 bg-red-950/95 text-red-100 p-4 text-xs font-mono leading-relaxed shadow-2xl max-h-[60vh] overflow-y-auto"
+          style={{ top: 'calc(var(--total-header) + 0.5rem)' }}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="font-bold text-red-300 uppercase tracking-widest">Ticket fetch failed (debug)</span>
+            <button onClick={() => setDebugInfo(null)} className="text-red-300 hover:text-white">✕</button>
+          </div>
+          <div className="space-y-1 break-words">
+            <p><span className="text-red-400">hasToken:</span> {String(debugInfo.hasToken)}</p>
+            <p><span className="text-red-400">apiBaseUrl:</span> {debugInfo.apiBaseUrl}</p>
+            <p><span className="text-red-400">requestUrl:</span> {debugInfo.requestUrl}</p>
+            <p><span className="text-red-400">status:</span> {String(debugInfo.status)} {debugInfo.statusText}</p>
+            <p><span className="text-red-400">message:</span> {debugInfo.message}</p>
+            {debugInfo.body && <p><span className="text-red-400">body:</span> {debugInfo.body}</p>}
+          </div>
+        </div>
+      )}
 
       {/* ══ LEFT: Ticket List ══════════════════════════════════════ */}
       <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-72 flex-shrink-0 flex-col border-r border-white/5`} style={{ background: 'var(--bg-card)' }}>
