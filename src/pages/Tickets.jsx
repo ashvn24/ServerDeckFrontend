@@ -204,49 +204,49 @@ export default function Tickets() {
     <div className="fixed left-0 right-0 z-40 flex gap-0 overflow-hidden border-t border-[var(--border-color)] bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
       {/* LEFT: Ticket List */}
       <aside className={`${selectedId ? 'hidden lg:flex' : 'flex'} w-full lg:w-[350px] flex-shrink-0 flex-col border-r border-[var(--border-color)] bg-[var(--bg-card)]`}>
-        <div className="p-4 md:p-6 border-b border-[var(--border-color)]">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 accent-bg-green rounded-xl">
-                <LifeBuoy className="w-5 h-5" />
-              </div>
-              <h2 className="text-sm font-black uppercase tracking-widest text-[var(--text-primary)]">Tickets</h2>
+        <div className="p-4 md:p-5 border-b border-[var(--border-color)]">
+          <div className="flex items-center gap-2">
+            {/* Ticket Icon */}
+            <div className="p-2.5 accent-bg-green rounded-xl shrink-0">
+              <LifeBuoy className="w-5 h-5 text-[#2c2c2e]" />
             </div>
+            
+            {/* Search Bar */}
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+              <input
+                type="text"
+                placeholder="SEARCH..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full h-10 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl pl-8 pr-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all"
+              />
+            </div>
+
+            {/* Filter Icon */}
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`w-10 h-10 shrink-0 rounded-xl border flex items-center justify-center transition-all ${
+                showFilters || statusFilter || priorityFilter
+                  ? 'bg-[var(--accent-mint)]/10 border-[var(--accent-mint)]/20 text-[var(--accent-mint)]'
+                  : 'bg-[var(--bg-card-hover)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+              }`}
+            >
+              <Filter className="w-4 h-4" />
+            </button>
+
+            {/* Add Icon */}
             <button
               onClick={() => setShowCreate(true)}
-              className="w-10 h-10 rounded-xl accent-bg-green hover:brightness-110 flex items-center justify-center transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+              className="w-10 h-10 shrink-0 rounded-xl accent-bg-green hover:brightness-110 flex items-center justify-center transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
             >
               <Plus className="w-5 h-5 text-[#2c2c2e]" />
             </button>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-                <input
-                  type="text"
-                  placeholder="SEARCH TICKETS..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="w-full bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl py-2.5 pl-9 pr-3 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all"
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`w-[38px] shrink-0 rounded-xl border flex items-center justify-center transition-all ${
-                  showFilters || statusFilter || priorityFilter
-                    ? 'bg-[var(--accent-mint)]/10 border-[var(--accent-mint)]/20 text-[var(--accent-mint)]'
-                    : 'bg-[var(--bg-card-hover)] border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                }`}
-              >
-                <Filter className="w-4 h-4" />
-              </button>
-            </div>
-
-            {showFilters && (
-              <div className="flex gap-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                <select
+          {showFilters && (
+            <div className="flex gap-2 mt-3 animate-in fade-in slide-in-from-top-1 duration-200">
+              <select
                   value={statusFilter}
                   onChange={e => setStatusFilter(e.target.value)}
                   className="flex-1 bg-[var(--bg-card-hover)] border border-[var(--border-color)] rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] focus:border-[var(--accent-mint)] outline-none transition-all appearance-none"
@@ -264,7 +264,6 @@ export default function Tickets() {
                 </select>
               </div>
             )}
-          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
