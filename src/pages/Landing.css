@@ -342,6 +342,7 @@
   border: 1px solid var(--ld-border-w);
   cursor: pointer;
   transition: all 0.25s ease;
+  white-space: nowrap;
   }
   
   .ld-btn-outline:hover {
@@ -423,6 +424,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--ld-text);
+  white-space: nowrap;
 }
 
 .ld-nav-links {
@@ -1640,6 +1642,20 @@
 }
 
 @media (max-width: 640px) {
+  .ld-nav {
+    padding: 1rem 1.2rem;
+  }
+
+  .ld-nav-actions {
+    gap: 0.5rem;
+  }
+
+  .ld-nav-actions .ld-btn-primary,
+  .ld-nav-actions .ld-btn-outline {
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+  }
+
   .ld-nav-links {
     display: none;
   }
