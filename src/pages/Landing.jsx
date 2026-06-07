@@ -313,6 +313,33 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── SHOWCASE ── */}
+      <section className="ld-showcase-section">
+        <div className="ld-container">
+          <div className="ld-showcase-wrapper">
+            <div className="ld-mobile-frame">
+              <div className="ld-mobile-notch" />
+              <video 
+                src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4" 
+                className="ld-mobile-video" 
+                autoPlay loop muted playsInline 
+              />
+            </div>
+            
+            <div className="ld-laptop-frame">
+              <div className="ld-laptop-screen">
+                <video 
+                  src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4" 
+                  className="ld-laptop-video" 
+                  autoPlay loop playsInline controls 
+                />
+              </div>
+              <div className="ld-laptop-base" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ── TICKER ── */}
       <div className="ld-ticker-wrap">
         <p className="ld-ticker-label">Compatible with your entire stack</p>
