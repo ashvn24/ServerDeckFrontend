@@ -338,16 +338,21 @@ const Landing = () => {
       <section className="ld-showcase-section">
         <div className="ld-container">
           <div className="ld-showcase-wrapper">
-            <div className="ld-mobile-frame">
+            <div className="ld-mobile-frame ld-mobile-1">
               <div className="ld-mobile-notch" />
               <video 
                 ref={mobileVideoRef}
                 src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4" 
-                className="ld-mobile-video" 
+                className="ld-mobile-video ld-desktop-only" 
                 loop muted playsInline 
               />
+              <img
+                src="/app-dark.png"
+                alt="Server Deck dark theme"
+                className="ld-mobile-video ld-mobile-only"
+              />
             </div>
-            
+
             <div className="ld-laptop-frame">
               <div className="ld-laptop-screen">
                 <video 
@@ -358,6 +363,20 @@ const Landing = () => {
                 />
               </div>
               <div className="ld-laptop-base" />
+            </div>
+
+            <div className="ld-mobile-frame ld-mobile-2">
+              <div className="ld-mobile-notch" />
+              <video 
+                src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4" 
+                className="ld-mobile-video ld-desktop-only" 
+                loop muted playsInline 
+              />
+              <img
+                src="/app-light.png"
+                alt="Server Deck light theme"
+                className="ld-mobile-video ld-mobile-only"
+              />
             </div>
           </div>
         </div>
