@@ -358,8 +358,8 @@ const Landing = () => {
                 <video 
                   ref={laptopVideoRef}
                   src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4" 
-                  className="ld-laptop-video" 
-                  loop playsInline controls 
+                  className="ld-laptop-video ld-desktop-only" 
+                  loop muted playsInline autoPlay
                 />
               </div>
               <div className="ld-laptop-base" />
