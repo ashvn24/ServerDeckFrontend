@@ -28,7 +28,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[var(--bg-main)]/90 backdrop-blur-xl border-t border-[var(--border-color)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[100] bg-[var(--bg-main)] border-t border-[var(--border-color)]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <ul className="flex items-stretch justify-around" style={{ height: '64px' }}>
