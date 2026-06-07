@@ -36,6 +36,9 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 body {
@@ -46,6 +49,14 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overscroll-behavior-y: contain;
+  -webkit-user-select: none;
+}
+
+/* Re-enable text selection only where the user needs to type or copy */
+input, textarea, [contenteditable] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
 }
 
 /* ─────────── Fallbacks for missing tailwindcss-animate ─────────── */
