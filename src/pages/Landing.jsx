@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Server, Shield, Terminal, Activity, Lock, ArrowRight,
@@ -141,6 +141,27 @@ const Landing = () => {
   const [scrolled, setScrolled] = useState(false);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const laptopVideoRef = useRef(null);
+  const mobileVideoRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.play().catch(e => console.log('Autoplay prevented:', e));
+        } else {
+          entry.target.pause();
+        }
+      });
+    }, { threshold: 0.3 });
+
+    if (laptopVideoRef.current) observer.observe(laptopVideoRef.current);
+    if (mobileVideoRef.current) observer.observe(mobileVideoRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 30);
@@ -320,18 +341,20 @@ const Landing = () => {
             <div className="ld-mobile-frame">
               <div className="ld-mobile-notch" />
               <video 
+                ref={mobileVideoRef}
                 src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4" 
                 className="ld-mobile-video" 
-                autoPlay loop muted playsInline 
+                loop muted playsInline 
               />
             </div>
             
             <div className="ld-laptop-frame">
               <div className="ld-laptop-screen">
                 <video 
+                  ref={laptopVideoRef}
                   src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4" 
                   className="ld-laptop-video" 
-                  autoPlay loop playsInline controls 
+                  loop playsInline controls 
                 />
               </div>
               <div className="ld-laptop-base" />
