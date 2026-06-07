@@ -5,7 +5,7 @@ import {
   ChevronDown, CheckCircle2, Cpu, Zap, BarChart3, Database,
   Cloud, Globe, AlertTriangle, Settings, Monitor, Bell,
   Check, Layers, GitBranch, HardDrive, RefreshCw, Eye,
-  Wifi, Key, Package
+  Wifi, Key, Package, Volume2, VolumeX
 } from 'lucide-react';
 import './Landing.css';
 
@@ -143,6 +143,14 @@ const Landing = () => {
   const [submitted, setSubmitted] = useState(false);
   const laptopVideoRef = useRef(null);
   const mobileVideoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleMute = () => {
+    if (laptopVideoRef.current) {
+      laptopVideoRef.current.muted = !laptopVideoRef.current.muted;
+      setIsMuted(laptopVideoRef.current.muted);
+    }
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -354,15 +362,23 @@ const Landing = () => {
             </div>
 
             <div className="ld-laptop-frame">
-              <div className="ld-laptop-screen">
-                <video 
-                  ref={laptopVideoRef}
-                  src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4" 
-                  className="ld-laptop-video ld-desktop-only" 
-                  loop muted playsInline autoPlay
-                />
+              <div className="ld-laptop-lid">
+                <div className="ld-laptop-camera" />
+                <div className="ld-laptop-screen">
+                  <video 
+                    ref={laptopVideoRef}
+                    src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4" 
+                    className="ld-laptop-video" 
+                    loop muted playsInline autoPlay
+                  />
+                  <button className="ld-mute-btn" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
+                    {isMuted ? <VolumeX size={11} /> : <Volume2 size={11} />}
+                  </button>
+                </div>
               </div>
-              <div className="ld-laptop-base" />
+              <div className="ld-laptop-base">
+                <div className="ld-laptop-hinge" />
+              </div>
             </div>
 
             <div className="ld-mobile-frame ld-mobile-2">
