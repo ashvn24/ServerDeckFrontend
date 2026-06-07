@@ -120,7 +120,8 @@ export default function ServerManagement() {
   };
 
   return (
-    <div className="space-y-6 md:space-y-12">
+    <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      <div className="p-4 sm:p-6 md:p-10 lg:p-12 w-full mx-auto space-y-6 md:space-y-12">
       {/* Breadcrumbs & Header */}
       <div className="space-y-4 md:space-y-10">
         {/* Breadcrumbs — horizontal scroll on mobile */}
@@ -145,29 +146,33 @@ export default function ServerManagement() {
             ))}
           </div>
         )}
-
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-10">
-          <div>
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight font-display leading-none">
-              {currentFolderId ? folders.find(f => f.id === currentFolderId)?.name : 'Node Explorer'}
-            </h1>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 md:mt-4">
-              {currentFolders.length} Containers <span className="mx-2 text-white/10">/</span> {currentServers.length} Provisioned Nodes
-            </p>
+        <div className="flex items-center gap-2">
+          <div className="p-2.5 bg-[var(--accent-violet)] rounded-xl shrink-0 flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <Server className="w-5 h-5 text-[#2c2c2e]" />
           </div>
+          <h2 className="text-sm font-black uppercase tracking-widest text-white ml-1 mr-2">Servers</h2>
+          
+          <div className="flex-1 flex items-center min-w-0">
+            {currentFolderId ? null : (
+               <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest hidden md:inline">
+                 {currentFolders.length} Containers / {currentServers.length} Provisioned Nodes
+               </span>
+            )}
+          </div>
+
           {isAdmin && (
-            <div className="flex gap-3 md:gap-4">
+            <div className="flex gap-2 shrink-0">
               <button
                 onClick={() => setShowFolderModal(true)}
-                className="flex-1 md:flex-none px-5 py-3 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95"
+                className="h-10 px-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center"
               >
-                Create Group
+                <span className="hidden sm:inline mr-2">Create</span> Group
               </button>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex-1 md:flex-none px-6 py-3 rounded-xl bg-[var(--accent-violet)] text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-violet-500/20"
+                className="h-10 px-4 rounded-xl bg-[var(--accent-violet)] text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-violet-500/20 flex items-center justify-center"
               >
-                Provision Node
+                <Plus className="w-4 h-4 sm:mr-2" /> <span className="hidden sm:inline">Provision Node</span>
               </button>
             </div>
           )}
@@ -335,6 +340,7 @@ export default function ServerManagement() {
            </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Users, Mail, Shield, Plus, Trash2, ShieldCheck, Loader2, X, LogOut } from 'lucide-react';
@@ -9,6 +9,19 @@ export default function Settings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [teamUsers, setTeamUsers] = useState([]);
+
+  const [showDeleteId, setShowDeleteId] = useState(null);
+  const pressTimer = useRef(null);
+
+  const handleTouchStart = (userId) => {
+    pressTimer.current = setTimeout(() => {
+      setShowDeleteId(userId);
+    }, 600);
+  };
+
+  const handleTouchEnd = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  };
   const [loading, setLoading] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -102,9 +115,13 @@ export default function Settings() {
         confirmText="Remove Operator"
         onConfirm={confirmDeleteUser}
       />
-      <div className="mb-5 md:mb-12">
-        <h1 className="text-2xl sm:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security &amp; Team</h1>
-        <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-2 md:mt-4">Workspace authorization and operator management</p>
+      <div className="mb-5 md:mb-8 flex items-center gap-2">
+        <div className="p-2.5 bg-[var(--accent-violet)] shadow-lg shadow-violet-500/20 rounded-xl shrink-0">
+          <Shield className="w-5 h-5 text-[#2c2c2e]" />
+        </div>
+        <div className="flex-1 min-w-0">
+           <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest pl-2">Workspace & Operator Management</span>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-10">
@@ -183,7 +200,42 @@ export default function Settings() {
               ) : (
                 <div className="space-y-4">
                   {teamUsers.map(u => (
-                    <div key={u.id} className="flex items-center justify-between p-4 md:p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group">
+                    <div 
+                      key={u.id} 
+                      onPointerDown={() => handleTouchStart(u.id)}
+                      onPointerUp={handleTouchEnd}
+                      onPointerLeave={handleTouchEnd}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        if (u.id !== user?.id && u.role !== 'owner') setShowDeleteId(u.id);
+                      }}
+                      className="relative flex items-center justify-between p-4 md:p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group overflow-hidden"
+                    >
+                      {/* Delete Overlay */}
+                      {showDeleteId === u.id && u.id !== user?.id && u.role !== 'owner' && (
+                        <div className="absolute inset-0 z-10 flex items-center justify-between px-4 sm:px-6 bg-red-500/95 backdrop-blur-sm animate-in fade-in duration-200">
+                          <span className="text-white text-xs sm:text-sm font-black uppercase tracking-widest flex items-center gap-1.5 sm:gap-2 truncate mr-2">
+                            <Trash2 className="w-4 h-4 shrink-0" /> 
+                            <span className="truncate hidden sm:inline">Remove {u.name}?</span>
+                            <span className="truncate sm:hidden">Remove?</span>
+                          </span>
+                          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                            <button 
+                              onClick={() => { setShowDeleteId(null); handleDeleteUser(u.id); }}
+                              className="px-3 sm:px-4 py-2 rounded-xl bg-white text-red-600 text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 transition-transform shrink-0"
+                            >
+                              Confirm
+                            </button>
+                            <button 
+                              onClick={() => setShowDeleteId(null)}
+                              className="px-3 sm:px-4 py-2 rounded-xl bg-black/30 text-white text-[10px] font-black uppercase tracking-widest hover:bg-black/50 transition-colors shrink-0"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       <div className="flex items-center gap-3 md:gap-5 min-w-0">
                         <div className="w-10 h-10 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white uppercase tracking-widest text-sm shrink-0">
                           {u.name.charAt(0)}
@@ -204,14 +256,6 @@ export default function Settings() {
                         }`}>
                           {u.role}
                         </span>
-                        {u.id !== user?.id && u.role !== 'owner' && (
-                          <button
-                            onClick={() => handleDeleteUser(u.id)}
-                            className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
                       </div>
                     </div>
                   ))}

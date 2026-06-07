@@ -107,47 +107,52 @@ export default function Activity() {
     ? teamUsers.find(u => u.id === selectedUser)?.name
     : 'ALL OPERATORS';
 
-  if (loading && logs.length === 0) return <LoadingSpinner size="lg" text="Syncing audit trails..." />;
+  if (loading && logs.length === 0) {
+    return (
+      <div className="fixed left-0 right-0 z-40 flex items-center justify-center bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+        <LoadingSpinner size="lg" text="Syncing audit trails..." />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4 md:space-y-12">
-      <div className="flex flex-col gap-6 md:gap-10" ref={filterSectionRef}>
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between md:gap-10">
-        <div className="flex flex-col gap-2 md:gap-4">
-            <h1 className="text-xl sm:text-4xl font-black text-white uppercase tracking-tight font-display leading-none">Security Operations</h1>
-            <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Audit trails &amp; infrastructure access logs</p>
-          </div>
-          {/* Search */}
-          <div className="flex flex-col gap-3 w-full md:flex-row md:items-center md:w-auto">
-             <div className="relative group w-full md:w-auto">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] group-focus-within:text-white transition-colors" />
-                <input
-                  type="text"
-                  placeholder="Search activity..."
-                  className="pl-11 pr-4 py-2.5 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none w-full md:w-64 transition-all"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-             </div>
-             {/* Node selector + filter toggle, side by side */}
-             <div className="flex items-center gap-3 w-full md:w-auto">
-                {/* Custom Server Dropdown */}
-                <div className="relative flex-1 md:flex-none">
+    <div className="fixed left-0 right-0 z-40 flex flex-col overflow-hidden bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
+      {/* Top Section */}
+      <div className="p-4 md:p-6 flex-shrink-0 space-y-4 md:space-y-6">
+        <div className="flex flex-col gap-4 md:gap-6" ref={filterSectionRef}>
+        <div className="flex items-center gap-2 w-full">
+            <div className="p-2.5 bg-white/5 border border-white/5 rounded-xl shrink-0 hidden md:flex items-center justify-center">
+              <Shield className="w-5 h-5 text-white" />
+            </div>
+
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] group-focus-within:text-white transition-colors" />
+              <input
+                type="text"
+                placeholder="SEARCH ACTIVITY..."
+                className="w-full h-10 bg-white/5 border border-white/5 rounded-xl pl-8 pr-2 text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+             
+            <div className="flex gap-2 shrink-0">
+                <div className="relative">
                 <button
                   onClick={() => setShowServerDropdown(!showServerDropdown)}
-                  className="flex items-center gap-3 pl-12 pr-12 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full md:min-w-[200px] relative text-left"
+                  className="flex items-center gap-2 h-10 pl-8 pr-8 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[130px] md:min-w-[180px] relative text-left"
                 >
-                  <Server className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
-                  <span className="truncate">{selectedServerName}</span>
-                  <ChevronDown className={`absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${showServerDropdown ? 'rotate-180' : ''}`} />
+                  <Server className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+                  <span className="truncate flex-1">{selectedServerName}</span>
+                  <ChevronDown className={`absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${showServerDropdown ? 'rotate-180' : ''}`} />
                 </button>
 
                 {showServerDropdown && (
-                  <div className="absolute right-0 mt-3 w-full min-w-[200px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2 w-full min-w-[200px] glass-card border border-white/10 p-2 z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="max-h-[300px] overflow-y-auto no-scrollbar space-y-1">
                       <button
                         onClick={() => { setSelectedServer(''); setShowServerDropdown(false); }}
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedServer ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${!selectedServer ? 'bg-white text-[#2c2c2e]' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
                       >
                         <span>All Cluster Nodes</span>
                         {!selectedServer && <Check className="w-3.5 h-3.5" />}
@@ -156,7 +161,7 @@ export default function Activity() {
                         <button
                           key={s.id}
                           onClick={() => { setSelectedServer(s.id); setShowServerDropdown(false); }}
-                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedServer === s.id ? 'bg-white text-black' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${selectedServer === s.id ? 'bg-white text-[#2c2c2e]' : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
                         >
                           <span className="truncate">{s.name}</span>
                           {selectedServer === s.id && <Check className="w-3.5 h-3.5" />}
@@ -170,14 +175,12 @@ export default function Activity() {
                 {isOwner && (
                   <button
                     onClick={() => setShowFilters(v => !v)}
-                    className={`flex items-center justify-center gap-2 px-5 py-3.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all flex-shrink-0 ${showFilters ? 'bg-[var(--accent-violet)] border-[var(--accent-violet)] text-white' : 'bg-white/5 border-white/5 text-white hover:bg-white/10'}`}
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl border transition-all flex-shrink-0 ${showFilters ? 'bg-[var(--accent-violet)] border-[var(--accent-violet)] text-white' : 'bg-white/5 border-white/5 text-white hover:bg-white/10'}`}
                   >
                     <Filter className="w-4 h-4" />
-                    <span>Filters</span>
                   </button>
                 )}
-             </div>
-          </div>
+            </div>
         </div>
 
         {/* Owner Specific Filters */}
@@ -328,16 +331,18 @@ export default function Activity() {
             </div>
          </div>
       </div>
+      </div> {/* End Top Section */}
 
-      <div className="glass-card overflow-hidden">
-        <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 border-b border-white/5 bg-white/2">
+      {/* Full Height Table Section */}
+      <div className="flex-1 flex flex-col min-h-0 border-t border-[var(--border-color)] bg-[var(--bg-card)]">
+        <div className="hidden md:grid grid-cols-12 gap-4 px-4 md:px-8 py-4 border-b border-[var(--border-color)] bg-[var(--bg-card-hover)] flex-shrink-0">
            <div className="col-span-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Operator & Action</div>
            <div className="col-span-3 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Endpoint Node</div>
            <div className="col-span-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Transaction Details</div>
            <div className="col-span-2 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest text-right">Timestamp</div>
         </div>
 
-        <div className="max-h-[650px] overflow-y-auto no-scrollbar">
+        <div className="flex-1 overflow-y-auto custom-scrollbar">
           <div className="divide-y divide-white/5">
              {filteredLogs.length === 0 ? (
                <div className="py-32 flex flex-col items-center justify-center text-center">

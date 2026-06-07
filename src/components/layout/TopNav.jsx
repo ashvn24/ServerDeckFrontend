@@ -115,7 +115,6 @@ export default function TopNav() {
                  <div className="w-full h-full bg-[var(--accent-mint)] rounded-full animate-pulse-dot" />
               </div>
             </div>
-            <ChevronDown className={`w-4 h-4 text-[var(--text-secondary)] transition-transform duration-300 ${showDropdown ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Dropdown Menu */}

@@ -43,11 +43,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-main);
-    color: var(--text-primary);
-    zoom: 0.85;
-    min-height: 100vh;
-    overscroll-behavior-y: contain;
-  }
+  color: var(--text-primary);
+  min-height: 100vh;
+  overscroll-behavior-y: contain;
+}
 
 /* ─────────── Fallbacks for missing tailwindcss-animate ─────────── */
 @keyframes fade-in {
