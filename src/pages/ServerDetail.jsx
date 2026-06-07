@@ -22,6 +22,7 @@ import AutomationManager from '../components/server/AutomationManager';
 import RestrictedView from '../components/common/RestrictedView';
 import AlertModal from '../components/common/AlertModal';
 import ConfirmModal from '../components/common/ConfirmModal';
+import ServerAlertsPanel from '../components/server/ServerAlertsPanel';
 
 const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files'];
 
@@ -133,7 +134,7 @@ export default function ServerDetail() {
 
   return (
     <div className="fixed left-0 right-0 z-40 overflow-y-auto custom-scrollbar bg-[var(--bg-main)]" style={{ top: 'var(--total-header)', bottom: 'var(--bottom-nav)' }}>
-      <div className={`p-4 sm:p-6 md:p-10 lg:p-12 w-full mx-auto ${useMobileLayout ? 'pwa-server space-y-4' : 'space-y-12'}`}>
+      <div className={`px-4 sm:px-6 md:px-10 lg:px-12 pt-4 pb-4 sm:pb-6 md:pb-10 lg:pb-12 w-full mx-auto ${useMobileLayout ? 'pwa-server space-y-4' : 'space-y-4'}`}>
       <AlertModal
         isOpen={alertConfig.open}
         onClose={() => setAlertConfig({ ...alertConfig, open: false })}
@@ -191,7 +192,7 @@ export default function ServerDetail() {
           </div>
         </>
       ) : (
-        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-8 border-b border-[var(--border-color)]">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-4 border-b border-[var(--border-color)]">
           <div className="flex items-center gap-6">
             <button onClick={() => navigate('/servers')} className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition-all group">
               <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
@@ -263,9 +264,10 @@ export default function ServerDetail() {
       )}
 
       {/* Tab Content */}
-      <div className="pt-4">
+      <div className="pt-3">
         {activeTab === 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-8">
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-8">
             <StatCard icon={Cpu} label="CPU Load" value={`${(server.cpu_percent || 0).toFixed(0)}%`} color="white">
                <div className="mt-6 flex items-end gap-1 h-12">
                  {[...Array(12)].map((_, i) => (
@@ -295,6 +297,9 @@ export default function ServerDetail() {
                </div>
             </StatCard>
           </div>
+          
+          <ServerAlertsPanel serverId={id} sendCommand={sendCommand} />
+        </>
         )}
 
         {activeTab === 1 && (

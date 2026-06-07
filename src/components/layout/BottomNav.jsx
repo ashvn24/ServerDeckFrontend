@@ -2,9 +2,12 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, Server, Ticket, Activity, Settings, Building2 } from 'lucide-react';
 
+import { ShieldAlert } from 'lucide-react';
+
 const ALL_LINKS = [
   { name: 'Home', path: '/dashboard', icon: LayoutDashboard, supportHidden: true, platformOwnerHidden: true },
   { name: 'Servers', path: '/servers', icon: Server, supportHidden: true, platformOwnerHidden: true },
+  { name: 'Alerts', path: '/alerts', icon: ShieldAlert, supportHidden: true, platformOwnerHidden: true },
   { name: 'Tickets', path: '/tickets', icon: Ticket, supportHidden: false, platformOwnerHidden: true },
   { name: 'Activity', path: '/activity', icon: Activity, supportHidden: true, platformOwnerHidden: true },
   { name: 'Settings', path: '/settings', icon: Settings, supportHidden: true, platformOwnerHidden: true },

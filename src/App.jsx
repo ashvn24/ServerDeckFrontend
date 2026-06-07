@@ -25,6 +25,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import { SSHFullscreenProvider } from './context/SSHFullscreenContext';
 import SSHFullscreenOverlay from './components/server/SSHFullscreenOverlay';
+import Alerts from './pages/Alerts';
+import AlertsListener from './components/AlertsListener';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -81,7 +83,7 @@ function AppRoutes() {
         }
       >
         <Route path="/dashboard" element={<NonSupportRoute><Dashboard /></NonSupportRoute>} />
-
+        <Route path="/alerts" element={<NonSupportRoute><Alerts /></NonSupportRoute>} />
         <Route path="/servers" element={<NonSupportRoute><ServerManagement /></NonSupportRoute>} />
         <Route path="/activity" element={<NonSupportRoute><Activity /></NonSupportRoute>} />
         <Route path="/servers/:id" element={<NonSupportRoute><ServerDetail /></NonSupportRoute>} />
@@ -110,6 +112,7 @@ export default function App() {
         <ThemeProvider>
           <NotificationProvider>
             <SSHFullscreenProvider>
+              <AlertsListener />
               <AppRoutes />
               <SSHFullscreenOverlay />
             </SSHFullscreenProvider>

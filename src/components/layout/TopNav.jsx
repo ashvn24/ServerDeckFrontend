@@ -7,6 +7,7 @@ import { ChevronDown, Box, LogOut, User, Settings, Shield, LifeBuoy, Sun, Moon }
 const ALL_NAV_LINKS = [
   { name: 'Dashboard', path: '/dashboard', supportHidden: true },
   { name: 'Servers', path: '/servers', supportHidden: true },
+  { name: 'Alerts', path: '/alerts', supportHidden: true },
   { name: 'Tickets', path: '/tickets', supportHidden: false },
   { name: 'Activity', path: '/activity', supportHidden: true },
   { name: 'Settings', path: '/settings', supportHidden: true },
