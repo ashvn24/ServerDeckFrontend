@@ -122,7 +122,7 @@ export default function Activity() {
         <div className="flex flex-col gap-4 md:gap-6" ref={filterSectionRef}>
         <div className="flex items-center gap-2 w-full">
             <div className="p-2.5 bg-white/5 border border-white/5 rounded-xl shrink-0 hidden md:flex items-center justify-center">
-              <Shield className="w-5 h-5 text-white" />
+              <Shield className="w-5 h-5 text-[var(--text-primary)]" />
             </div>
 
             <div className="relative flex-1 min-w-0">
@@ -130,7 +130,7 @@ export default function Activity() {
               <input
                 type="text"
                 placeholder="SEARCH ACTIVITY..."
-                className="w-full h-10 bg-white/5 border border-white/5 rounded-xl pl-8 pr-2 text-[10px] font-black uppercase tracking-widest text-white focus:border-[var(--accent-violet)] outline-none transition-all"
+                className="w-full h-10 bg-white/5 border border-white/5 rounded-xl pl-8 pr-2 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] focus:border-[var(--accent-violet)] outline-none transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -140,7 +140,7 @@ export default function Activity() {
                 <div className="relative">
                 <button
                   onClick={() => setShowServerDropdown(!showServerDropdown)}
-                  className="flex items-center gap-2 h-10 pl-8 pr-8 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all min-w-[130px] md:min-w-[180px] relative text-left"
+                  className="flex items-center gap-2 h-10 pl-8 pr-8 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all min-w-[130px] md:min-w-[180px] relative text-left"
                 >
                   <Server className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate flex-1">{selectedServerName}</span>
@@ -175,7 +175,7 @@ export default function Activity() {
                 {isOwner && (
                   <button
                     onClick={() => setShowFilters(v => !v)}
-                    className={`flex items-center justify-center w-10 h-10 rounded-xl border transition-all flex-shrink-0 ${showFilters ? 'bg-[var(--accent-violet)] border-[var(--accent-violet)] text-white' : 'bg-white/5 border-white/5 text-white hover:bg-white/10'}`}
+                    className={`flex items-center justify-center w-10 h-10 rounded-xl border transition-all flex-shrink-0 ${showFilters ? 'bg-[var(--accent-violet)] border-[var(--accent-violet)] text-white' : 'bg-white/5 border-white/5 text-[var(--text-primary)] hover:bg-white/10'}`}
                   >
                     <Filter className="w-4 h-4" />
                   </button>
@@ -195,7 +195,7 @@ export default function Activity() {
              <div className="relative w-full sm:w-auto">
                 <button 
                   onClick={() => { setShowUserDropdown(!showUserDropdown); setShowDateDropdown(false); setShowTimeDropdown(false); }}
-                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[180px] relative text-left"
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[180px] relative text-left"
                 >
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedUserName}</span>
@@ -228,7 +228,7 @@ export default function Activity() {
              <div className="relative w-full sm:w-auto">
                 <button 
                   onClick={() => { setShowDateDropdown(!showDateDropdown); setShowUserDropdown(false); setShowTimeDropdown(false); }}
-                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[160px] relative text-left"
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[160px] relative text-left"
                 >
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedDate || 'ALL DATES'}</span>
@@ -261,7 +261,7 @@ export default function Activity() {
              <div className="relative w-full sm:w-auto">
                 <button 
                   onClick={() => { setShowTimeDropdown(!showTimeDropdown); setShowUserDropdown(false); setShowDateDropdown(false); }}
-                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[140px] relative text-left"
+                  className="flex items-center gap-3 pl-10 pr-10 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all w-full sm:w-auto sm:min-w-[140px] relative text-left"
                 >
                   <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
                   <span className="truncate">{selectedTime || 'ALL TIME'}</span>

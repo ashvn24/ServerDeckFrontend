@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   LifeBuoy, Plus, Search, Send, Clock, User, CheckCircle,
   MessageSquare, AlertTriangle, Lock, UserCheck, X, AlertCircle,
-  ArrowUpRight, Tag, ChevronDown, RefreshCw, Filter, ArrowLeft, Info
+  ArrowUpRight, Tag, ChevronDown, RefreshCw, Filter, ArrowLeft, Info, Copy, Check
 } from 'lucide-react';
 import { ticketsAPI, usersAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
@@ -82,6 +82,9 @@ export default function Tickets() {
   const [sendingMsg,     setSendingMsg]     = useState(false);
   const [showProps,      setShowProps]      = useState(false);
   const [closingProps,   setClosingProps]   = useState(false);
+  const [longPressMsg,   setLongPressMsg]   = useState(null);  // { id, body, rect }
+  const [copied,         setCopied]         = useState(false);
+  const longPressTimer                      = useRef(null);
 
   const handleCloseProps = useCallback(() => {
     setClosingProps(true);
@@ -379,8 +382,24 @@ export default function Tickets() {
               {selectedTicket.messages?.map(msg => {
                 const isMe = msg.sender_id === user?.id;
 
+                const startLongPress = (e) => {
+                  const el = e.currentTarget.querySelector('[data-bubble]');
+                  longPressTimer.current = setTimeout(() => {
+                    const rect = el ? el.getBoundingClientRect() : e.currentTarget.getBoundingClientRect();
+                    setLongPressMsg({ id: msg.id, body: msg.body, rect, isMe });
+                    setCopied(false);
+                  }, 500);
+                };
+                const cancelLongPress = () => clearTimeout(longPressTimer.current);
+
                 if (msg.is_internal) return (
-                  <div key={msg.id} className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 my-2">
+                  <div
+                    key={msg.id}
+                    className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 my-2"
+                    onTouchStart={startLongPress}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
+                  >
                     <div className="flex items-center gap-2 mb-3 pb-3 border-b border-amber-500/10 text-[9px] font-black uppercase tracking-widest text-amber-500">
                       <Lock className="w-3.5 h-3.5" />
                       <span>Internal Note</span>
@@ -388,12 +407,18 @@ export default function Tickets() {
                         {msg.sender?.name} · {timeAgo(msg.created_at)}
                       </span>
                     </div>
-                    <p className="text-sm text-amber-500/90 leading-relaxed font-medium">{msg.body}</p>
+                    <p data-bubble className="text-sm text-amber-500/90 leading-relaxed font-medium" style={{ userSelect: 'text', WebkitUserSelect: 'text' }}>{msg.body}</p>
                   </div>
                 );
 
                 return (
-                  <div key={msg.id} className={`flex gap-4 ${isMe ? 'flex-row-reverse' : ''}`}>
+                  <div
+                    key={msg.id}
+                    className={`flex gap-4 ${isMe ? 'flex-row-reverse' : ''}`}
+                    onTouchStart={startLongPress}
+                    onTouchEnd={cancelLongPress}
+                    onTouchMove={cancelLongPress}
+                  >
                     <Avatar name={msg.sender?.name} />
                     <div className={`max-w-[85%] md:max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                       <div className={`flex items-center gap-2 mb-1 ${isMe ? 'flex-row-reverse' : ''}`}>
@@ -401,11 +426,15 @@ export default function Tickets() {
                         <RoleBadge role={msg.sender?.role} />
                         <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">{timeAgo(msg.created_at)}</span>
                       </div>
-                      <div className={`px-5 py-3.5 text-sm font-medium leading-relaxed whitespace-pre-wrap shadow-lg ${
-                        isMe 
-                          ? 'bg-gradient-to-br from-[var(--accent-mint)] to-emerald-500 text-[#2c2c2e] rounded-[22px] rounded-tr-[4px] border border-emerald-400/20 shadow-emerald-500/20' 
-                          : 'bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-card-hover)] text-[var(--text-primary)] rounded-[22px] rounded-tl-[4px] border border-[var(--border-color)] shadow-black/5'
-                      }`}>
+                      <div
+                        data-bubble
+                        className={`px-5 py-3.5 text-sm font-medium leading-relaxed whitespace-pre-wrap shadow-lg ${
+                          isMe
+                            ? 'bg-gradient-to-br from-[var(--accent-mint)] to-emerald-500 text-[#2c2c2e] rounded-[22px] rounded-tr-[4px] border border-emerald-400/20 shadow-emerald-500/20'
+                            : 'bg-gradient-to-br from-[var(--bg-card)] to-[var(--bg-card-hover)] text-[var(--text-primary)] rounded-[22px] rounded-tl-[4px] border border-[var(--border-color)] shadow-black/5'
+                        }`}
+                        style={{ userSelect: 'text', WebkitUserSelect: 'text' }}
+                      >
                         {msg.body}
                       </div>
                     </div>
@@ -413,6 +442,65 @@ export default function Tickets() {
                 );
               })}
               <div ref={chatEndRef} className="h-6 shrink-0" />
+
+              {/* Long-press copy menu — rendered as a fixed overlay */}
+              {longPressMsg && (
+                <>
+                  {/* Backdrop to dismiss */}
+                  <div
+                    className="fixed inset-0 z-[300]"
+                    onTouchStart={() => setLongPressMsg(null)}
+                    onClick={() => setLongPressMsg(null)}
+                  />
+                  {/* Floating pill */}
+                  <div
+                    className="fixed z-[310] flex items-center gap-1 px-1 py-1 rounded-2xl bg-[#1c1c1e]/95 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/60"
+                    style={{
+                      left: longPressMsg.rect.left + longPressMsg.rect.width / 2,
+                      top: longPressMsg.rect.top - 8,
+                      transform: 'translate(-50%, -100%)',
+                    }}
+                  >
+                    <button
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all active:scale-95"
+                      style={{ color: copied ? 'var(--accent-mint)' : '#fff' }}
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(longPressMsg.body);
+                        } catch {
+                          // Fallback for older iOS
+                          const ta = document.createElement('textarea');
+                          ta.value = longPressMsg.body;
+                          ta.style.position = 'fixed';
+                          ta.style.opacity = '0';
+                          document.body.appendChild(ta);
+                          ta.focus();
+                          ta.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(ta);
+                        }
+                        setCopied(true);
+                        setTimeout(() => setLongPressMsg(null), 900);
+                      }}
+                    >
+                      {copied
+                        ? <><Check className="w-3.5 h-3.5" /> Copied!</>
+                        : <><Copy className="w-3.5 h-3.5" /> Copy</>
+                      }
+                    </button>
+                  </div>
+                  {/* Arrow pointing down */}
+                  <div
+                    className="fixed z-[310] w-3 h-3 rotate-45 bg-[#1c1c1e]/95 border-b border-r border-white/10"
+                    style={{
+                      left: longPressMsg.rect.left + longPressMsg.rect.width / 2,
+                      top: longPressMsg.rect.top - 9,
+                      transform: 'translate(-50%, -100%) rotate(45deg)',
+                      marginTop: '-1px',
+                    }}
+                  />
+                </>
+              )}
             </div>
 
             {/* Composer */}

@@ -164,7 +164,7 @@ export default function ServerManagement() {
             <div className="flex gap-2 shrink-0">
               <button
                 onClick={() => setShowFolderModal(true)}
-                className="h-10 px-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center"
+                className="h-10 px-4 rounded-xl bg-white/5 border border-white/5 text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all active:scale-95 flex items-center justify-center"
               >
                 <span className="hidden sm:inline mr-2">Create</span> Group
               </button>

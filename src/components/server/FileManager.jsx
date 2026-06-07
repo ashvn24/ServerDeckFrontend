@@ -490,11 +490,14 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
   }
 
   return (
-    <div className={`flex flex-col glass-card overflow-hidden transition-all duration-500 ${
-      isFullScreen 
-        ? 'fixed inset-0 z-[200] rounded-none border-none h-screen w-screen bg-[var(--bg-main)]' 
-        : 'h-[700px]'
-    }`}>
+    <div 
+      className={`flex flex-col glass-card overflow-hidden transition-all duration-500 ${
+        isFullScreen 
+          ? 'fixed left-0 right-0 z-[200] rounded-none border-none bg-[var(--bg-main)]' 
+          : 'h-[700px]'
+      }`}
+      style={isFullScreen ? { top: 'var(--total-header)', bottom: 'var(--bottom-nav)' } : {}}
+    >
       <ConfirmModal 
         isOpen={confirmConfig.open}
         onClose={() => setConfirmConfig({ ...confirmConfig, open: false })}
@@ -546,10 +549,10 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
 
         {isAdmin && (
           <div className="flex items-center gap-4">
-            <button onClick={() => setNewItemType('folder')} className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all">
+            <button onClick={() => setNewItemType('folder')} className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all">
               <Folder className="w-4 h-4 text-amber-500" /> New Dir
             </button>
-            <button onClick={() => setNewItemType('file')} className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all">
+            <button onClick={() => setNewItemType('file')} className="flex items-center gap-2 px-6 py-2.5 bg-white/5 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--text-primary)] hover:bg-white/10 transition-all">
               <Plus className="w-4 h-4 text-[var(--accent-violet)]" /> New File
             </button>
             <label className="flex items-center gap-2 px-8 py-2.5 bg-[var(--accent-violet)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all cursor-pointer shadow-lg shadow-violet-500/20">
@@ -699,7 +702,7 @@ export default function FileManager({ serverId, sendCommand, isOnline, isAdmin }
       )}
 
       {/* Status Bar */}
-      <div className="px-8 py-4 border-t border-[var(--border-color)] bg-black/40 flex items-center justify-between text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">
+      <div className="px-8 py-4 border-t border-[var(--border-color)] bg-black/20 flex items-center justify-between text-[10px] font-black text-primary] uppercase tracking-widest">
         <span>{items.length} OBJECTS INDEXED</span>
         <div className="flex items-center gap-2">
            <div className="w-1.5 h-1.5 rounded-full accent-bg-green animate-pulse-dot" />

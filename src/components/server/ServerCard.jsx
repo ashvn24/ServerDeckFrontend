@@ -40,7 +40,7 @@ export default function ServerCard({ server, isAdmin, onMove }) {
               <MoreVertical className="w-4 h-4" />
             </button>
           )}
-          <div className="p-2 md:p-3 bg-white/5 text-white rounded-xl group-hover:bg-[var(--accent-violet)] transition-all">
+          <div className="p-2 md:p-3 bg-white/5 text-[var(--text-primary)] group-hover:text-[#0a0a0a] rounded-xl group-hover:bg-[var(--accent-violet)] transition-all">
             <ChevronRight className="w-4 h-4" />
           </div>
         </div>
