@@ -63,6 +63,10 @@ export const adminAPI = {
   listOrgs: () => client.get('/admin/organizations'),
   createOrg: (data) => client.post('/admin/organizations', data),
   deleteOrg: (id) => client.delete(`/admin/organizations/${id}`),
+  // Individual users
+  listUsers: () => client.get('/admin/users'),
+  createUser: (data) => client.post('/admin/users', data),
+  deleteUser: (id) => client.delete(`/admin/users/${id}`),
 };
 
 // Tickets
