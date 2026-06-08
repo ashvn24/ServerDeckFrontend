@@ -4,6 +4,7 @@ import client from './client';
 export const authAPI = {
   register: (data) => client.post('/auth/register', data),
   login: (data) => client.post('/auth/login', data),
+  joinWaitlist: (data) => client.post('/auth/waitlist', data),
 };
 
 // Servers
@@ -67,6 +68,15 @@ export const adminAPI = {
   listUsers: () => client.get('/admin/users'),
   createUser: (data) => client.post('/admin/users', data),
   deleteUser: (id) => client.delete(`/admin/users/${id}`),
+  // Tickets
+  listTickets: () => client.get('/admin/tickets'),
+  getTicket: (id) => client.get(`/admin/tickets/${id}`),
+  updateTicket: (id, data) => client.patch(`/admin/tickets/${id}`, data),
+  addTicketMessage: (id, data) => client.post(`/admin/tickets/${id}/messages`, data),
+  // Waitlist
+  listWaitlist: () => client.get('/admin/waitlist'),
+  deleteWaitlist: (id) => client.delete(`/admin/waitlist/${id}`),
+  approveWaitlist: (id) => client.post(`/admin/waitlist/${id}/approve`),
 };
 
 // Tickets

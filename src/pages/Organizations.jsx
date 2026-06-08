@@ -3,13 +3,17 @@ import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../api/endpoints';
 import {
   Building2, Plus, Trash2, Loader2, X, Globe, Key, User, Mail,
-  Lock, Shield, Calendar, Database, Search, AlertTriangle, Users, UserPlus, CheckCircle2, Copy
+  Lock, Shield, Calendar, Database, Search, AlertTriangle, Users, UserPlus, CheckCircle2, Copy, RefreshCw
 } from 'lucide-react';
 import ConfirmModal from '../components/common/ConfirmModal';
+import AdminTickets from '../components/admin/AdminTickets';
+import { LifeBuoy } from 'lucide-react';
 
 // ─── Tab IDs ──────────────────────────────────────────────────────────────────
 const TAB_ORGS = 'orgs';
 const TAB_USERS = 'users';
+const TAB_WAITLIST = 'waitlist';
+const TAB_TICKETS = 'tickets';
 
 export default function Organizations() {
   const { user } = useAuth();
@@ -41,6 +45,12 @@ export default function Organizations() {
   const [showDeleteUserConfirm, setShowDeleteUserConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
+  // ── Waitlist state ────────────────────────────────────────────────────────
+  const [waitlist, setWaitlist] = useState([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [waitlistSearchQuery, setWaitlistSearchQuery] = useState('');
+  const [processingId, setProcessingId] = useState(null);
+
   // ── Data fetching ─────────────────────────────────────────────────────────
   const fetchOrgs = async () => {
     setOrgsLoading(true);
@@ -66,10 +76,23 @@ export default function Organizations() {
     }
   };
 
+  const fetchWaitlist = async () => {
+    setWaitlistLoading(true);
+    try {
+      const res = await adminAPI.listWaitlist();
+      setWaitlist(res.data);
+    } catch (err) {
+      console.error('Failed to fetch waitlist:', err);
+    } finally {
+      setWaitlistLoading(false);
+    }
+  };
+
   useEffect(() => { fetchOrgs(); }, []);
 
   useEffect(() => {
     if (activeTab === TAB_USERS && indvUsers.length === 0) fetchUsers();
+    if (activeTab === TAB_WAITLIST && waitlist.length === 0) fetchWaitlist();
   }, [activeTab]);
 
   // ── Org handlers ──────────────────────────────────────────────────────────
@@ -145,6 +168,34 @@ export default function Organizations() {
     }
   };
 
+  // ── Waitlist handlers ─────────────────────────────────────────────────────
+  const handleApproveWaitlist = async (id) => {
+    setProcessingId(id);
+    try {
+      await adminAPI.approveWaitlist(id);
+      fetchWaitlist();
+      fetchUsers(); // refresh indv users
+    } catch (err) {
+      console.error('Failed to approve waitlist:', err);
+      alert(err.response?.data?.detail || 'Failed to approve request');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDeleteWaitlist = async (id) => {
+    if (!window.confirm('Delete this waitlist request?')) return;
+    setProcessingId(id);
+    try {
+      await adminAPI.deleteWaitlist(id);
+      fetchWaitlist();
+    } catch (err) {
+      console.error('Failed to delete waitlist:', err);
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   // ── Filtered lists ────────────────────────────────────────────────────────
   const filteredOrgs = orgs.filter(org =>
     org.name.toLowerCase().includes(orgSearchQuery.toLowerCase()) ||
@@ -155,6 +206,10 @@ export default function Organizations() {
   const filteredUsers = indvUsers.filter(u =>
     u.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(userSearchQuery.toLowerCase())
+  );
+
+  const filteredWaitlist = waitlist.filter(w =>
+    w.email.toLowerCase().includes(waitlistSearchQuery.toLowerCase())
   );
 
   return (
@@ -259,6 +314,28 @@ export default function Organizations() {
         >
           <Users className="w-3.5 h-3.5" />
           Individual Users
+        </button>
+        <button
+          onClick={() => setActiveTab(TAB_WAITLIST)}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+            activeTab === TAB_WAITLIST
+              ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/20'
+              : 'text-[var(--text-secondary)] hover:text-white'
+          }`}
+        >
+          <UserPlus className="w-3.5 h-3.5" />
+          Requested Users
+        </button>
+        <button
+          onClick={() => setActiveTab(TAB_TICKETS)}
+          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+            activeTab === TAB_TICKETS
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20'
+              : 'text-[var(--text-secondary)] hover:text-white'
+          }`}
+        >
+          <LifeBuoy className="w-3.5 h-3.5" />
+          Tickets
         </button>
       </div>
 
@@ -506,6 +583,130 @@ export default function Organizations() {
             )}
           </div>
         </>
+      )}
+
+      {/* ── WAITLIST TAB ───────────────────────────────────────────────────── */}
+      {activeTab === TAB_WAITLIST && (
+        <>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mb-5 md:mb-6">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-secondary)]" />
+              <input
+                type="text"
+                placeholder="Search waitlist emails..."
+                value={waitlistSearchQuery}
+                onChange={(e) => setWaitlistSearchQuery(e.target.value)}
+                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/5 border border-[var(--border-color)] text-white text-sm font-bold focus:border-blue-500 outline-none transition-all placeholder:text-gray-400"
+              />
+            </div>
+            <button
+              onClick={fetchWaitlist}
+              className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white/5 border border-[var(--border-color)] text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all"
+            >
+              <RefreshCw className={`w-4 h-4 ${waitlistLoading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+
+          <div className="glass-card overflow-hidden">
+            {waitlistLoading && waitlist.length === 0 ? (
+              <div className="py-32 flex flex-col items-center gap-4">
+                <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+                <p className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Loading waitlist...</p>
+              </div>
+            ) : filteredWaitlist.length === 0 ? (
+              <div className="py-32 flex flex-col items-center gap-6">
+                <div className="p-8 rounded-[2.5rem] bg-white/5 border border-white/5">
+                  <UserPlus className="w-14 h-14 text-white/10" />
+                </div>
+                <div className="text-center">
+                  <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">
+                    {waitlistSearchQuery ? 'No matches' : 'Waitlist is empty'}
+                  </h3>
+                  <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
+                    {waitlistSearchQuery ? 'Try a different search term' : 'No pending access requests'}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--border-color)]">
+                {/* Table Header */}
+                <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest bg-white/2">
+                  <div className="col-span-6">Requested Email</div>
+                  <div className="col-span-3">Requested On</div>
+                  <div className="col-span-3 text-right">Actions</div>
+                </div>
+                {filteredWaitlist.map(w => (
+                  <div key={w.id} className="px-4 md:px-8 py-4 md:py-5 hover:bg-white/5 transition-all group">
+                    <div className="md:hidden flex flex-col gap-4">
+                      <div>
+                        <p className="text-sm font-black text-white">{w.email}</p>
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)] mt-1">
+                          {new Date(w.created_at).toLocaleDateString('en-US')}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleApproveWaitlist(w.id)}
+                          disabled={processingId === w.id}
+                          className="flex-1 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                        >
+                          {processingId === w.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleDeleteWaitlist(w.id)}
+                          disabled={processingId === w.id}
+                          className="px-3 py-2 bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-6 flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                          <Mail className="w-4 h-4" />
+                        </div>
+                        <p className="text-sm font-bold text-white">{w.email}</p>
+                      </div>
+                      <div className="col-span-3">
+                        <span className="text-xs font-bold text-[var(--text-secondary)]">
+                          {new Date(w.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="col-span-3 flex justify-end gap-2">
+                        <button
+                          onClick={() => handleDeleteWaitlist(w.id)}
+                          disabled={processingId === w.id}
+                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                          title="Reject"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleApproveWaitlist(w.id)}
+                          disabled={processingId === w.id}
+                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                        >
+                          {processingId === w.id ? (
+                            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Approving...</>
+                          ) : (
+                            <><CheckCircle2 className="w-3.5 h-3.5" /> Approve</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ── TICKETS TAB ────────────────────────────────────────────────────── */}
+      {activeTab === TAB_TICKETS && (
+        <AdminTickets />
       )}
 
       {/* ── CREATE ORGANIZATION MODAL ─────────────────────────────────────── */}

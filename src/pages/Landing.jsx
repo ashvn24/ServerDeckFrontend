@@ -5,8 +5,9 @@ import {
   ChevronDown, CheckCircle2, Cpu, Zap, BarChart3, Database,
   Cloud, Globe, AlertTriangle, Settings, Monitor, Bell,
   Check, Layers, GitBranch, HardDrive, RefreshCw, Eye,
-  Wifi, Key, Package, Volume2, VolumeX
+  Wifi, Key, Package, Volume2, VolumeX, Loader2
 } from 'lucide-react';
+import { authAPI } from '../api/endpoints';
 import './Landing.css';
 
 /* ── Small helpers ── */
@@ -141,6 +142,8 @@ const Landing = () => {
   const [scrolled, setScrolled] = useState(false);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const laptopVideoRef = useRef(null);
   const mobileVideoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -184,9 +187,20 @@ const Landing = () => {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (email) setSubmitted(true);
+    if (!email) return;
+    
+    setIsSubmitting(true);
+    setSubmitError('');
+    try {
+      await authAPI.joinWaitlist({ email });
+      setSubmitted(true);
+    } catch (err) {
+      setSubmitError(err.response?.data?.detail || 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const features = [
@@ -691,10 +705,19 @@ const Landing = () => {
                       required
                     />
                   </div>
-                  <button type="submit" className="ld-cta-btn">
-                    Get Early Access <ArrowRight size={16} />
+                  <button type="submit" className="ld-cta-btn" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Loader2 size={16} className="animate-spin" /> Processing...</span>
+                    ) : (
+                      <>Get Early Access <ArrowRight size={16} /></>
+                    )}
                   </button>
                 </form>
+                {submitError && (
+                  <div className="ld-cta-error" style={{ color: '#ef4444', fontSize: '13px', marginTop: '12px', textAlign: 'center' }}>
+                    {submitError}
+                  </div>
+                )}
                 <p className="ld-cta-note">No credit card required · Free during beta</p>
               </div>
             ) : (
