@@ -648,10 +648,14 @@ export default function Organizations() {
                         <button
                           onClick={() => handleApproveWaitlist(w.id)}
                           disabled={processingId === w.id}
-                          className="flex-1 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2"
+                          className={`flex-1 py-2 border rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 ${
+                            w.status === 'invited'
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
+                              : 'bg-blue-500/20 text-blue-400 border-blue-500/20'
+                          }`}
                         >
-                          {processingId === w.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
-                          Approve
+                          {processingId === w.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : (w.status === 'invited' ? <RefreshCw className="w-3.5 h-3.5" /> : <CheckCircle2 className="w-3.5 h-3.5" />)}
+                          {w.status === 'invited' ? 'Resend' : 'Approve'}
                         </button>
                         <button
                           onClick={() => handleDeleteWaitlist(w.id)}
@@ -667,7 +671,14 @@ export default function Organizations() {
                         <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
                           <Mail className="w-4 h-4" />
                         </div>
-                        <p className="text-sm font-bold text-white">{w.email}</p>
+                        <p className="text-sm font-bold text-white">
+                          {w.email}
+                          {w.status === 'invited' && (
+                            <span className="ml-3 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-black uppercase tracking-widest align-middle">
+                              Invite Sent
+                            </span>
+                          )}
+                        </p>
                       </div>
                       <div className="col-span-3">
                         <span className="text-xs font-bold text-[var(--text-secondary)]">
@@ -686,12 +697,18 @@ export default function Organizations() {
                         <button
                           onClick={() => handleApproveWaitlist(w.id)}
                           disabled={processingId === w.id}
-                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                          className={`px-4 py-2.5 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100 ${
+                            w.status === 'invited' 
+                              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/20'
+                              : 'bg-gradient-to-r from-blue-500 to-cyan-600 shadow-blue-500/20'
+                          }`}
                         >
                           {processingId === w.id ? (
-                            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Approving...</>
+                            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> {w.status === 'invited' ? 'Resending...' : 'Approving...'}</>
                           ) : (
-                            <><CheckCircle2 className="w-3.5 h-3.5" /> Approve</>
+                            w.status === 'invited' 
+                              ? <><RefreshCw className="w-3.5 h-3.5" /> Resend</>
+                              : <><CheckCircle2 className="w-3.5 h-3.5" /> Approve</>
                           )}
                         </button>
                       </div>
