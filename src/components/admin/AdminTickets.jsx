@@ -167,9 +167,15 @@ export default function AdminTickets() {
     if (!msgBody.trim() || !selectedId || sendingMsg) return;
     setSendingMsg(true);
     try {
-      await adminAPI.addTicketMessage(selectedId, {
+      const res = await adminAPI.addTicketMessage(selectedId, {
         body: msgBody,
         is_internal: false, // Platform owner doesn't need internal notes for self
+      });
+      // Immediately append to local state
+      const newMessage = res.data;
+      setSelectedTicket(prev => {
+        if (!prev || prev.messages.some(x => x.id === newMessage.id)) return prev;
+        return { ...prev, messages: [...prev.messages, newMessage] };
       });
       setMsgBody('');
       scrollBottom();
