@@ -18,13 +18,14 @@ import FirewallManager from '../components/server/FirewallManager';
 import ProcessManager from '../components/server/ProcessManager';
 import SSLManager from '../components/server/SSLManager';
 import AutomationManager from '../components/server/AutomationManager';
+import LuxeGenieManager from '../components/server/LuxeGenieManager';
 
 import RestrictedView from '../components/common/RestrictedView';
 import AlertModal from '../components/common/AlertModal';
 import ConfirmModal from '../components/common/ConfirmModal';
 import ServerAlertsPanel from '../components/server/ServerAlertsPanel';
 
-const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files'];
+const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files', 'LuxeGenie'];
 
 export default function ServerDetail() {
   const { id } = useParams();
@@ -341,6 +342,7 @@ export default function ServerDetail() {
         </div>
 
         {activeTab === 9 && <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />}
+        {activeTab === 10 && <LuxeGenieManager serverId={id} sendCommand={sendCommand} luxegenieHealth={server.luxegenie_health} isOnline={server.is_online} />}
       </div>
 
 
