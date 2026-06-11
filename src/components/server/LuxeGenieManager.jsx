@@ -197,7 +197,7 @@ export default function LuxeGenieManager({ serverId, sendCommand, luxegenieHealt
             <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Battery Percentage</span>
             <div className="text-4xl font-black tracking-tight text-white mt-1">
               {healthData?.battery_percentage !== null && healthData?.battery_percentage !== undefined 
-                ? `${healthData.battery_percentage}%` 
+                ? `${healthData?.battery_percentage}%` 
                 : 'N/A'}
             </div>
             <p className="text-xs font-semibold text-white/60 mt-1">{bat.text}</p>
@@ -207,7 +207,7 @@ export default function LuxeGenieManager({ serverId, sendCommand, luxegenieHealt
             <div 
               className="h-full rounded-full transition-all duration-500" 
               style={{ 
-                width: `${healthData?.battery_percentage !== null ? healthData.battery_percentage : 0}%`,
+                width: `${healthData?.battery_percentage ?? 0}%`,
                 backgroundColor: bat.colorTheme 
               }} 
             />
