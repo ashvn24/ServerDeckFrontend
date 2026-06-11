@@ -48,6 +48,10 @@ export default function Organizations() {
   const [createdInvite, setCreatedInvite] = useState(null);
   const [showDeleteUserConfirm, setShowDeleteUserConfirm] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [selectedUserForModules, setSelectedUserForModules] = useState(null);
+  const [showUserModulesModal, setShowUserModulesModal] = useState(false);
+  const [selectedUserModules, setSelectedUserModules] = useState([]);
+  const [savingUserModules, setSavingUserModules] = useState(false);
 
   // ── Waitlist state ────────────────────────────────────────────────────────
   const [waitlist, setWaitlist] = useState([]);
@@ -202,6 +206,39 @@ export default function Organizations() {
       fetchUsers();
     } catch (err) {
       console.error('Failed to delete user:', err);
+    }
+  };
+
+  const handleOpenUserModules = (u) => {
+    setSelectedUserForModules(u);
+    const ALL_MODULES_IDS = [
+      'dashboard', 'servers', 'tickets', 'settings',
+      'nginx', 'pm2', 'systemd', 'automation',
+      'firewall', 'processes', 'ssl', 'ssh', 'files', 'luxegenie'
+    ];
+    setSelectedUserModules(u.enabled_modules !== null ? u.enabled_modules : ALL_MODULES_IDS);
+    setShowUserModulesModal(true);
+  };
+
+  const handleToggleUserModule = (moduleId) => {
+    setSelectedUserModules(prev =>
+      prev.includes(moduleId)
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId]
+    );
+  };
+
+  const handleSaveUserModules = async (e) => {
+    e.preventDefault();
+    setSavingUserModules(true);
+    try {
+      await adminAPI.updateUserModules(selectedUserForModules.id, selectedUserModules);
+      setShowUserModulesModal(false);
+      fetchUsers();
+    } catch (err) {
+      console.error('Failed to update user modules:', err);
+    } finally {
+      setSavingUserModules(false);
     }
   };
 
@@ -581,8 +618,8 @@ export default function Organizations() {
                 <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest bg-white/2">
                   <div className="col-span-4">User</div>
                   <div className="col-span-4">Email</div>
-                  <div className="col-span-3">Created</div>
-                  <div className="col-span-1 text-right">Actions</div>
+                  <div className="col-span-2">Created</div>
+                  <div className="col-span-2 text-right font-bold pr-2">Actions</div>
                 </div>
                 {filteredUsers.map(u => (
                   <div key={u.id} className="px-4 md:px-8 py-4 md:py-5 hover:bg-white/5 transition-all group">
@@ -597,12 +634,21 @@ export default function Organizations() {
                           <p className="text-[10px] font-bold text-[var(--text-secondary)]">{u.email}</p>
                         </div>
                       </div>
-                      <button
-                        onClick={() => handleDeleteUser(u)}
-                        className="p-2 rounded-xl bg-red-500/5 text-red-500 active:bg-red-500 active:text-white transition-all"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleOpenUserModules(u)}
+                          className="p-2 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 border border-white/5"
+                          title="Manage Modules"
+                        >
+                          <Sliders className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(u)}
+                          className="p-2 rounded-xl bg-red-500/5 text-red-500 active:bg-red-500 active:text-white transition-all"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                     {/* Desktop */}
                     <div className="hidden md:grid grid-cols-12 gap-4 items-center">
@@ -616,15 +662,22 @@ export default function Organizations() {
                         <Mail className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
                         <span className="text-xs font-bold text-[var(--text-secondary)]">{u.email}</span>
                       </div>
-                      <div className="col-span-3">
+                      <div className="col-span-2">
                         <span className="text-xs font-bold text-[var(--text-secondary)]">
                           {new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
-                      <div className="col-span-1 flex justify-end">
+                      <div className="col-span-2 flex justify-end gap-2 pr-2">
+                        <button
+                          onClick={() => handleOpenUserModules(u)}
+                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all border border-white/5 opacity-60 hover:opacity-100 group-hover:opacity-100"
+                          title="Manage Modules"
+                        >
+                          <Sliders className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => handleDeleteUser(u)}
-                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-60 hover:opacity-100 group-hover:opacity-100"
+                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-60 hover:opacity-100 group-hover:opacity-100 pr-2"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -1161,6 +1214,135 @@ export default function Organizations() {
                   className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:hover:scale-100"
                 >
                   {savingOrgModules ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </span>
+                  ) : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* ── MANAGE INDIVIDUAL USER MODULES MODAL ────────────────────────────── */}
+      {showUserModulesModal && selectedUserForModules && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => !savingUserModules && setShowUserModulesModal(false)} />
+          <div className="glass-card w-full max-w-2xl p-6 sm:p-10 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-violet-500/20 to-purple-600/20 border border-violet-500/10">
+                  <Sliders className="w-5 h-5 text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight font-display">Manage Modules</h3>
+                  <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
+                    Configuring enabled features for {selectedUserForModules.name}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setShowUserModulesModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                <X className="w-6 h-6 text-[var(--text-secondary)]" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveUserModules} className="space-y-8">
+              {/* Navigation Bar Category */}
+              <div>
+                <p className="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                  Navigation Bar Modules
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'dashboard', name: 'Dashboard Console', desc: 'Display global status dashboard' },
+                    { id: 'servers', name: 'Server Management', desc: 'Manage nodes and view server terminal/stats' },
+                    { id: 'tickets', name: 'Support Tickets', desc: 'View customer support desk tickets' },
+                    { id: 'settings', name: 'Settings / Team', desc: 'Manage settings and team operator permissions' }
+                  ].map(mod => {
+                    const isChecked = selectedUserModules.includes(mod.id);
+                    return (
+                      <div
+                        key={mod.id}
+                        onClick={() => handleToggleUserModule(mod.id)}
+                        className={`p-4 rounded-2xl bg-black/40 border cursor-pointer select-none transition-all flex items-start gap-3 hover:bg-white/5 ${
+                          isChecked ? 'border-violet-500/50 shadow-lg shadow-violet-500/5' : 'border-[var(--border-color)]'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="mt-1 accent-violet-500 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-tight">{mod.name}</p>
+                          <p className="text-[10px] font-medium text-[var(--text-secondary)] mt-1">{mod.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Server Features Category */}
+              <div>
+                <p className="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                  Server Detail Feature Modules
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'nginx', name: 'Nginx Sites Manager', desc: 'Create and delete virtual hosts and site configs' },
+                    { id: 'pm2', name: 'PM2 Application Manager', desc: 'Monitor process list and restart PM2 node apps' },
+                    { id: 'systemd', name: 'Systemd Service Manager', desc: 'Start, stop and restart background Linux daemons' },
+                    { id: 'automation', name: 'Automation Manager', desc: 'Configure scheduled tasks and automation scripts' },
+                    { id: 'firewall', name: 'Firewall / Security', desc: 'Manage active ufw rules, ports, and bans' },
+                    { id: 'processes', name: 'Process Manager', desc: 'View live process list and terminate memory-heavy PIDs' },
+                    { id: 'ssl', name: 'SSL Certificate Manager', desc: 'Provision Let\'s Encrypt SSL and auto-renewal certificates' },
+                    { id: 'ssh', name: 'SSH Terminal Access', desc: 'Open direct secure browser-based SSH command console' },
+                    { id: 'files', name: 'File Browser', desc: 'Navigate filesystems, view logs, edit configs, and upload files' },
+                    { id: 'luxegenie', name: 'LuxeGenie AI Diagnostics', desc: 'Use AI agent to diagnose errors and suggest repairs' }
+                  ].map(mod => {
+                    const isChecked = selectedUserModules.includes(mod.id);
+                    return (
+                      <div
+                        key={mod.id}
+                        onClick={() => handleToggleUserModule(mod.id)}
+                        className={`p-4 rounded-2xl bg-black/40 border cursor-pointer select-none transition-all flex items-start gap-3 hover:bg-white/5 ${
+                          isChecked ? 'border-violet-500/50 shadow-lg shadow-violet-500/5' : 'border-[var(--border-color)]'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="mt-1 accent-violet-500 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-tight">{mod.name}</p>
+                          <p className="text-[10px] font-medium text-[var(--text-secondary)] mt-1">{mod.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex gap-4 pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setShowUserModulesModal(false)}
+                  className="flex-1 px-8 py-4 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={savingUserModules}
+                  type="submit"
+                  className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {savingUserModules ? (
                     <span className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       Saving...

@@ -71,6 +71,7 @@ export const adminAPI = {
   listUsers: () => client.get('/admin/users'),
   createUser: (data) => client.post('/admin/users', data),
   deleteUser: (id) => client.delete(`/admin/users/${id}`),
+  updateUserModules: (userId, modules) => client.patch(`/admin/users/${userId}/modules`, { enabled_modules: modules }),
   // Tickets
   listTickets: () => client.get('/admin/tickets'),
   getTicket: (id) => client.get(`/admin/tickets/${id}`),
