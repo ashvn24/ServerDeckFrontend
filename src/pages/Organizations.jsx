@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../api/endpoints';
 import {
   Building2, Plus, Trash2, Loader2, X, Globe, Key, User, Mail,
-  Lock, Shield, Calendar, Database, Search, AlertTriangle, Users, UserPlus, CheckCircle2, Copy, RefreshCw
+  Lock, Shield, Calendar, Database, Search, AlertTriangle, Users, UserPlus, CheckCircle2, Copy, RefreshCw, Sliders
 } from 'lucide-react';
 import ConfirmModal from '../components/common/ConfirmModal';
 import AdminTickets from '../components/admin/AdminTickets';
@@ -21,6 +21,10 @@ export default function Organizations() {
 
   // ── Organizations state ───────────────────────────────────────────────────
   const [orgs, setOrgs] = useState([]);
+  const [selectedOrg, setSelectedOrg] = useState(null);
+  const [showOrgModulesModal, setShowOrgModulesModal] = useState(false);
+  const [selectedOrgModules, setSelectedOrgModules] = useState([]);
+  const [savingOrgModules, setSavingOrgModules] = useState(false);
   const [orgsLoading, setOrgsLoading] = useState(true);
   const [showCreateOrgModal, setShowCreateOrgModal] = useState(false);
   const [creatingOrg, setCreatingOrg] = useState(false);
@@ -132,6 +136,39 @@ export default function Organizations() {
       fetchOrgs();
     } catch (err) {
       console.error('Failed to delete org:', err);
+    }
+  };
+
+  const handleOpenOrgModules = (org) => {
+    setSelectedOrg(org);
+    const ALL_MODULES_IDS = [
+      'dashboard', 'servers', 'tickets', 'settings',
+      'nginx', 'pm2', 'systemd', 'automation',
+      'firewall', 'processes', 'ssl', 'ssh', 'files', 'luxegenie'
+    ];
+    setSelectedOrgModules(org.enabled_modules !== null ? org.enabled_modules : ALL_MODULES_IDS);
+    setShowOrgModulesModal(true);
+  };
+
+  const handleToggleOrgModule = (moduleId) => {
+    setSelectedOrgModules(prev =>
+      prev.includes(moduleId)
+        ? prev.filter(id => id !== moduleId)
+        : [...prev, moduleId]
+    );
+  };
+
+  const handleSaveOrgModules = async (e) => {
+    e.preventDefault();
+    setSavingOrgModules(true);
+    try {
+      await adminAPI.updateOrgModules(selectedOrg.id, selectedOrgModules);
+      setShowOrgModulesModal(false);
+      fetchOrgs();
+    } catch (err) {
+      console.error('Failed to update organization modules:', err);
+    } finally {
+      setSavingOrgModules(false);
     }
   };
 
@@ -391,8 +428,8 @@ export default function Organizations() {
                   <div className="col-span-2">Domain</div>
                   <div className="col-span-2">Org Key</div>
                   <div className="col-span-2">Schema</div>
-                  <div className="col-span-2">Created</div>
-                  <div className="col-span-1 text-right">Actions</div>
+                  <div className="col-span-1">Created</div>
+                  <div className="col-span-2 text-right font-bold pr-2">Actions</div>
                 </div>
                 {filteredOrgs.map(org => (
                   <div key={org.id} className="px-4 md:px-8 py-4 md:py-5 hover:bg-white/5 transition-all group">
@@ -408,12 +445,21 @@ export default function Organizations() {
                             <p className="text-[10px] font-bold text-[var(--text-secondary)]">{org.domain}</p>
                           </div>
                         </div>
-                        <button
-                          onClick={() => handleDeleteOrg(org)}
-                          className="p-2 rounded-xl bg-red-500/5 text-red-500 active:bg-red-500 active:text-white transition-all"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleOpenOrgModules(org)}
+                            className="p-2 rounded-xl bg-white/5 text-gray-400 active:bg-white/10 border border-white/5"
+                            title="Manage Modules"
+                          >
+                            <Sliders className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteOrg(org)}
+                            className="p-2 rounded-xl bg-red-500/5 text-red-500 active:bg-red-500 active:text-white transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div className="flex items-center gap-4 mt-2 ml-12">
                         <div className="flex items-center gap-1.5">
@@ -446,15 +492,22 @@ export default function Organizations() {
                         <Database className="w-3.5 h-3.5 text-emerald-500" />
                         <span className="text-xs font-mono font-bold text-emerald-400">{org.schema_name}</span>
                       </div>
-                      <div className="col-span-2">
+                      <div className="col-span-1">
                         <span className="text-xs font-bold text-[var(--text-secondary)]">
                           {new Date(org.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
                       </div>
-                      <div className="col-span-1 flex justify-end">
+                      <div className="col-span-2 flex justify-end gap-2 pr-2">
+                        <button
+                          onClick={() => handleOpenOrgModules(org)}
+                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all border border-white/5 opacity-0 group-hover:opacity-100"
+                          title="Manage Modules"
+                        >
+                          <Sliders className="w-3.5 h-3.5" />
+                        </button>
                         <button
                           onClick={() => handleDeleteOrg(org)}
-                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 pr-2"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -987,6 +1040,135 @@ export default function Organizations() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+      {/* ── MANAGE ORGANIZATION MODULES MODAL ──────────────────────────────── */}
+      {showOrgModulesModal && selectedOrg && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-8">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => !savingOrgModules && setShowOrgModulesModal(false)} />
+          <div className="glass-card w-full max-w-2xl p-6 sm:p-10 relative z-10 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-600/20 border border-amber-500/10">
+                  <Sliders className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tight font-display">Manage Modules</h3>
+                  <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
+                    Configuring enabled features for {selectedOrg.name}
+                  </p>
+                </div>
+              </div>
+              <button onClick={() => setShowOrgModulesModal(false)} className="p-2 hover:bg-white/10 rounded-xl transition-all">
+                <X className="w-6 h-6 text-[var(--text-secondary)]" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveOrgModules} className="space-y-8">
+              {/* Navigation Bar Category */}
+              <div>
+                <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                  Navigation Bar Modules
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'dashboard', name: 'Dashboard Console', desc: 'Display global status dashboard' },
+                    { id: 'servers', name: 'Server Management', desc: 'Manage nodes and view server terminal/stats' },
+                    { id: 'tickets', name: 'Support Tickets', desc: 'View customer support desk tickets' },
+                    { id: 'settings', name: 'Settings / Team', desc: 'Manage settings and team operator permissions' }
+                  ].map(mod => {
+                    const isChecked = selectedOrgModules.includes(mod.id);
+                    return (
+                      <div
+                        key={mod.id}
+                        onClick={() => handleToggleOrgModule(mod.id)}
+                        className={`p-4 rounded-2xl bg-black/40 border cursor-pointer select-none transition-all flex items-start gap-3 hover:bg-white/5 ${
+                          isChecked ? 'border-amber-500/50 shadow-lg shadow-amber-500/5' : 'border-[var(--border-color)]'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="mt-1 accent-amber-500 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                        />
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-tight">{mod.name}</p>
+                          <p className="text-[10px] font-medium text-[var(--text-secondary)] mt-1">{mod.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Server Features Category */}
+              <div>
+                <p className="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-4 border-b border-white/5 pb-2">
+                  Server Detail Feature Modules
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    { id: 'nginx', name: 'Nginx Sites Manager', desc: 'Create and delete virtual hosts and site configs' },
+                    { id: 'pm2', name: 'PM2 Application Manager', desc: 'Monitor process list and restart PM2 node apps' },
+                    { id: 'systemd', name: 'Systemd Service Manager', desc: 'Start, stop and restart background Linux daemons' },
+                    { id: 'automation', name: 'Automation Manager', desc: 'Configure scheduled tasks and automation scripts' },
+                    { id: 'firewall', name: 'Firewall / Security', desc: 'Manage active ufw rules, ports, and bans' },
+                    { id: 'processes', name: 'Process Manager', desc: 'View live process list and terminate memory-heavy PIDs' },
+                    { id: 'ssl', name: 'SSL Certificate Manager', desc: 'Provision Let\'s Encrypt SSL and auto-renewal certificates' },
+                    { id: 'ssh', name: 'SSH Terminal Access', desc: 'Open direct secure browser-based SSH command console' },
+                    { id: 'files', name: 'File Browser', desc: 'Navigate filesystems, view logs, edit configs, and upload files' },
+                    { id: 'luxegenie', name: 'LuxeGenie AI Diagnostics', desc: 'Use AI agent to diagnose errors and suggest repairs' }
+                  ].map(mod => {
+                    const isChecked = selectedOrgModules.includes(mod.id);
+                    return (
+                      <div
+                        key={mod.id}
+                        onClick={() => handleToggleOrgModule(mod.id)}
+                        className={`p-4 rounded-2xl bg-black/40 border cursor-pointer select-none transition-all flex items-start gap-3 hover:bg-white/5 ${
+                          isChecked ? 'border-violet-500/50 shadow-lg shadow-violet-500/5' : 'border-[var(--border-color)]'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => {}}
+                          className="mt-1 accent-violet-500 rounded border-gray-300 text-violet-600 focus:ring-violet-500"
+                        />
+                        <div>
+                          <p className="text-xs font-black text-white uppercase tracking-tight">{mod.name}</p>
+                          <p className="text-[10px] font-medium text-[var(--text-secondary)] mt-1">{mod.desc}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex gap-4 pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setShowOrgModulesModal(false)}
+                  className="flex-1 px-8 py-4 rounded-xl bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={savingOrgModules}
+                  type="submit"
+                  className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  {savingOrgModules ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </span>
+                  ) : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -51,6 +51,8 @@ export const usersAPI = {
   getInviteDetails: (token) => client.get(`/users/invite-details/${token}`),
   acceptInvite: (data) => client.post('/users/accept-invite', data),
   delete: (id) => client.delete(`/users/${id}`),
+  me: () => client.get('/users/me'),
+  updateModules: (userId, modules) => client.patch(`/users/${userId}/modules`, { enabled_modules: modules }),
 };
 
 // Audit
@@ -64,6 +66,7 @@ export const adminAPI = {
   listOrgs: () => client.get('/admin/organizations'),
   createOrg: (data) => client.post('/admin/organizations', data),
   deleteOrg: (id) => client.delete(`/admin/organizations/${id}`),
+  updateOrgModules: (orgId, modules) => client.patch(`/admin/organizations/${orgId}/modules`, { enabled_modules: modules }),
   // Individual users
   listUsers: () => client.get('/admin/users'),
   createUser: (data) => client.post('/admin/users', data),

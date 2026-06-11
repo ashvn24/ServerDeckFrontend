@@ -5,12 +5,12 @@ import { LayoutDashboard, Server, Ticket, Activity, Settings, Building2 } from '
 import { ShieldAlert } from 'lucide-react';
 
 const ALL_LINKS = [
-  { name: 'Home', path: '/dashboard', icon: LayoutDashboard, supportHidden: true, platformOwnerHidden: true },
-  { name: 'Servers', path: '/servers', icon: Server, supportHidden: true, platformOwnerHidden: true },
-  { name: 'Alerts', path: '/alerts', icon: ShieldAlert, supportHidden: true, platformOwnerHidden: true },
-  { name: 'Tickets', path: '/tickets', icon: Ticket, supportHidden: false, platformOwnerHidden: true },
-  { name: 'Activity', path: '/activity', icon: Activity, supportHidden: true, platformOwnerHidden: true },
-  { name: 'Settings', path: '/settings', icon: Settings, supportHidden: true, platformOwnerHidden: true },
+  { name: 'Home', path: '/dashboard', icon: LayoutDashboard, supportHidden: true, platformOwnerHidden: true, module: 'dashboard' },
+  { name: 'Servers', path: '/servers', icon: Server, supportHidden: true, platformOwnerHidden: true, module: 'servers' },
+  { name: 'Alerts', path: '/alerts', icon: ShieldAlert, supportHidden: true, platformOwnerHidden: true, module: 'servers' },
+  { name: 'Tickets', path: '/tickets', icon: Ticket, supportHidden: false, platformOwnerHidden: true, module: 'tickets' },
+  { name: 'Activity', path: '/activity', icon: Activity, supportHidden: true, platformOwnerHidden: true, module: 'dashboard' },
+  { name: 'Settings', path: '/settings', icon: Settings, supportHidden: false, platformOwnerHidden: true, module: 'settings' },
   { name: 'Orgs', path: '/organizations', icon: Building2, supportHidden: true, platformOwnerOnly: true },
 ];
 
@@ -19,10 +19,19 @@ export default function BottomNav() {
   const { user, isPlatformOwner } = useAuth();
   const isSupport = user?.role === 'support';
 
+  const isModuleEnabled = (moduleName) => {
+    if (isPlatformOwner) return true;
+    if (isSupport) {
+      return ['tickets', 'settings'].includes(moduleName);
+    }
+    return user?.enabled_modules ? user.enabled_modules.includes(moduleName) : true;
+  };
+
   const links = ALL_LINKS.filter((l) => {
     if (l.platformOwnerOnly) return isPlatformOwner;
     if (isPlatformOwner && l.platformOwnerHidden) return false;
     if (isSupport && l.supportHidden) return false;
+    if (l.module && !isModuleEnabled(l.module)) return false;
     return true;
   });
 

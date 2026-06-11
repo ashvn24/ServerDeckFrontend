@@ -44,11 +44,25 @@ function PlatformOwnerRoute({ children }) {
   return children;
 }
 
-// Support users can only access /tickets
-function NonSupportRoute({ children }) {
-  const { user, loading } = useAuth();
+function ModuleProtectedRoute({ module, children }) {
+  const { user, isPlatformOwner, loading } = useAuth();
   if (loading) return null;
-  if (user?.role === 'support') return <Navigate to="/tickets" replace />;
+  if (isPlatformOwner) return children;
+  
+  if (user?.role === 'support') {
+    if (['tickets', 'settings'].includes(module)) return children;
+    return <Navigate to="/tickets" replace />;
+  }
+  
+  const isModuleEnabled = user?.enabled_modules ? user.enabled_modules.includes(module) : true;
+  if (!isModuleEnabled) {
+    const fallback = user?.enabled_modules?.includes('dashboard') ? '/dashboard'
+      : user?.enabled_modules?.includes('servers') ? '/servers'
+      : user?.enabled_modules?.includes('tickets') ? '/tickets'
+      : user?.enabled_modules?.includes('settings') ? '/settings'
+      : '/';
+    return <Navigate to={fallback} replace />;
+  }
   return children;
 }
 
@@ -57,11 +71,23 @@ function AppRoutes() {
 
   if (loading) return null;
 
-  const defaultRoute = isPlatformOwner 
-    ? '/organizations' 
-    : user?.role === 'support' 
-      ? '/tickets' 
-      : '/dashboard';
+  const getDefaultRoute = () => {
+    if (isPlatformOwner) return '/organizations';
+    if (user?.role === 'support') return '/tickets';
+    
+    const isModuleEnabled = (moduleName) => {
+      return user?.enabled_modules ? user.enabled_modules.includes(moduleName) : true;
+    };
+    
+    if (isModuleEnabled('dashboard')) return '/dashboard';
+    if (isModuleEnabled('servers')) return '/servers';
+    if (isModuleEnabled('tickets')) return '/tickets';
+    if (isModuleEnabled('settings')) return '/settings';
+    
+    return '/';
+  };
+
+  const defaultRoute = getDefaultRoute();
 
   return (
     <Routes>
@@ -82,16 +108,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route path="/dashboard" element={<NonSupportRoute><Dashboard /></NonSupportRoute>} />
-        <Route path="/alerts" element={<NonSupportRoute><Alerts /></NonSupportRoute>} />
-        <Route path="/servers" element={<NonSupportRoute><ServerManagement /></NonSupportRoute>} />
-        <Route path="/activity" element={<NonSupportRoute><Activity /></NonSupportRoute>} />
-        <Route path="/servers/:id" element={<NonSupportRoute><ServerDetail /></NonSupportRoute>} />
-        <Route path="/servers/:id/sites" element={<NonSupportRoute><SiteManager /></NonSupportRoute>} />
-        <Route path="/servers/:id/logs" element={<NonSupportRoute><LogViewer /></NonSupportRoute>} />
-        <Route path="/servers/:id/ssl" element={<NonSupportRoute><SSLManager /></NonSupportRoute>} />
-        <Route path="/settings" element={<NonSupportRoute><Settings /></NonSupportRoute>} />
-        <Route path="/tickets" element={<Tickets />} />
+        <Route path="/dashboard" element={<ModuleProtectedRoute module="dashboard"><Dashboard /></ModuleProtectedRoute>} />
+        <Route path="/alerts" element={<ModuleProtectedRoute module="servers"><Alerts /></ModuleProtectedRoute>} />
+        <Route path="/servers" element={<ModuleProtectedRoute module="servers"><ServerManagement /></ModuleProtectedRoute>} />
+        <Route path="/activity" element={<ModuleProtectedRoute module="dashboard"><Activity /></ModuleProtectedRoute>} />
+        <Route path="/servers/:id" element={<ModuleProtectedRoute module="servers"><ServerDetail /></ModuleProtectedRoute>} />
+        <Route path="/servers/:id/sites" element={<ModuleProtectedRoute module="servers"><SiteManager /></ModuleProtectedRoute>} />
+        <Route path="/servers/:id/logs" element={<ModuleProtectedRoute module="servers"><LogViewer /></ModuleProtectedRoute>} />
+        <Route path="/servers/:id/ssl" element={<ModuleProtectedRoute module="servers"><SSLManager /></ModuleProtectedRoute>} />
+        <Route path="/settings" element={<ModuleProtectedRoute module="settings"><Settings /></ModuleProtectedRoute>} />
+        <Route path="/tickets" element={<ModuleProtectedRoute module="tickets"><Tickets /></ModuleProtectedRoute>} />
         <Route path="/organizations" element={
           <PlatformOwnerRoute>
             <Organizations />

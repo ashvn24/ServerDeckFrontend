@@ -25,7 +25,19 @@ import AlertModal from '../components/common/AlertModal';
 import ConfirmModal from '../components/common/ConfirmModal';
 import ServerAlertsPanel from '../components/server/ServerAlertsPanel';
 
-const TABS = ['Overview', 'Nginx Sites', 'PM2 Apps', 'Systemd', 'Automation', 'Security', 'Processes', 'SSL', 'SSH', 'Files', 'LuxeGenie'];
+const ALL_TABS = [
+  { name: 'Overview', key: 'overview', module: null },
+  { name: 'Nginx Sites', key: 'nginx', module: 'nginx' },
+  { name: 'PM2 Apps', key: 'pm2', module: 'pm2' },
+  { name: 'Systemd', key: 'systemd', module: 'systemd' },
+  { name: 'Automation', key: 'automation', module: 'automation' },
+  { name: 'Security', key: 'security', module: 'firewall' },
+  { name: 'Processes', key: 'processes', module: 'processes' },
+  { name: 'SSL', key: 'ssl', module: 'ssl' },
+  { name: 'SSH', key: 'ssh', module: 'ssh' },
+  { name: 'Files', key: 'files', module: 'files' },
+  { name: 'LuxeGenie', key: 'luxegenie', module: 'luxegenie' }
+];
 
 export default function ServerDetail() {
   const { id } = useParams();
@@ -33,10 +45,10 @@ export default function ServerDetail() {
   const { showToast } = useNotification();
   const [server, setServer] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('overview');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const { user } = useAuth();
+  const { user, isPlatformOwner } = useAuth();
   const { watchServer, unwatchServer, sendCommand, on, send, connected } = useWebSocket();
   const [alertConfig, setAlertConfig] = useState({ open: false, title: '', message: '', type: 'error' });
   const isPWA = useIsPWA();
@@ -46,6 +58,19 @@ export default function ServerDetail() {
   const tabStripRef = useRef(null);
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
+
+  const activeTabs = ALL_TABS.filter(tab => {
+    if (!tab.module) return true;
+    if (isPlatformOwner) return true;
+    return user?.enabled_modules ? user.enabled_modules.includes(tab.module) : true;
+  });
+
+  useEffect(() => {
+    const isTabAvailable = activeTabs.some(t => t.key === activeTab);
+    if (!isTabAvailable) {
+      setActiveTab('overview');
+    }
+  }, [activeTab, activeTabs]);
 
   // Keep the active tab scrolled into view on the iOS-style tab strip.
   useEffect(() => {
@@ -104,7 +129,7 @@ export default function ServerDetail() {
   };
 
   const handleServiceAction = async (name, action) => {
-    const prefix = activeTab === 1 ? 'nginx' : activeTab === 2 ? 'pm2' : 'systemd';
+    const prefix = activeTab === 'nginx' ? 'nginx' : activeTab === 'pm2' ? 'pm2' : 'systemd';
     try {
       await sendCommand(id, `${prefix}.${action}`, { name });
       setTimeout(fetchServer, 1000);
@@ -130,7 +155,7 @@ export default function ServerDetail() {
       return;
     }
     if (action === 'sites') navigate(`/servers/${id}/sites`);
-    if (action === 'ssh') setActiveTab(8);
+    if (action === 'ssh') setActiveTab('ssh');
   };
 
   return (
@@ -236,29 +261,29 @@ export default function ServerDetail() {
       {/* Tabs */}
       {useMobileLayout ? (
         <div ref={tabStripRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar -mx-3 px-3 py-1">
-          {TABS.map((tab, idx) => (
+          {activeTabs.map((tab) => (
             <button
-              key={tab}
-              data-active={activeTab === idx}
-              onClick={() => setActiveTab(idx)}
-              className={`shrink-0 px-4 h-9 rounded-full text-sm font-semibold whitespace-nowrap transition-transform active:scale-[0.97] ${activeTab === idx ? 'bg-white text-[#2c2c2e]' : 'bg-[var(--bg-card)] text-[var(--text-secondary)]'}`}
+              key={tab.key}
+              data-active={activeTab === tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`shrink-0 px-4 h-9 rounded-full text-sm font-semibold whitespace-nowrap transition-transform active:scale-[0.97] ${activeTab === tab.key ? 'bg-white text-[#2c2c2e]' : 'bg-[var(--bg-card)] text-[var(--text-secondary)]'}`}
             >
-              {tab}
+              {tab.name}
             </button>
           ))}
         </div>
       ) : (
         <div className="flex items-center gap-1.5 p-1.5 glass-card w-max max-w-full overflow-x-auto no-scrollbar">
-          {TABS.map((tab, idx) => (
+          {activeTabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(idx)}
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               className={`py-2 px-6 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap
-                ${activeTab === idx
+                ${activeTab === tab.key
                   ? 'bg-white text-[#2c2c2e] shadow-lg'
                   : 'text-[var(--text-secondary)] hover:text-white hover:bg-white/5'}`}
             >
-              {tab}
+              {tab.name}
             </button>
           ))}
         </div>
@@ -266,7 +291,7 @@ export default function ServerDetail() {
 
       {/* Tab Content */}
       <div className="pt-3">
-        {activeTab === 0 && (
+        {activeTab === 'overview' && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-4 md:gap-8">
             <StatCard icon={Cpu} label="CPU Load" value={`${(server.cpu_percent || 0).toFixed(0)}%`} color="white">
@@ -303,46 +328,46 @@ export default function ServerDetail() {
         </>
         )}
 
-        {activeTab === 1 && (
+        {activeTab === 'nginx' && (
           <div className="glass-card p-5 md:p-10">
             <h3 className="text-lg font-bold tracking-tight mb-5 md:mb-8">Nginx Sites</h3>
             <ServiceList serverId={id} services={server.nginx_sites || []} type="nginx" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
           </div>
         )}
 
-        {activeTab === 2 && (
+        {activeTab === 'pm2' && (
           <div className="glass-card p-5 md:p-10">
             <h3 className="text-lg font-bold tracking-tight mb-5 md:mb-8">PM2 Applications</h3>
             <ServiceList serverId={id} services={server.pm2_apps || []} type="pm2" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
           </div>
         )}
 
-        {activeTab === 3 && (
+        {activeTab === 'systemd' && (
           <div className="glass-card p-5 md:p-10">
             <h3 className="text-lg font-bold tracking-tight mb-5 md:mb-8">Systemd Services</h3>
             <ServiceList serverId={id} services={server.systemd_services || []} type="systemd" onAction={handleServiceAction} isAdmin={isAdmin} sendCommand={sendCommand} />
           </div>
         )}
 
-        {activeTab === 4 && (
+        {activeTab === 'automation' && (
           isAdmin ? <AutomationManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} /> : <RestrictedView title="Automation Restricted" />
         )}
-        {activeTab === 5 && <FirewallManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
-        {activeTab === 6 && <ProcessManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
-        {activeTab === 7 && <SSLManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} nginxSites={server.nginx_sites || []} />}
+        {activeTab === 'security' && <FirewallManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
+        {activeTab === 'processes' && <ProcessManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} />}
+        {activeTab === 'ssl' && <SSLManager serverId={id} sendCommand={sendCommand} isAdmin={isAdmin} nginxSites={server.nginx_sites || []} />}
 
-        <div style={{ display: activeTab === 8 ? 'block' : 'none' }}>
+        <div style={{ display: activeTab === 'ssh' ? 'block' : 'none' }}>
           {isAdmin ? (
             <div className="glass-card overflow-hidden">
-              <SSHTerminal serverId={id} isOnline={server.is_online} wsConnected={connected} send={send} on={on} isActive={activeTab === 8} />
+              <SSHTerminal serverId={id} isOnline={server.is_online} wsConnected={connected} send={send} on={on} isActive={activeTab === 'ssh'} />
             </div>
           ) : (
             <RestrictedView title="SSH Access Restricted" />
           )}
         </div>
 
-        {activeTab === 9 && <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />}
-        {activeTab === 10 && <LuxeGenieManager serverId={id} sendCommand={sendCommand} luxegenieHealth={server.luxegenie_health} isOnline={server.is_online} />}
+        {activeTab === 'files' && <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />}
+        {activeTab === 'luxegenie' && <LuxeGenieManager serverId={id} sendCommand={sendCommand} luxegenieHealth={server.luxegenie_health} isOnline={server.is_online} />}
       </div>
 
 

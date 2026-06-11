@@ -15,6 +15,14 @@ export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const { isPlatformOwner, user } = useAuth();
 
+  const isModuleEnabled = (moduleName) => {
+    if (isPlatformOwner) return true;
+    if (user?.role === 'support') {
+      return ['tickets', 'settings'].includes(moduleName);
+    }
+    return user?.enabled_modules ? user.enabled_modules.includes(moduleName) : true;
+  };
+
   useEffect(() => {
     if (isPlatformOwner) return; // Platform owner has no tenant data
     const fetchData = async () => {
@@ -131,26 +139,32 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* Dashboard Group — hidden for support users */}
-        {!isPlatformOwner && user?.role !== 'support' && (
+        {/* Dashboard Group */}
+        {!isPlatformOwner && user?.role !== 'support' && (isModuleEnabled('dashboard') || isModuleEnabled('servers') || isModuleEnabled('tickets')) && (
           <div>
             <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Main Console</p>
             <div className="space-y-1">
-              <NavLink to="/dashboard" end onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
-                <LayoutDashboard className="w-4 h-4" /> Dashboard
-              </NavLink>
-              <NavLink to="/servers" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
-                <Server className="w-4 h-4" /> Management
-              </NavLink>
-              <NavLink to="/tickets" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
-                <LifeBuoy className="w-4 h-4" /> Tickets
-              </NavLink>
+              {isModuleEnabled('dashboard') && (
+                <NavLink to="/dashboard" end onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                  <LayoutDashboard className="w-4 h-4" /> Dashboard
+                </NavLink>
+              )}
+              {isModuleEnabled('servers') && (
+                <NavLink to="/servers" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                  <Server className="w-4 h-4" /> Management
+                </NavLink>
+              )}
+              {isModuleEnabled('tickets') && (
+                <NavLink to="/tickets" onClick={handleNav} className={({ isActive }) => `flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all ${isActive ? 'bg-white/10 text-white shadow-sm' : 'text-gray-400 hover:text-gray-100 hover:bg-white/5'}`}>
+                  <LifeBuoy className="w-4 h-4" /> Tickets
+                </NavLink>
+              )}
             </div>
           </div>
         )}
 
         {/* Support Agent — only sees tickets */}
-        {!isPlatformOwner && user?.role === 'support' && (
+        {!isPlatformOwner && user?.role === 'support' && isModuleEnabled('tickets') && (
           <div>
             <p className="px-3 text-[10px] font-bold text-sky-500 uppercase tracking-widest mb-3">Support Desk</p>
             <div className="space-y-1">
@@ -162,7 +176,7 @@ export default function Sidebar({ isOpen, onClose }) {
         )}
 
         {/* Servers Group — hidden for support users */}
-        {!isPlatformOwner && user?.role !== 'support' && (
+        {!isPlatformOwner && user?.role !== 'support' && isModuleEnabled('servers') && (
           <div>
             <div className="flex items-center justify-between px-3 mb-3">
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Servers</p>
@@ -174,8 +188,8 @@ export default function Sidebar({ isOpen, onClose }) {
           </div>
         )}
 
-        {/* System Group — hidden for support users */}
-        {!isPlatformOwner && user?.role !== 'support' && (
+        {/* System Group */}
+        {!isPlatformOwner && isModuleEnabled('settings') && (
           <div>
             <p className="px-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">System</p>
             <div className="space-y-1">

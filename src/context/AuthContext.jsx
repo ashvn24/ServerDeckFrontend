@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI } from '../api/endpoints';
+import { authAPI, usersAPI } from '../api/endpoints';
 
 const AuthContext = createContext(null);
 
@@ -8,21 +8,51 @@ export function AuthProvider({ children }) {
   const [isPlatformOwner, setIsPlatformOwner] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const logout = () => {
+    localStorage.removeItem('serverdeck_token');
+    localStorage.removeItem('serverdeck_user');
+    localStorage.removeItem('serverdeck_is_platform_owner');
+    setUser(null);
+    setIsPlatformOwner(false);
+  };
+
   useEffect(() => {
     const token = localStorage.getItem('serverdeck_token');
     const savedUser = localStorage.getItem('serverdeck_user');
     const savedIsPlatformOwner = localStorage.getItem('serverdeck_is_platform_owner');
-    if (token && savedUser) {
-      try {
-        setUser(JSON.parse(savedUser));
-        setIsPlatformOwner(savedIsPlatformOwner === 'true');
-      } catch {
-        localStorage.removeItem('serverdeck_token');
-        localStorage.removeItem('serverdeck_user');
-        localStorage.removeItem('serverdeck_is_platform_owner');
+    
+    if (token) {
+      if (savedUser) {
+        try {
+          setUser(JSON.parse(savedUser));
+          setIsPlatformOwner(savedIsPlatformOwner === 'true');
+        } catch {
+          // ignore parsing error
+        }
       }
+      
+      const fetchProfile = async () => {
+        try {
+          if (savedIsPlatformOwner === 'true') {
+            setLoading(false);
+            return;
+          }
+          const res = await usersAPI.me();
+          localStorage.setItem('serverdeck_user', JSON.stringify(res.data));
+          setUser(res.data);
+        } catch (err) {
+          console.error("Failed to sync profile:", err);
+          if (err.response?.status === 401) {
+            logout();
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchProfile();
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const login = async (email, password) => {
@@ -47,13 +77,7 @@ export function AuthProvider({ children }) {
     return userData;
   };
 
-  const logout = () => {
-    localStorage.removeItem('serverdeck_token');
-    localStorage.removeItem('serverdeck_user');
-    localStorage.removeItem('serverdeck_is_platform_owner');
-    setUser(null);
-    setIsPlatformOwner(false);
-  };
+
 
   return (
     <AuthContext.Provider value={{ user, isPlatformOwner, loading, login, register, logout }}>
