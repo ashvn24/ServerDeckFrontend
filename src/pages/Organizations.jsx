@@ -500,14 +500,14 @@ export default function Organizations() {
                       <div className="col-span-2 flex justify-end gap-2 pr-2">
                         <button
                           onClick={() => handleOpenOrgModules(org)}
-                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all border border-white/5 opacity-0 group-hover:opacity-100"
+                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all border border-white/5 opacity-60 hover:opacity-100 group-hover:opacity-100"
                           title="Manage Modules"
                         >
                           <Sliders className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDeleteOrg(org)}
-                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 pr-2"
+                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-60 hover:opacity-100 group-hover:opacity-100 pr-2"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -624,7 +624,7 @@ export default function Organizations() {
                       <div className="col-span-1 flex justify-end">
                         <button
                           onClick={() => handleDeleteUser(u)}
-                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-60 hover:opacity-100 group-hover:opacity-100"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -742,7 +742,7 @@ export default function Organizations() {
                         <button
                           onClick={() => handleDeleteWaitlist(w.id)}
                           disabled={processingId === w.id}
-                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                          className="p-2.5 rounded-xl bg-red-500/5 text-red-500 hover:bg-red-500 hover:text-white transition-all opacity-60 hover:opacity-100 group-hover:opacity-100 disabled:opacity-50"
                           title="Reject"
                         >
                           <Trash2 className="w-4 h-4" />
