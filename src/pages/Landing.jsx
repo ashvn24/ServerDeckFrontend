@@ -2,17 +2,84 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Server, Shield, Terminal, Activity, Lock, ArrowRight,
-  ChevronDown, CheckCircle2, Cpu, Zap, BarChart3, Database,
-  Cloud, Globe, AlertTriangle, Settings, Monitor, Bell,
-  Check, Layers, GitBranch, HardDrive, RefreshCw, Eye,
-  Wifi, Key, Package, Volume2, VolumeX, Loader2
+  ChevronDown, CheckCircle2, Cpu, Database, Globe, Check,
+  GitBranch, Volume2, VolumeX, Loader2, Copy, Bell
 } from 'lucide-react';
 import { authAPI } from '../api/endpoints';
 import './Landing.css';
 
+/* ── Scroll-reveal wrapper ── */
+const Reveal = ({ children, delay = 0, className = '' }) => {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) {
+        setVisible(true);
+        obs.disconnect();
+      }
+    }, { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`ld-reveal${visible ? ' ld-in' : ''}${className ? ` ${className}` : ''}`}
+      style={delay ? { '--ld-rd': `${delay}ms` } : undefined}
+    >
+      {children}
+    </div>
+  );
+};
+
+/* ── Parallax: translates an element against scroll at the given speed.
+   Uses the CSS `translate` property so it never fights `transform`
+   transitions (hover effects, reveals). ── */
+const useParallax = (speed = 0.1) => {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let raf = 0;
+    let currentY = 0;
+
+    const update = () => {
+      raf = 0;
+      const rect = el.getBoundingClientRect();
+      // subtract our own offset so the base position stays stable
+      const baseCenter = rect.top - currentY + rect.height / 2;
+      currentY = (baseCenter - window.innerHeight / 2) * speed;
+      el.style.translate = `0 ${currentY.toFixed(1)}px`;
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (raf) cancelAnimationFrame(raf);
+      el.style.translate = '';
+    };
+  }, [speed]);
+
+  return ref;
+};
+
 /* ── Small helpers ── */
 const Star = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
   </svg>
 );
@@ -23,83 +90,70 @@ const Stars = ({ n = 5 }) => (
   </div>
 );
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   RADIAL HERO VISUAL
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
-const RadialVisual = () => (
-  <div className="ld-radial-wrap">
-    <div className="ld-radial-ring" />
-    <div className="ld-radial-ring" />
-    <div className="ld-radial-ring" />
-
-    <div className="ld-orbit-track">
-      <div className="ld-orbit-dot" />
+/* ── Terminal mockup (bento) ── */
+const TerminalMock = () => (
+  <div className="ld-term">
+    <div className="ld-term-bar">
+      <span className="ld-term-dot ld-r" />
+      <span className="ld-term-dot ld-y" />
+      <span className="ld-term-dot ld-g" />
+      <span className="ld-term-title">prod-01 — ssh</span>
+      <span className="ld-term-live">● LIVE</span>
     </div>
-
-    <div className="ld-radial-core">
-      <div className="ld-radial-core-icon">
-        <Server size={28} />
-      </div>
-    </div>
-
-    {/* Floating stat cards */}
-    <div className="ld-stat-card" style={{ top: '8%', right: '0%' }}>
-      <div className="ld-stat-num">99.99%</div>
-      <div className="ld-stat-lbl">Uptime SLA</div>
-      <div className="ld-stat-badge">
-        <CheckCircle2 size={10} /> Verified
-      </div>
-    </div>
-
-    <div className="ld-stat-card" style={{ top: '52%', right: '-4%' }}>
-      <div className="ld-stat-num">1.2k+</div>
-      <div className="ld-stat-lbl">Nodes Managed</div>
-      <div className="ld-stat-badge">
-        <Activity size={10} /> Live
-      </div>
-    </div>
-
-    <div className="ld-stat-card" style={{ bottom: '4%', left: '4%' }}>
-      <div className="ld-stat-num">&lt;3ms</div>
-      <div className="ld-stat-lbl">Avg Latency</div>
-      <div className="ld-stat-badge">
-        <Zap size={10} /> Optimised
-      </div>
+    <div className="ld-term-body">
+      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> systemctl status nginx</div>
+      <div className="ld-term-line ld-ok">● nginx.service — active (running) since 41 days ago</div>
+      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> pm2 restart api</div>
+      <div className="ld-term-line ld-ok">[PM2] ✓ api restarted · mem 84.2mb · cpu 0.4%</div>
+      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> certbot renew --dry-run</div>
+      <div className="ld-term-line ld-dim">Congratulations, all simulated renewals succeeded</div>
+      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> <span className="ld-term-caret" /></div>
     </div>
   </div>
 );
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   MINI CHART
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ── Sparkline chart (bento) ── */
 const MiniChart = ({ bars }) => (
   <div className="ld-chart">
     {bars.map((h, i) => (
       <div
         key={i}
         className={`ld-chart-bar${h > 70 ? ' ld-high' : ''}`}
-        style={{ '--ld-bar-h': `${h}%`, height: `${h}%`, animationDelay: `${i * 0.06}s` }}
+        style={{ '--ld-bar-h': `${h}%`, height: `${h}%`, animationDelay: `${i * 0.05}s` }}
       />
     ))}
   </div>
 );
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ORBIT VISUAL
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ── SSL renewal ring (bento) ── */
+const CertRing = () => (
+  <div className="ld-ring-wrap">
+    <svg viewBox="0 0 80 80" className="ld-ring">
+      <circle cx="40" cy="40" r="34" className="ld-ring-track" />
+      <circle cx="40" cy="40" r="34" className="ld-ring-fill" strokeDasharray="213.6" strokeDashoffset="30" />
+    </svg>
+    <div className="ld-ring-center">
+      <span className="ld-ring-num">89</span>
+      <span className="ld-ring-sub">days left</span>
+    </div>
+  </div>
+);
+
+/* ── Integrations orbit ── */
 const ORBIT_NODES = [
-  { icon: <Globe size={18} />,    label: 'Nginx',    angle: 270, r: 110 },
-  { icon: <Database size={18} />, label: 'DB',       angle: 45,  r: 110 },
-  { icon: <Package size={18} />,  label: 'PM2',      angle: 135, r: 110 },
-  { icon: <Key size={18} />,      label: 'SSL',      angle: 225, r: 110 },
+  { icon: <Globe size={18} />,    label: 'Nginx', angle: 270, r: 110 },
+  { icon: <Database size={18} />, label: 'DB',    angle: 45,  r: 110 },
+  { icon: <Cpu size={18} />,      label: 'PM2',   angle: 135, r: 110 },
+  { icon: <Lock size={18} />,     label: 'SSL',   angle: 225, r: 110 },
 ];
 
 const OrbitVisual = () => (
   <div className="ld-orbit-visual">
     <div className="ld-orbit-ring-1" />
     <div className="ld-orbit-ring-2" />
+    <div className="ld-orbit-sweep" />
     <div className="ld-orbit-center">
-      <Server size={36} color="#22c55e" />
+      <Server size={34} color="#22c55e" />
     </div>
     {ORBIT_NODES.map(({ icon, label, angle, r }) => {
       const rad = (angle * Math.PI) / 180;
@@ -119,9 +173,7 @@ const OrbitVisual = () => (
   </div>
 );
 
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   FAQ ITEM
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* ── FAQ item ── */
 const FaqItem = ({ q, a }) => {
   const [open, setOpen] = useState(false);
   return (
@@ -138,20 +190,40 @@ const FaqItem = ({ q, a }) => {
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    MAIN COMPONENT
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+const INSTALL_CMD = 'curl -fsSL https://get.serverdeck.io | bash';
+
 const Landing = () => {
   const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [copied, setCopied] = useState(false);
   const laptopVideoRef = useRef(null);
   const mobileVideoRef = useRef(null);
   const [isMuted, setIsMuted] = useState(true);
+
+  const rootRef = useRef(null);
+  const heroGlowRef = useParallax(-0.15);
+  const phoneRef = useParallax(0.06);
+  const laptopRef = useParallax(-0.04);
+  const orbitRef = useParallax(-0.08);
 
   const toggleMute = () => {
     if (laptopVideoRef.current) {
       laptopVideoRef.current.muted = !laptopVideoRef.current.muted;
       setIsMuted(laptopVideoRef.current.muted);
+    }
+  };
+
+  const copyCmd = async () => {
+    try {
+      await navigator.clipboard.writeText(INSTALL_CMD);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable — ignore */
     }
   };
 
@@ -169,18 +241,21 @@ const Landing = () => {
     if (laptopVideoRef.current) observer.observe(laptopVideoRef.current);
     if (mobileVideoRef.current) observer.observe(mobileVideoRef.current);
 
-    return () => {
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 30);
-    window.addEventListener('scroll', onScroll);
+    const onScroll = () => {
+      setScrolled(window.scrollY > 30);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
+      // drives the fixed background parallax (grid + auroras) via CSS calc()
+      if (rootRef.current) rootRef.current.style.setProperty('--ld-scroll', window.scrollY);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Smooth scroll to section anchors
   const scrollTo = (e, id) => {
     e.preventDefault();
     const el = document.getElementById(id);
@@ -190,7 +265,7 @@ const Landing = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
-    
+
     setIsSubmitting(true);
     setSubmitError('');
     try {
@@ -203,27 +278,44 @@ const Landing = () => {
     }
   };
 
-  const features = [
+  const steps = [
     {
-      icon: <Terminal size={22} />,
-      title: 'Web SSH Terminal',
-      desc: 'Full-featured browser-based terminal. Zero client setup, end-to-end encrypted, with persistent session recovery.',
+      num: '01',
+      title: 'Install the agent',
+      desc: 'One command on any Ubuntu or Debian server. The agent dials out over an encrypted WebSocket — no open ports, no firewall changes.',
+      code: INSTALL_CMD,
     },
     {
-      icon: <Shield size={22} />,
-      title: 'Firewall & SSL',
-      desc: 'One-click UFW rule management and automated Let\'s Encrypt SSL provisioning across all your servers.',
+      num: '02',
+      title: 'Node joins your deck',
+      desc: 'Within seconds the server appears in your dashboard with live CPU, RAM, disk, and network telemetry streaming in.',
+      code: null,
     },
     {
-      icon: <Activity size={22} />,
-      title: 'Real-time Telemetry',
-      desc: 'Sub-second CPU, RAM, disk, and network monitoring with historical usage analytics and anomaly alerts.',
+      num: '03',
+      title: 'Control everything',
+      desc: 'Open a terminal, edit Nginx sites, renew SSL, restart PM2 apps, tail logs, and manage firewall rules — all from one window.',
+      code: null,
     },
-    {
-      icon: <Layers size={22} />,
-      title: 'App Lifecycle',
-      desc: 'Full PM2, Systemd, and static site management. Deploy, restart, scale, and rollback with one click.',
-    },
+  ];
+
+  const alerts = [
+    { color: 'green',  title: 'Deployment successful', msg: 'api-server v2.4.1 live on prod-01', time: 'now' },
+    { color: 'red',    title: 'High memory usage',     msg: 'prod-03 RAM at 91% — action suggested', time: '2m' },
+    { color: 'yellow', title: 'SSL renewal scheduled', msg: 'api.example.com renews in 14 days', time: '8m' },
+  ];
+
+  const fwRules = [
+    { port: '443 / tcp',  rule: 'ALLOW', from: 'Anywhere' },
+    { port: '22 / tcp',   rule: 'ALLOW', from: 'Office VPN' },
+    { port: '3306 / tcp', rule: 'DENY',  from: 'Anywhere' },
+  ];
+
+  const fleet = [
+    { name: 'prod-01',    region: 'fra1', ms: '2ms',  up: true },
+    { name: 'prod-02',    region: 'fra1', ms: '3ms',  up: true },
+    { name: 'staging-01', region: 'blr1', ms: '11ms', up: true },
+    { name: 'worker-03',  region: 'nyc3', ms: '38ms', up: true },
   ];
 
   const testimonials = [
@@ -261,19 +353,19 @@ const Landing = () => {
     { q: 'Does Server Deck support team collaboration?', a: 'Yes. You can invite team members with granular role-based access control, and every action is logged in a full audit trail so you always know who changed what and when.' },
   ];
 
-  const alerts = [
-    { color: 'green',  title: 'Deployment Successful',    msg: 'api-server v2.4.1 deployed to prod-01 without errors.', time: 'just now' },
-    { color: 'red',    title: 'High Memory Usage',        msg: 'prod-03 RAM at 91%. Consider scaling or restarting.', time: '2m ago' },
-    { color: 'yellow', title: 'SSL Renewal Scheduled',    msg: 'cert for api.example.com renews in 14 days.', time: '8m ago' },
-    { color: 'green',  title: 'Firewall Rule Applied',    msg: 'Port 3000 blocked on staging-01 via UFW policy.', time: '15m ago' },
-  ];
-
   const tickerItems = ['Ubuntu 22.04', 'Nginx', 'PM2', 'Let\'s Encrypt', 'PostgreSQL', 'Node.js', 'Python', 'Redis', 'Docker', 'AWS EC2', 'DigitalOcean', 'Hetzner'];
 
   const chartBars = [35, 55, 48, 72, 60, 85, 42, 78, 65, 90, 55, 70, 38, 80];
 
   return (
-    <div className="ld-root">
+    <div className="ld-root" ref={rootRef}>
+
+      {/* ── BACKGROUND FX ── */}
+      <div className="ld-bg-fx" aria-hidden="true">
+        <div className="ld-bg-grid" />
+        <div className="ld-bg-aurora" />
+        <div className="ld-bg-aurora ld-bg-aurora-2" />
+      </div>
 
       {/* ── NAV ── */}
       <nav className={`ld-nav${scrolled ? ' ld-nav-scrolled' : ''}`}>
@@ -287,7 +379,7 @@ const Landing = () => {
 
           <div className="ld-nav-links">
             <a href="#features"     className="ld-nav-link" onClick={e => scrollTo(e, 'features')}>Features</a>
-            <a href="#monitoring"   className="ld-nav-link" onClick={e => scrollTo(e, 'monitoring')}>Monitoring</a>
+            <a href="#how"          className="ld-nav-link" onClick={e => scrollTo(e, 'how')}>How it works</a>
             <a href="#integrations" className="ld-nav-link" onClick={e => scrollTo(e, 'integrations')}>Integrations</a>
             <a href="#testimonials" className="ld-nav-link" onClick={e => scrollTo(e, 'testimonials')}>Reviews</a>
             <a href="#faq"          className="ld-nav-link" onClick={e => scrollTo(e, 'faq')}>FAQ</a>
@@ -300,121 +392,105 @@ const Landing = () => {
             </a>
           </div>
         </div>
+        <div className="ld-nav-progress" style={{ width: `${progress}%` }} />
       </nav>
 
       {/* ── HERO ── */}
-      <section style={{ position: 'relative' }}>
-        <div className="ld-hero-bg">
-          <div className="ld-hero-bg-blob" />
-        </div>
+      <section className="ld-hero">
+        <div className="ld-hero-glow" aria-hidden="true" ref={heroGlowRef} />
 
-        <div className="ld-hero">
-          <div className="ld-hero-text">
-            <div className="ld-hero-tag">
-              <span className="ld-hero-tag-dot" />
-              Infrastructure Without Compromise
-            </div>
-
-            <h1 className="ld-hero-title">
-              Your Servers.
-              <br />
-              <span className="ld-hero-title-accent">Total Control.</span>
-              <br />
-              One Window.
-            </h1>
-
-            <p className="ld-hero-sub">
-              Server Deck is the modern control panel for Linux infrastructure.
-              Manage SSH, Nginx, SSL, apps, and logs across your entire fleet —
-              without ever opening a terminal again.
-            </p>
-
-            <div className="ld-hero-ctas">
-              <a href="#request" className="ld-btn-primary">
-                Request Early Access <ArrowRight size={16} />
-              </a>
-              <a href="#features" className="ld-btn-outline">See Features</a>
-            </div>
-
-            <div className="ld-hero-trust">
-              <div className="ld-hero-avatars">
-                {['AK','RS','PT','MN'].map((av, i) => (
-                  <div className="ld-avatar" key={i} style={{ background: ['#16a34a','#0d9488','#0891b2','#7c3aed'][i] }}>
-                    {av}
-                  </div>
-                ))}
-              </div>
-              <p className="ld-hero-trust-text">
-                Trusted by <strong>500+ engineers</strong> managing production fleets
-              </p>
-            </div>
+        <div className="ld-hero-inner">
+          <div className="ld-hero-badge">
+            <span className="ld-hero-badge-dot" />
+            Early access open · agent v2.0
           </div>
 
-          <div className="ld-hero-visual">
-            <RadialVisual />
+          <h1 className="ld-hero-title">
+            The command deck for
+            <br />
+            <span className="ld-hero-title-accent">your entire fleet.</span>
+          </h1>
+
+          <p className="ld-hero-sub">
+            Server Deck unifies SSH, Nginx, SSL, firewalls, processes, and real-time
+            monitoring into one fast control panel — so you never juggle six
+            terminals again.
+          </p>
+
+          <div className="ld-hero-ctas">
+            <a href="#request" className="ld-btn-primary ld-btn-lg" onClick={e => scrollTo(e, 'request')}>
+              Request Early Access <ArrowRight size={16} />
+            </a>
+            <a href="#product" className="ld-btn-outline ld-btn-lg" onClick={e => scrollTo(e, 'product')}>
+              See the deck
+            </a>
           </div>
-        </div>
-      </section>
 
-      {/* ── SHOWCASE ── */}
-      <section className="ld-showcase-section">
-        <div className="ld-container">
-          <div className="ld-showcase-wrapper">
-            <div className="ld-mobile-frame ld-mobile-1">
-              <div className="ld-mobile-notch" />
-              <video 
-                ref={mobileVideoRef}
-                src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4" 
-                className="ld-mobile-video ld-desktop-only" 
-                loop muted playsInline 
-              />
-              <img
-                src="/app-dark.png"
-                alt="Server Deck dark theme"
-                className="ld-mobile-video ld-mobile-only"
-              />
-            </div>
+          <div className="ld-install">
+            <span className="ld-install-prompt">$</span>
+            <code className="ld-install-code">{INSTALL_CMD}</code>
+            <button className="ld-install-copy" onClick={copyCmd} title="Copy install command">
+              {copied ? <Check size={14} /> : <Copy size={14} />}
+            </button>
+          </div>
 
-            <div className="ld-laptop-frame">
-              <div className="ld-laptop-lid">
-                <div className="ld-laptop-camera" />
-                <div className="ld-laptop-screen">
-                  <video 
-                    ref={laptopVideoRef}
-                    src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4" 
-                    className="ld-laptop-video" 
-                    loop muted playsInline autoPlay
-                  />
-                  <button className="ld-mute-btn" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
-                    {isMuted ? <VolumeX size={11} /> : <Volume2 size={11} />}
-                  </button>
+          <div className="ld-hero-trust">
+            <div className="ld-hero-avatars">
+              {['AK','RS','PT','MN'].map((av, i) => (
+                <div className="ld-avatar" key={i} style={{ background: ['#16a34a','#0d9488','#0891b2','#7c3aed'][i] }}>
+                  {av}
                 </div>
-              </div>
-              <div className="ld-laptop-base">
-                <div className="ld-laptop-hinge" />
+              ))}
+            </div>
+            <p className="ld-hero-trust-text">
+              Trusted by <strong>500+ engineers</strong> managing production fleets
+            </p>
+          </div>
+        </div>
+
+        {/* ── PRODUCT SHOWCASE ── */}
+        <div id="product" className="ld-showcase-wrapper">
+          <div className="ld-mobile-frame ld-mobile-1" ref={phoneRef}>
+            <div className="ld-mobile-notch" />
+            <video
+              ref={mobileVideoRef}
+              src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4"
+              className="ld-mobile-video ld-desktop-only"
+              loop muted playsInline
+            />
+            <img
+              src="/app-dark.png"
+              alt="Server Deck dark theme"
+              className="ld-mobile-video ld-mobile-only"
+            />
+          </div>
+
+          <div className="ld-laptop-frame" ref={laptopRef}>
+            <div className="ld-laptop-lid">
+              <div className="ld-laptop-camera" />
+              <div className="ld-laptop-screen">
+                <video
+                  ref={laptopVideoRef}
+                  src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4"
+                  className="ld-laptop-video"
+                  loop muted playsInline autoPlay
+                />
+                <button className="ld-mute-btn" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
+                  {isMuted ? <VolumeX size={11} /> : <Volume2 size={11} />}
+                </button>
               </div>
             </div>
-
-            <div className="ld-mobile-frame ld-mobile-2">
-              <div className="ld-mobile-notch" />
-              <video 
-                src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4" 
-                className="ld-mobile-video ld-desktop-only" 
-                loop muted playsInline 
-              />
-              <img
-                src="/app-light.png"
-                alt="Server Deck light theme"
-                className="ld-mobile-video ld-mobile-only"
-              />
+            <div className="ld-laptop-base">
+              <div className="ld-laptop-hinge" />
             </div>
           </div>
+
         </div>
       </section>
 
       {/* ── TICKER ── */}
       <div className="ld-ticker-wrap">
-        <p className="ld-ticker-label">Compatible with your entire stack</p>
+        <p className="ld-ticker-label">Works with your entire stack</p>
         <div className="ld-ticker-track">
           {[...tickerItems, ...tickerItems].map((item, i) => (
             <span className="ld-ticker-item" key={i}>
@@ -426,211 +502,237 @@ const Landing = () => {
       </div>
 
       {/* ── STATS STRIP ── */}
-      <div className="ld-container" style={{ paddingTop: '5rem', paddingBottom: '5rem' }}>
-        <div className="ld-stats-strip">
-          {[
-            { n: '99.99%', d: 'Uptime SLA' },
-            { n: '1,200+', d: 'Servers Indexed' },
-            { n: '<3ms',   d: 'Avg Panel Latency' },
-            { n: 'RSA-256',d: 'Encrypted Comms' },
-          ].map(s => (
-            <div className="ld-stats-item" key={s.n}>
-              <div className="ld-stats-num">{s.n}</div>
-              <div className="ld-stats-desc">{s.d}</div>
-            </div>
-          ))}
-        </div>
+      <div className="ld-container ld-stats-section">
+        <Reveal>
+          <div className="ld-stats-strip">
+            {[
+              { n: '99.99%', d: 'Uptime SLA' },
+              { n: '1,200+', d: 'Servers Indexed' },
+              { n: '<3ms',   d: 'Avg Panel Latency' },
+              { n: 'RSA-256',d: 'Encrypted Comms' },
+            ].map(s => (
+              <div className="ld-stats-item" key={s.n}>
+                <div className="ld-stats-num">{s.n}</div>
+                <div className="ld-stats-desc">{s.d}</div>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </div>
 
-      {/* ── FEATURES ── */}
+      {/* ── BENTO FEATURES ── */}
       <section id="features" className="ld-section">
         <div className="ld-container">
-          <div className="ld-text-center" style={{ marginBottom: '3.5rem' }}>
-            <span className="ld-label">Core Capabilities</span>
+          <Reveal className="ld-text-center ld-section-head">
+            <span className="ld-label">01 / The Deck</span>
             <h2 className="ld-section-title">
-              We Shield Your Stack<br />Before Problems Strike.
+              Everything your servers need.<br />One surface.
             </h2>
-            <p className="ld-section-sub" style={{ margin: '1rem auto 0' }}>
-              Every tool you need to keep your servers healthy, secure, and performing — built into one unified panel.
+            <p className="ld-section-sub ld-sub-center">
+              Terminal, monitoring, alerts, SSL, firewall, and fleet management —
+              live, in one bento of control.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="ld-features-grid">
-            {features.map((f, i) => (
-              <div className="ld-feature-card" key={i}>
-                <div className="ld-feature-icon">{f.icon}</div>
-                <h3 className="ld-feature-title">{f.title}</h3>
-                <p className="ld-feature-desc">{f.desc}</p>
-                <button className="ld-btn-ghost">
-                  Learn More <ArrowRight size={13} />
-                </button>
+          <div className="ld-bento">
+            <Reveal className="ld-bento-card ld-b-term">
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Terminal size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Web SSH Terminal</h3>
+                  <p className="ld-bento-desc">A real terminal in your browser. Zero client setup, end-to-end encrypted, persistent session recovery.</p>
+                </div>
               </div>
+              <TerminalMock />
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-mon" delay={80}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Activity size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Real-time Telemetry</h3>
+                  <p className="ld-bento-desc">Sub-second CPU, RAM, disk, and network streams with anomaly detection.</p>
+                </div>
+              </div>
+              <div className="ld-metrics">
+                {[
+                  { l: 'CPU', v: 34, cls: '' },
+                  { l: 'RAM', v: 61, cls: 'ld-amber' },
+                  { l: 'DSK', v: 48, cls: 'ld-cyan-bar' },
+                ].map(m => (
+                  <div className="ld-metric-row" key={m.l}>
+                    <span className="ld-metric-lbl">{m.l}</span>
+                    <div className="ld-metric-bar-track">
+                      <div className={`ld-metric-bar-fill ${m.cls}`} style={{ width: `${m.v}%` }} />
+                    </div>
+                    <span className="ld-metric-val">{m.v}%</span>
+                  </div>
+                ))}
+              </div>
+              <MiniChart bars={chartBars} />
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-alerts" delay={160}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Bell size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Instant Alerts</h3>
+                  <p className="ld-bento-desc">Every node streams events the moment they happen.</p>
+                </div>
+              </div>
+              <div className="ld-alert-list">
+                {alerts.map((a, i) => (
+                  <div className="ld-alert-row" key={i}>
+                    <span className={`ld-alert-dot ld-${a.color}`} />
+                    <div className="ld-alert-text">
+                      <span className="ld-alert-title">{a.title}</span>
+                      <span className="ld-alert-msg">{a.msg}</span>
+                    </div>
+                    <span className="ld-alert-time">{a.time}</span>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-ssl" delay={120}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Lock size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Auto SSL</h3>
+                  <p className="ld-bento-desc">Let's Encrypt renewed 30 days early, every time.</p>
+                </div>
+              </div>
+              <CertRing />
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-fw" delay={200}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Shield size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Visual Firewall</h3>
+                  <p className="ld-bento-desc">UFW rules without the CLI.</p>
+                </div>
+              </div>
+              <div className="ld-fw-list">
+                {fwRules.map(r => (
+                  <div className="ld-fw-row" key={r.port}>
+                    <span className="ld-fw-port">{r.port}</span>
+                    <span className={`ld-fw-rule ${r.rule === 'ALLOW' ? 'ld-allow' : 'ld-deny'}`}>{r.rule}</span>
+                    <span className="ld-fw-from">{r.from}</span>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-fleet" delay={280}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><GitBranch size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Unlimited Fleet</h3>
+                  <p className="ld-bento-desc">Switch context between nodes instantly.</p>
+                </div>
+              </div>
+              <div className="ld-fleet-list">
+                {fleet.map(s => (
+                  <div className="ld-fleet-row" key={s.name}>
+                    <span className="ld-fleet-dot" />
+                    <span className="ld-fleet-name">{s.name}</span>
+                    <span className="ld-fleet-region">{s.region}</span>
+                    <span className="ld-fleet-ms">{s.ms}</span>
+                  </div>
+                ))}
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ── */}
+      <section id="how" className="ld-section ld-how-section">
+        <div className="ld-container">
+          <Reveal className="ld-text-center ld-section-head">
+            <span className="ld-label">02 / Onboarding</span>
+            <h2 className="ld-section-title">
+              Zero to managed<br />in sixty seconds.
+            </h2>
+            <p className="ld-section-sub ld-sub-center">
+              No SSH key wrangling, no VPNs, no open inbound ports. The agent does the work.
+            </p>
+          </Reveal>
+
+          <div className="ld-steps">
+            {steps.map((s, i) => (
+              <Reveal className="ld-step" key={s.num} delay={i * 100}>
+                <div className="ld-step-num">{s.num}</div>
+                <h3 className="ld-step-title">{s.title}</h3>
+                <p className="ld-step-desc">{s.desc}</p>
+                {s.code && (
+                  <div className="ld-step-code">
+                    <code>{s.code}</code>
+                  </div>
+                )}
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── ALERTS SECTION ── */}
-      <section id="monitoring" className="ld-section ld-alert-section">
-        <div className="ld-container">
-          <div className="ld-grid-2" style={{ gap: '5rem' }}>
-
-            {/* Text side */}
-            <div>
-              <span className="ld-label">Live Intelligence</span>
-              <h2 className="ld-section-title">
-                Your Fleet's Health—<br />Live Alerts, Anytime.
-              </h2>
-              <p className="ld-section-sub">
-                Stay ahead of incidents. Server Deck streams real-time events
-                from every node so you can act before your users even notice.
-              </p>
-              <div style={{ marginTop: '2.5rem' }}>
-                <a href="#request" className="ld-btn-primary">Start Monitoring</a>
-              </div>
-            </div>
-
-            {/* Alerts stack */}
-            <div className="ld-alerts-stack">
-              {alerts.map((a, i) => (
-                <div className="ld-alert-card" key={i}>
-                  <span className={`ld-alert-dot ${a.color}`} />
-                  <div style={{ flex: 1 }}>
-                    <div className="ld-alert-title">{a.title}</div>
-                    <div className="ld-alert-msg">{a.msg}</div>
-                  </div>
-                  <span className="ld-alert-time">{a.time}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Monitor card row */}
-          <div className="ld-grid-2" style={{ marginTop: '5rem', gap: '3rem' }}>
-            <div className="ld-monitor-card">
-              <div className="ld-monitor-card-title">Cluster Resource Overview</div>
-              <div className="ld-monitor-card-sub">Aggregated metrics across all connected nodes</div>
-
-              {[
-                { l: 'CPU', v: 34, cls: '' },
-                { l: 'RAM', v: 61, cls: 'amber' },
-                { l: 'NET', v: 22, cls: 'violet' },
-                { l: 'DSK', v: 48, cls: '' },
-              ].map(m => (
-                <div className="ld-metric-row" key={m.l}>
-                  <span className="ld-metric-lbl">{m.l}</span>
-                  <div className="ld-metric-bar-track">
-                    <div className={`ld-metric-bar-fill ${m.cls}`} style={{ width: `${m.v}%` }} />
-                  </div>
-                  <span className="ld-metric-val">{m.v}%</span>
-                </div>
-              ))}
-
-              <MiniChart bars={chartBars} />
-
-              <div className="ld-server-pills" style={{ marginTop: '1.5rem' }}>
-                {['prod-01','prod-02','staging-01','worker-03'].map(s => (
-                  <span className="ld-server-pill" key={s}>
-                    <span className="ld-server-pill-dot" />
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <span className="ld-label">Security & Automation</span>
-              <h3 className="ld-section-title" style={{ fontSize: '2rem' }}>
-                Protect What Matters with Industry-Grade Controls.
-              </h3>
-              <p className="ld-section-sub">
-                From UFW firewall policies to automated SSL renewal — Server Deck
-                enforces best-practice security across your entire fleet, hands-free.
-              </p>
-
-              <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
-                {[
-                  { icon: <Lock size={20} />, title: 'Automated SSL Renewal', desc: 'Never worry about expired certs. We handle Let\'s Encrypt renewal 30 days early, every time.' },
-                  { icon: <Shield size={20} />, title: 'Firewall Rule Engine', desc: 'Manage UFW rules visually. Block, allow, and audit traffic with zero CLI required.' },
-                ].map(item => (
-                  <div key={item.title} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ padding: '0.7rem', background: 'rgba(34,197,94,0.1)', borderRadius: '12px', color: '#22c55e', flexShrink: 0 }}>
-                      {item.icon}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', marginBottom: '0.3rem' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.82rem', color: '#6b7280', lineHeight: 1.6 }}>{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <button className="ld-btn-primary" style={{ marginTop: '2rem' }}>
-                Learn More <ArrowRight size={15} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── INTEGRATIONS / ORBIT ── */}
+      {/* ── INTEGRATIONS ── */}
       <section id="integrations" className="ld-section">
         <div className="ld-container">
-          <div className="ld-grid-2" style={{ gap: '5rem' }}>
-            <div>
-              <span className="ld-label">Integrations</span>
+          <div className="ld-grid-2">
+            <Reveal>
+              <span className="ld-label">03 / Integrations</span>
               <h2 className="ld-section-title">
-                One Panel.<br />Every Stack.
+                One panel.<br />Every stack.
               </h2>
               <p className="ld-section-sub">
                 Server Deck works everywhere your infrastructure lives — from bare-metal
                 to cloud VMs — with zero vendor lock-in.
               </p>
 
-              <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', gap: '1.4rem' }}>
+              <div className="ld-int-list">
                 {[
-                  { icon: <Globe size={18} />,    title: 'Nginx Site Management', desc: 'Create, edit, and toggle Nginx server blocks with a visual editor. No more manual conf files.' },
-                  { icon: <Cpu size={18} />,       title: 'PM2 Process Control',   desc: 'Full lifecycle control for Node.js apps — start, stop, restart, and view logs in realtime.' },
+                  { icon: <Globe size={18} />,     title: 'Nginx Site Management', desc: 'Create, edit, and toggle server blocks with a visual editor. No more manual conf files.' },
+                  { icon: <Cpu size={18} />,       title: 'PM2 Process Control',   desc: 'Full lifecycle control for Node.js apps — start, stop, restart, and stream logs live.' },
                   { icon: <GitBranch size={18} />, title: 'Multi-Server Fleet',    desc: 'Connect unlimited servers. Switch context instantly. Manage everything from one place.' },
                 ].map(item => (
-                  <div key={item.title} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                    <div style={{ padding: '0.7rem', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)', borderRadius: '12px', color: '#22c55e', flexShrink: 0 }}>
-                      {item.icon}
-                    </div>
+                  <div key={item.title} className="ld-int-row">
+                    <div className="ld-int-icon">{item.icon}</div>
                     <div>
-                      <div style={{ fontWeight: 700, fontSize: '0.92rem', marginBottom: '0.25rem' }}>{item.title}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#6b7280', lineHeight: 1.6 }}>{item.desc}</div>
+                      <div className="ld-int-title">{item.title}</div>
+                      <div className="ld-int-desc">{item.desc}</div>
                     </div>
                   </div>
                 ))}
               </div>
+            </Reveal>
 
-              <button className="ld-btn-ghost" style={{ marginTop: '2rem', fontSize: '0.88rem' }}>
-                View All Integrations <ArrowRight size={14} />
-              </button>
-            </div>
-
-            <OrbitVisual />
+            <Reveal delay={120}>
+              <div ref={orbitRef}>
+                <OrbitVisual />
+              </div>
+            </Reveal>
           </div>
         </div>
       </section>
 
       {/* ── TESTIMONIALS ── */}
-      <section id="testimonials" className="ld-section" style={{ background: 'rgba(255,255,255,0.01)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <section id="testimonials" className="ld-section ld-testi-section">
         <div className="ld-container">
-          <div className="ld-text-center" style={{ marginBottom: '3.5rem' }}>
-            <span className="ld-label">Testimonials</span>
+          <Reveal className="ld-text-center ld-section-head">
+            <span className="ld-label">04 / Reviews</span>
             <h2 className="ld-section-title">
-              Trusted by Engineers.<br />Proven in Production.
+              Trusted by engineers.<br />Proven in production.
             </h2>
-            <p className="ld-section-sub" style={{ margin: '1rem auto 0' }}>
+            <p className="ld-section-sub ld-sub-center">
               Teams running critical infrastructure rely on Server Deck every day.
             </p>
-          </div>
+          </Reveal>
 
           <div className="ld-grid-3">
             {testimonials.map((t, i) => (
-              <div className="ld-testi-card" key={i}>
+              <Reveal className="ld-testi-card" key={i} delay={i * 100}>
                 <div className="ld-testi-logo">
                   <div className="ld-testi-logo-icon">
                     <Server size={14} />
@@ -649,7 +751,7 @@ const Landing = () => {
                     <div className="ld-testi-role">{t.role}</div>
                   </div>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -658,13 +760,13 @@ const Landing = () => {
       {/* ── FAQ ── */}
       <section id="faq" className="ld-section">
         <div className="ld-container">
-          <div className="ld-text-center">
-            <span className="ld-label">FAQs</span>
-            <h2 className="ld-section-title">Frequently Asked<br />Questions</h2>
-            <p className="ld-section-sub" style={{ margin: '1rem auto 0' }}>
-              Can't find your answer? <a href="mailto:support@serverdeck.io" style={{ color: '#22c55e' }}>Contact our team</a>.
+          <Reveal className="ld-text-center ld-section-head">
+            <span className="ld-label">05 / FAQ</span>
+            <h2 className="ld-section-title">Frequently asked<br />questions</h2>
+            <p className="ld-section-sub ld-sub-center">
+              Can't find your answer? <a href="mailto:support@serverdeck.io" className="ld-link">Contact our team</a>.
             </p>
-          </div>
+          </Reveal>
 
           <div className="ld-faq-list">
             {faqs.map(f => <FaqItem key={f.q} q={f.q} a={f.a} />)}
@@ -673,71 +775,71 @@ const Landing = () => {
       </section>
 
       {/* ── CTA BANNER ── */}
-      <section id="request" style={{ padding: '0 2rem 6rem' }}>
-        <div className="ld-cta-banner">
-          <div className="ld-cta-deco ld-cta-deco-tl"><Server size={18} /></div>
-          <div className="ld-cta-deco ld-cta-deco-tr"><Shield size={18} /></div>
-          <div className="ld-cta-deco ld-cta-deco-bl"><Activity size={18} /></div>
-          <div className="ld-cta-deco ld-cta-deco-br"><Lock size={18} /></div>
+      <section id="request" className="ld-cta-section">
+        <Reveal>
+          <div className="ld-cta-banner">
+            <div className="ld-cta-deco ld-cta-deco-tl"><Server size={18} /></div>
+            <div className="ld-cta-deco ld-cta-deco-tr"><Shield size={18} /></div>
+            <div className="ld-cta-deco ld-cta-deco-bl"><Activity size={18} /></div>
+            <div className="ld-cta-deco ld-cta-deco-br"><Lock size={18} /></div>
 
-          <div className="ld-cta-inner">
-            <span className="ld-label">Early Access</span>
-            <h2 className="ld-cta-title">
-              Manage Your Servers<br />
-              <span style={{ color: '#4ade80' }}>Before They Manage You.</span>
-            </h2>
-            <p className="ld-cta-sub">
-              Join the early access waitlist and transform your infrastructure
-              from a liability into a competitive advantage.
-            </p>
+            <div className="ld-cta-inner">
+              <span className="ld-label">Early Access</span>
+              <h2 className="ld-cta-title">
+                Manage your servers<br />
+                <span className="ld-cta-title-accent">before they manage you.</span>
+              </h2>
+              <p className="ld-cta-sub">
+                Join the early access waitlist and transform your infrastructure
+                from a liability into a competitive advantage.
+              </p>
 
-            {!submitted ? (
-              <div className="ld-cta-form-wrap">
-                <form className="ld-cta-form" onSubmit={handleSubmit}>
-                  <div className="ld-cta-input-wrap">
-                    <span className="ld-cta-input-icon">@</span>
-                    <input
-                      type="email"
-                      className="ld-cta-input"
-                      placeholder="you@company.com"
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      required
-                    />
+              {!submitted ? (
+                <div className="ld-cta-form-wrap">
+                  <form className="ld-cta-form" onSubmit={handleSubmit}>
+                    <div className="ld-cta-input-wrap">
+                      <span className="ld-cta-input-icon">@</span>
+                      <input
+                        type="email"
+                        className="ld-cta-input"
+                        placeholder="you@company.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <button type="submit" className="ld-cta-btn" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <span className="ld-cta-btn-busy"><Loader2 size={16} className="animate-spin" /> Processing...</span>
+                      ) : (
+                        <>Get Early Access <ArrowRight size={16} /></>
+                      )}
+                    </button>
+                  </form>
+                  {submitError && (
+                    <div className="ld-cta-error">{submitError}</div>
+                  )}
+                  <p className="ld-cta-note">No credit card required · Free during beta</p>
+                </div>
+              ) : (
+                <div className="ld-cta-success">
+                  <div className="ld-cta-success-icon">
+                    <CheckCircle2 size={32} color="#22c55e" />
                   </div>
-                  <button type="submit" className="ld-cta-btn" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Loader2 size={16} className="animate-spin" /> Processing...</span>
-                    ) : (
-                      <>Get Early Access <ArrowRight size={16} /></>
-                    )}
+                  <div>
+                    <p className="ld-cta-success-title">You're on the list!</p>
+                    <p className="ld-cta-success-sub">
+                      We'll notify <strong>{email}</strong> when your access window opens.
+                    </p>
+                  </div>
+                  <button className="ld-btn-outline" onClick={() => setSubmitted(false)}>
+                    Back
                   </button>
-                </form>
-                {submitError && (
-                  <div className="ld-cta-error" style={{ color: '#ef4444', fontSize: '13px', marginTop: '12px', textAlign: 'center' }}>
-                    {submitError}
-                  </div>
-                )}
-                <p className="ld-cta-note">No credit card required · Free during beta</p>
-              </div>
-            ) : (
-              <div className="ld-cta-success">
-                <div className="ld-cta-success-icon">
-                  <CheckCircle2 size={32} color="#22c55e" />
                 </div>
-                <div>
-                  <p className="ld-cta-success-title">You're on the list!</p>
-                  <p className="ld-cta-success-sub">
-                    We'll notify <strong>{email}</strong> when your access window opens.
-                  </p>
-                </div>
-                <button className="ld-btn-outline" onClick={() => setSubmitted(false)}>
-                  Back
-                </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
+        </Reveal>
       </section>
 
       {/* ── FOOTER ── */}
@@ -758,7 +860,7 @@ const Landing = () => {
           <div>
             <div className="ld-footer-col-title">Platform</div>
             <a href="#features"     className="ld-footer-link" onClick={e => scrollTo(e, 'features')}>Features</a>
-            <a href="#monitoring"   className="ld-footer-link" onClick={e => scrollTo(e, 'monitoring')}>Monitoring</a>
+            <a href="#how"          className="ld-footer-link" onClick={e => scrollTo(e, 'how')}>How it works</a>
             <a href="#integrations" className="ld-footer-link" onClick={e => scrollTo(e, 'integrations')}>Integrations</a>
             <a href="#"             className="ld-footer-link">Changelog</a>
           </div>
