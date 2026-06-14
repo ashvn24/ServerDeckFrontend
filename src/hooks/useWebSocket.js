@@ -108,16 +108,43 @@ export function useWebSocket() {
     send({ type: 'unsubscribe_ticket', ticket_id: ticketId });
   }, [send]);
 
+  /**
+   * Send a command to the server agent and wait for the response.
+   * Waits up to 5 s for the WebSocket to be open before sending,
+   * which fixes the first-load race where the WS handshake is still
+   * in progress when a component fires its mount effect.
+   */
   const sendCommand = useCallback((serverId, action, params = {}) => {
     return new Promise((resolve, reject) => {
       const id = crypto.randomUUID();
-      const timer = setTimeout(() => {
-        pendingRef.current.delete(id);
-        reject(new Error('Command timed out (30s)'));
-      }, 30000);
 
-      pendingRef.current.set(id, { resolve, reject, timer });
-      send({ type: 'command', id, server_id: serverId, action, params });
+      const doSend = () => {
+        const timer = setTimeout(() => {
+          pendingRef.current.delete(id);
+          reject(new Error('Command timed out (30s)'));
+        }, 30000);
+
+        pendingRef.current.set(id, { resolve, reject, timer });
+        send({ type: 'command', id, server_id: serverId, action, params });
+      };
+
+      // If the WS is already open, send immediately.
+      if (wsRef.current?.readyState === WebSocket.OPEN) {
+        doSend();
+        return;
+      }
+
+      // Otherwise poll until it opens (up to 5 s), then send.
+      const started = Date.now();
+      const poll = setInterval(() => {
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+          clearInterval(poll);
+          doSend();
+        } else if (Date.now() - started > 5000) {
+          clearInterval(poll);
+          reject(new Error('WebSocket not connected'));
+        }
+      }, 50);
     });
   }, [send]);
 

@@ -517,7 +517,8 @@ export default function Settings() {
                     { id: 'ssl', name: 'SSL Certificate Manager', desc: 'Provision Let\'s Encrypt SSL and auto-renewal certificates' },
                     { id: 'ssh', name: 'SSH Terminal Access', desc: 'Open direct secure browser-based SSH command console' },
                     { id: 'files', name: 'File Browser', desc: 'Navigate filesystems, view logs, edit configs, and upload files' },
-                    { id: 'luxegenie', name: 'LuxeGenie AI Diagnostics', desc: 'Use AI agent to diagnose errors and suggest repairs' }
+                    { id: 'luxegenie', name: 'LuxeGenie AI Diagnostics', desc: 'Use AI agent to diagnose errors and suggest repairs' },
+                    { id: 'sql', name: 'SQL Explorer', desc: 'Query databases with natural language using AI — PostgreSQL, MySQL, SQLite' }
                   ].map(mod => {
                     const isChecked = selectedUserModules.includes(mod.id);
                     return (
