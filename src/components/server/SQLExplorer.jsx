@@ -315,8 +315,8 @@ export default function SQLExplorer({ serverId }) {
     setDiscoverError('');
     try {
       const res = await sqlAPI.discover(serverId);
-      setEngines(res.engines || []);
-      if (!res.engines?.length) setDiscoverError('No database engines detected on this server.');
+      setEngines(res.data.engines || []);
+      if (!res.data.engines?.length) setDiscoverError('No database engines detected on this server.');
     } catch (e) {
       setDiscoverError(e.response?.data?.detail || 'Failed to discover databases.');
     } finally {
@@ -339,7 +339,7 @@ export default function SQLExplorer({ serverId }) {
     try {
       const conn = buildConn(engineEntry, creds);
       const res = await sqlAPI.listDatabases(serverId, conn);
-      setDatabases(res.databases || []);
+      setDatabases(res.data.databases || []);
     } catch (e) {
       setDatabases([]);
     } finally {
@@ -372,7 +372,7 @@ export default function SQLExplorer({ serverId }) {
     try {
       const conn = buildConn(selectedEngine, credentials, db);
       const res = await sqlAPI.getSchema(serverId, conn);
-      setSchema(res.schema || {});
+      setSchema(res.data.schema || {});
     } catch (e) {
       setSchema({});
     } finally {
@@ -409,11 +409,11 @@ export default function SQLExplorer({ serverId }) {
         const next = prev.filter(m => m.type !== 'loading');
         return [...next, {
           type: 'bot',
-          sql: res.sql,
-          columns: res.columns,
-          rows: res.rows,
-          rowCount: res.row_count,
-          error: res.error,
+          sql: res.data.sql,
+          columns: res.data.columns,
+          rows: res.data.rows,
+          rowCount: res.data.row_count,
+          error: res.data.error,
         }];
       });
     } catch (e) {
