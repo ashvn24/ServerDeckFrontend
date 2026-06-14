@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Database, ChevronRight, ChevronDown, Play, Send, Table2, RefreshCw, Lock, X, Copy, Check, AlertCircle, Loader2, Layers, HardDrive, Server } from 'lucide-react';
+import { Database, ChevronRight, ChevronDown, Play, Send, Table2, RefreshCw, Lock, X, Copy, Check, AlertCircle, Loader2, Layers, HardDrive, Server, Maximize2, Minimize2, Trash2, ArrowLeft } from 'lucide-react';
 import { sqlAPI } from '../../api/endpoints';
+import { useIsPWA } from '../../hooks/useIsPWA';
+import { useMobile } from '../../hooks/useMobile';
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                              */
@@ -273,6 +275,11 @@ function ChatMessage({ msg }) {
 /* Main Component                                                       */
 /* ------------------------------------------------------------------ */
 export default function SQLExplorer({ serverId }) {
+  const isPWA = useIsPWA();
+  const isMobile = useMobile();
+  const mobileLayout = isPWA || isMobile;
+  const [mobileView, setMobileView] = useState('databases'); // 'databases' | 'query'
+
   // Discovery
   const [engines, setEngines] = useState([]);
   const [discovering, setDiscovering] = useState(false);
@@ -303,6 +310,20 @@ export default function SQLExplorer({ serverId }) {
 
   // Sidebar collapse on mobile
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Full screen mode
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  // Exit full screen on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isFullScreen) {
+        setIsFullScreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullScreen]);
 
   // Scroll chat to bottom on new messages
   useEffect(() => {
@@ -369,6 +390,9 @@ export default function SQLExplorer({ serverId }) {
     setSchema({});
     setMessages([]);
     setLoadingSchema(true);
+    if (mobileLayout) {
+      setMobileView('query');
+    }
     try {
       const conn = buildConn(selectedEngine, credentials, db);
       const res = await sqlAPI.getSchema(serverId, conn);
@@ -435,7 +459,9 @@ export default function SQLExplorer({ serverId }) {
   /* Render                                                              */
   /* ------------------------------------------------------------------ */
   return (
-    <div className="flex h-[calc(100vh-220px)] min-h-[520px] gap-4 overflow-hidden">
+    <div
+      className={isFullScreen ? "fixed inset-0 z-50 flex gap-4 overflow-hidden p-6 animate-in zoom-in-95 duration-200 bg-[var(--bg-main)]" : mobileLayout ? "flex flex-col h-[580px] gap-4 overflow-hidden" : "flex h-[calc(100vh-220px)] min-h-[520px] gap-4 overflow-hidden"}
+    >
 
       {/* ---- Credential Modal ---- */}
       {showCredModal && pendingEngine && (
@@ -447,34 +473,42 @@ export default function SQLExplorer({ serverId }) {
       )}
 
       {/* ============================== SIDEBAR ============================== */}
-      <div
-        className="flex flex-col rounded-2xl overflow-hidden shrink-0"
-        style={{
-          width: sidebarOpen ? 240 : 48,
-          transition: 'width 0.25s ease',
-          background: 'var(--bg-card)',
-          border: '1px solid rgba(255,255,255,0.07)',
-        }}
-      >
-        {/* Sidebar header */}
-        <div className="flex items-center gap-2 px-3 py-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-          <button
-            onClick={() => setSidebarOpen(v => !v)}
-            className="p-1.5 rounded-lg transition-all hover:bg-white/5"
-            style={{ color: '#818cf8' }}
-            title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            <Layers className="w-4 h-4" />
-          </button>
-          {sidebarOpen && <span className="text-xs font-bold tracking-wider uppercase" style={{ color: 'var(--text-primary)' }}>Databases</span>}
-          {sidebarOpen && (
-            <button onClick={discover} disabled={discovering} className="ml-auto p-1 rounded transition-all hover:bg-white/5" style={{ color: 'var(--text-secondary)' }} title="Refresh">
-              <RefreshCw className={`w-3.5 h-3.5 ${discovering ? 'animate-spin' : ''}`} />
-            </button>
-          )}
-        </div>
+      {(!mobileLayout || mobileView === 'databases') && (
+        <div
+          className="flex flex-col rounded-2xl overflow-hidden shrink-0 animate-in fade-in duration-200"
+          style={{
+            width: mobileLayout ? '100%' : (sidebarOpen ? 240 : 48),
+            transition: 'width 0.25s ease',
+            background: 'var(--bg-card)',
+            border: '1px solid rgba(255,255,255,0.07)',
+          }}
+        >
+          {/* Sidebar header */}
+          <div className="flex items-center gap-2 px-3 py-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            {!mobileLayout && (
+              <button
+                onClick={() => setSidebarOpen(v => !v)}
+                className="p-1.5 rounded-lg transition-all hover:bg-white/5"
+                style={{ color: '#818cf8' }}
+                title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+              >
+                <Layers className="w-4 h-4" />
+              </button>
+            )}
+            {mobileLayout && (
+              <div className="p-1 rounded-lg" style={{ background: 'rgba(99,102,241,0.15)' }}>
+                <Layers className="w-4 h-4 text-[#818cf8]" />
+              </div>
+            )}
+            {(sidebarOpen || mobileLayout) && <span className="text-xs font-bold tracking-wider uppercase" style={{ color: 'var(--text-primary)' }}>Databases</span>}
+            {(sidebarOpen || mobileLayout) && (
+              <button onClick={discover} disabled={discovering} className="ml-auto p-1 rounded transition-all hover:bg-white/5" style={{ color: 'var(--text-secondary)' }} title="Refresh">
+                <RefreshCw className={`w-3.5 h-3.5 ${discovering ? 'animate-spin' : ''}`} />
+              </button>
+            )}
+          </div>
 
-        {sidebarOpen && (
+          {(sidebarOpen || mobileLayout) && (
           <div className="flex-1 overflow-y-auto py-2">
             {discovering && (
               <div className="flex items-center gap-2 px-4 py-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -552,9 +586,11 @@ export default function SQLExplorer({ serverId }) {
           </div>
         )}
       </div>
+      )}
 
       {/* ============================== MAIN AREA ============================== */}
-      <div className="flex flex-col flex-1 gap-4 min-w-0 overflow-hidden">
+      {(!mobileLayout || mobileView === 'query') && (
+        <div className="flex flex-col flex-1 gap-4 min-w-0 overflow-hidden animate-in fade-in duration-200">
 
         {/* Schema panel (collapsible) */}
         {selectedDb && (
@@ -584,6 +620,15 @@ export default function SQLExplorer({ serverId }) {
 
           {/* Panel header */}
           <div className="flex items-center gap-3 px-5 py-3 shrink-0" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+            {mobileLayout && (
+              <button
+                onClick={() => setMobileView('databases')}
+                className="p-1 rounded-lg transition-all hover:bg-white/5 text-[var(--accent-mint)] -ml-2 mr-1 flex items-center justify-center"
+                title="Back to databases"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+            )}
             <div className="p-1.5 rounded-lg" style={{ background: 'rgba(99,102,241,0.15)' }}>
               <Database className="w-4 h-4" style={{ color: '#818cf8' }} />
             </div>
@@ -594,6 +639,25 @@ export default function SQLExplorer({ serverId }) {
                   ? `Connected to ${engineIcon(selectedEngine?.engine || '')} ${selectedDb} — ask anything in plain English`
                   : 'Select a database to start querying'}
               </p>
+            </div>
+            {/* Actions group */}
+            <div className="ml-auto flex items-center gap-1.5">
+              {messages.length > 0 && (
+                <button
+                  onClick={() => setMessages([])}
+                  className="p-1.5 rounded-lg transition-all hover:bg-red-500/10 text-[var(--text-secondary)] hover:text-red-400"
+                  title="Clear history"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              )}
+              <button
+                onClick={() => setIsFullScreen(p => !p)}
+                className="p-1.5 rounded-lg transition-all hover:bg-white/5 text-[var(--text-secondary)] hover:text-white"
+                title={isFullScreen ? 'Exit full screen (Esc)' : 'Make full screen'}
+              >
+                {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
@@ -671,7 +735,7 @@ export default function SQLExplorer({ serverId }) {
             </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
