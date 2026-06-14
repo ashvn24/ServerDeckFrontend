@@ -19,6 +19,7 @@ import ProcessManager from '../components/server/ProcessManager';
 import SSLManager from '../components/server/SSLManager';
 import AutomationManager from '../components/server/AutomationManager';
 import LuxeGenieManager from '../components/server/LuxeGenieManager';
+import SQLExplorer from '../components/server/SQLExplorer';
 
 import RestrictedView from '../components/common/RestrictedView';
 import AlertModal from '../components/common/AlertModal';
@@ -36,7 +37,8 @@ const ALL_TABS = [
   { name: 'SSL', key: 'ssl', module: 'ssl' },
   { name: 'SSH', key: 'ssh', module: 'ssh' },
   { name: 'Files', key: 'files', module: 'files' },
-  { name: 'LuxeGenie', key: 'luxegenie', module: 'luxegenie' }
+  { name: 'LuxeGenie', key: 'luxegenie', module: 'luxegenie' },
+  { name: 'SQL Explorer', key: 'sql', module: 'sql' },
 ];
 
 export default function ServerDetail() {
@@ -368,6 +370,7 @@ export default function ServerDetail() {
 
         {activeTab === 'files' && <FileManager serverId={id} sendCommand={sendCommand} isOnline={server.is_online} isAdmin={isAdmin} />}
         {activeTab === 'luxegenie' && <LuxeGenieManager serverId={id} sendCommand={sendCommand} luxegenieHealth={server.luxegenie_health} isOnline={server.is_online} />}
+        {activeTab === 'sql' && <SQLExplorer serverId={id} />}
       </div>
 
 

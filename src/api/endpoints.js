@@ -92,3 +92,20 @@ export const ticketsAPI = {
   addMessage: (id, data) => client.post(`/tickets/${id}/messages`, data),
 };
 
+// SQL Explorer
+export const sqlAPI = {
+  discover: (serverId, user, password) =>
+    client.get(`/servers/${serverId}/sql/discover`, { params: { user, password } }),
+  listDatabases: (serverId, conn) =>
+    client.post(`/servers/${serverId}/sql/databases`, conn),
+  getSchema: (serverId, conn) =>
+    client.post(`/servers/${serverId}/sql/schema`, conn),
+  execute: (serverId, req) =>
+    client.post(`/servers/${serverId}/sql/execute`, req),
+  query: (serverId, req) =>
+    client.post(`/servers/${serverId}/sql/query`, req),
+  testConnection: (serverId, conn) =>
+    client.post(`/servers/${serverId}/sql/test-connection`, conn),
+};
+
+
