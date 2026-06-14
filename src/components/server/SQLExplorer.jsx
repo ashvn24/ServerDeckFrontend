@@ -735,6 +735,7 @@ export default function SQLExplorer({ serverId }) {
             </div>
           </div>
         </div>
+      </div>
       )}
     </div>
   );
