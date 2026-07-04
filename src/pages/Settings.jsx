@@ -474,7 +474,7 @@ export default function Settings() {
                     { id: 'servers', name: 'Server Management', desc: 'Manage nodes and view server terminal/stats' },
                     { id: 'tickets', name: 'Support Tickets', desc: 'View customer support desk tickets' },
                     { id: 'settings', name: 'Settings / Team', desc: 'Manage settings and team operator permissions' }
-                  ].map(mod => {
+                  ].filter(mod => !user?.org_modules || user.org_modules.includes(mod.id)).map(mod => {
                     const isChecked = selectedUserModules.includes(mod.id);
                     return (
                       <div
@@ -519,7 +519,7 @@ export default function Settings() {
                     { id: 'files', name: 'File Browser', desc: 'Navigate filesystems, view logs, edit configs, and upload files' },
                     { id: 'luxegenie', name: 'LuxeGenie AI Diagnostics', desc: 'Use AI agent to diagnose errors and suggest repairs' },
                     { id: 'sql', name: 'SQL Explorer', desc: 'Query databases with natural language using AI — PostgreSQL, MySQL, SQLite' }
-                  ].map(mod => {
+                  ].filter(mod => !user?.org_modules || user.org_modules.includes(mod.id)).map(mod => {
                     const isChecked = selectedUserModules.includes(mod.id);
                     return (
                       <div
