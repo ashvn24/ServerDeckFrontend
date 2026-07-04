@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   LifeBuoy, Plus, Search, Send, Clock, User, CheckCircle,
   MessageSquare, AlertTriangle, Lock, UserCheck, X, AlertCircle,
-  ArrowUpRight, Tag, ChevronDown, RefreshCw, Filter, ArrowLeft, Info, Copy, Check
+  ArrowUpRight, Tag, ChevronDown, RefreshCw, Filter, ArrowLeft, Info, Copy, Check, Smile
 } from 'lucide-react';
 import { ticketsAPI, usersAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
@@ -14,6 +14,20 @@ import { useIsPWA } from '../hooks/useIsPWA';
 
 const STATUSES   = ['Open', 'In Progress', 'Waiting on Customer', 'Resolved', 'Closed'];
 const PRIORITIES = ['Low', 'Medium', 'High', 'Urgent'];
+
+const SMILEY_EMOJIS = [
+  '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌',
+  '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓',
+  '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖',
+  '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱',
+  '👋', '👍', '👎', '👊', '👏', '🙌', '🙏', '🎉', '✨', '🎈', '❤️', '🔥', '💡', '🚀'
+];
+
+const TECH_EMOJIS = [
+  '💻', '🖥️', '⌨️', '🔌', '🔋', '⚙️', '🛠️', '🔧', '🔨', '🛡️', '🔒', '🔓', '🔑', '🛑',
+  '⚠️', '✅', '❌', 'ℹ️', '❓', '💬', '📢', '🚨', '📈', '📉', '📊', '📋', '📁', '📄',
+  '📅', '🔍', '🔄', '✔️', '➕', '➖', '🔔', '🔕', '📧', '✉️', '📦', '📤', '📥', '🌐'
+];
 
 function priorityMeta(p) {
   switch (p) {
@@ -76,6 +90,29 @@ export default function Tickets() {
   const [showFilters,    setShowFilters]    = useState(false);
   const [msgBody,        setMsgBody]        = useState('');
   const [isInternal,     setIsInternal]     = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState('smiley');
+  const textareaRef = useRef(null);
+
+  const handleSelectEmoji = (emoji) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setMsgBody(prev => prev + emoji);
+      return;
+    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const before = text.substring(0, start);
+    const after = text.substring(end, text.length);
+    setMsgBody(before + emoji + after);
+    
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+  };
+
   const [showCreate,     setShowCreate]     = useState(false);
   const [creating,       setCreating]       = useState(false);
   const [form,           setForm]           = useState({ title: '', description: '', priority: 'Medium' });
@@ -522,38 +559,92 @@ export default function Tickets() {
               <form onSubmit={handleSend} className="p-2 md:p-4 bg-[var(--bg-main)]">
                 <div className="flex items-end gap-2 w-full max-w-4xl mx-auto">
                   {/* Text Field Bubble */}
-                  <div className={`flex-1 flex items-end gap-1 rounded-3xl bg-[var(--bg-card)] transition-all pr-1.5 ${isInternal ? 'ring-1 ring-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'ring-1 ring-[var(--border-color)] focus-within:ring-[var(--accent-mint)]'}`}>
-                    <textarea
-                      placeholder={isInternal ? 'Internal note...' : 'Message...'}
-                      value={msgBody}
-                      onChange={e => {
-                        setMsgBody(e.target.value);
-                        e.target.style.height = 'auto';
-                        e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
-                      }}
-                      rows={1}
-                      style={{ minHeight: '40px', maxHeight: '120px' }}
-                      className={`flex-1 bg-transparent border-0 outline-none text-sm font-medium resize-none py-3 pl-4 pr-1 focus:ring-0 custom-scrollbar ${isInternal ? 'text-amber-500 placeholder-amber-500/40' : 'text-[var(--text-primary)] placeholder-[var(--text-secondary)]'}`}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' && !e.shiftKey) { 
-                          e.preventDefault(); 
-                          handleSend(e);
+                  <div className="relative flex-grow">
+                    {showEmojiPicker && (
+                      <>
+                        {/* Dismiss Overlay */}
+                        <div className="fixed inset-0 z-40" onClick={() => setShowEmojiPicker(false)} />
+                        
+                        {/* Popover */}
+                        <div className="absolute bottom-full mb-3 right-0 z-50 w-72 bg-[#1c1c1e]/95 backdrop-blur-md border border-white/10 shadow-2xl rounded-2xl p-4 select-none animate-in fade-in slide-in-from-bottom-2 duration-200">
+                          <div className="flex justify-between items-center mb-2 pb-2 border-b border-white/5">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)]">Select Emoji</span>
+                            <div className="flex gap-1.5">
+                              <button
+                                type="button"
+                                onClick={() => setEmojiCategory('smiley')}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${emojiCategory === 'smiley' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                              >
+                                😀 Smileys
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setEmojiCategory('tech')}
+                                className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${emojiCategory === 'tech' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
+                              >
+                                💻 Tech
+                              </button>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-7 gap-1.5 max-h-40 overflow-y-auto custom-scrollbar text-xl">
+                            {(emojiCategory === 'smiley' ? SMILEY_EMOJIS : TECH_EMOJIS).map(emoji => (
+                              <span
+                                key={emoji}
+                                onClick={() => handleSelectEmoji(emoji)}
+                                className="flex items-center justify-center p-1.5 hover:bg-white/10 hover:scale-110 active:scale-95 transition-all rounded-xl cursor-pointer"
+                              >
+                                {emoji}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <div className={`flex items-end gap-1 rounded-3xl bg-[var(--bg-card)] transition-all pr-1.5 ${isInternal ? 'ring-1 ring-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'ring-1 ring-[var(--border-color)] focus-within:ring-[var(--accent-mint)]'}`}>
+                      <textarea
+                        ref={textareaRef}
+                        placeholder={isInternal ? 'Internal note...' : 'Message...'}
+                        value={msgBody}
+                        onChange={e => {
+                          setMsgBody(e.target.value);
                           e.target.style.height = 'auto';
-                        }
-                      }}
-                    />
-                    
-                    {/* Right Toggle Button (Public/Internal) inside the bubble */}
-                    {isSupportStaff && (
+                          e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+                        }}
+                        rows={1}
+                        style={{ minHeight: '40px', maxHeight: '120px' }}
+                        className={`flex-1 bg-transparent border-0 outline-none text-sm font-medium resize-none py-3 pl-4 pr-1 focus:ring-0 custom-scrollbar ${isInternal ? 'text-amber-500 placeholder-amber-500/40' : 'text-[var(--text-primary)] placeholder-[var(--text-secondary)]'}`}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter' && !e.shiftKey) { 
+                            e.preventDefault(); 
+                            handleSend(e);
+                            e.target.style.height = 'auto';
+                          }
+                        }}
+                      />
+                      
+                      {/* Emoji Toggle Button */}
                       <button
                         type="button"
-                        onClick={() => setIsInternal(!isInternal)}
-                        className={`shrink-0 mb-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${isInternal ? 'bg-amber-500/20 text-amber-500' : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'}`}
-                        title={isInternal ? "Internal Note" : "Public Reply"}
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        className={`shrink-0 mb-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${showEmojiPicker ? 'bg-violet-500/20 text-violet-400' : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'}`}
+                        title="Add Emoji"
                       >
-                        {isInternal ? <Lock className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                        <Smile className="w-4.5 h-4.5" />
                       </button>
-                    )}
+                      
+                      {/* Right Toggle Button (Public/Internal) inside the bubble */}
+                      {isSupportStaff && (
+                        <button
+                          type="button"
+                          onClick={() => setIsInternal(!isInternal)}
+                          className={`shrink-0 mb-1 w-8 h-8 rounded-full flex items-center justify-center transition-all ${isInternal ? 'bg-amber-500/20 text-amber-500' : 'text-[var(--text-secondary)] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[var(--text-primary)]'}`}
+                          title={isInternal ? "Internal Note" : "Public Reply"}
+                        >
+                          {isInternal ? <Lock className="w-4 h-4" /> : <MessageSquare className="w-4 h-4" />}
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Send Button */}
