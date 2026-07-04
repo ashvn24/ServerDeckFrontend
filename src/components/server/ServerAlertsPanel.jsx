@@ -5,6 +5,7 @@ import { useWebSocket } from '../../hooks/useWebSocket';
 import { useNotification } from '../../context/NotificationContext';
 import AlertRulesModal from '../AlertRulesModal';
 import Modal from '../common/Modal';
+import { ticketsAPI } from '../../api/endpoints';
 
 export default function ServerAlertsPanel({ serverId, sendCommand }) {
   const [alerts, setAlerts] = useState([]);
@@ -58,7 +59,7 @@ export default function ServerAlertsPanel({ serverId, sendCommand }) {
     e.preventDefault();
     setRaisingTicket(true);
     try {
-      await api.post('/tickets/', ticketForm);
+      await ticketsAPI.create(ticketForm);
       showToast('Support ticket raised successfully!', 'success');
       setShowTicketModal(false);
     } catch (err) {

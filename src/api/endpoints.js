@@ -85,8 +85,8 @@ export const adminAPI = {
 
 // Tickets
 export const ticketsAPI = {
-  list: (status, priority) => client.get('/tickets/', { params: { status_filter: status, priority_filter: priority } }),
-  create: (data) => client.post('/tickets/', data),
+  list: (status, priority) => client.get('/tickets', { params: { status_filter: status, priority_filter: priority } }),
+  create: (data) => client.post('/tickets', data),
   get: (id) => client.get(`/tickets/${id}`),
   update: (id, data) => client.patch(`/tickets/${id}`, data),
   addMessage: (id, data) => client.post(`/tickets/${id}/messages`, data),

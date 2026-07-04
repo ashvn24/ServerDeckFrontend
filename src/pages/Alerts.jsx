@@ -5,6 +5,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { useNotification } from '../context/NotificationContext';
 import { Link } from 'react-router-dom';
 import Modal from '../components/common/Modal';
+import { ticketsAPI } from '../api/endpoints';
 
 export default function Alerts() {
   const [summary, setSummary] = useState(null);
@@ -58,7 +59,7 @@ export default function Alerts() {
     e.preventDefault();
     setRaisingTicket(true);
     try {
-      await api.post('/tickets/', ticketForm);
+      await ticketsAPI.create(ticketForm);
       showToast('Support ticket raised successfully!', 'success');
       setShowTicketModal(false);
     } catch (err) {
