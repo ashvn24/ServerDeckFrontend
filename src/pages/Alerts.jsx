@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { ShieldAlert, CheckCircle2, AlertTriangle, Clock, Terminal, Check, AlertCircle, Copy, Play } from 'lucide-react';
+import { ShieldAlert, CheckCircle2, AlertTriangle, Clock, Terminal, Check, AlertCircle, Copy, Play, X, MessageSquare } from 'lucide-react';
 import api from '../api/client';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { useNotification } from '../context/NotificationContext';
 import { Link } from 'react-router-dom';
+import Modal from '../components/common/Modal';
 
 export default function Alerts() {
   const [summary, setSummary] = useState(null);
@@ -12,6 +13,60 @@ export default function Alerts() {
   const { on, sendCommand } = useWebSocket();
   const { showToast } = useNotification();
   const [expandedAlert, setExpandedAlert] = useState(null);
+
+  const [showTicketModal, setShowTicketModal] = useState(false);
+  const [ticketForm, setTicketForm] = useState({ title: '', description: '', priority: 'Medium' });
+  const [raisingTicket, setRaisingTicket] = useState(false);
+
+  const handleOpenTicketModal = (alert) => {
+    const defaultTitle = `[Alert] ${alert.rule_name} on ${alert.server_name}`;
+    
+    let defaultPriority = 'Medium';
+    if (alert.diagnosis?.urgency) {
+      const urgency = alert.diagnosis.urgency.toLowerCase();
+      if (urgency === 'critical') defaultPriority = 'Urgent';
+      else if (urgency === 'high') defaultPriority = 'High';
+      else if (urgency === 'medium') defaultPriority = 'Medium';
+      else if (urgency === 'low') defaultPriority = 'Low';
+    }
+    
+    let defaultDesc = `Alert: ${alert.rule_name}\n`;
+    defaultDesc += `Server: ${alert.server_name} (ID: ${alert.server_id})\n`;
+    defaultDesc += `Metric: ${alert.metric || 'N/A'}\n`;
+    defaultDesc += `Current Value: ${alert.metric_value ? alert.metric_value.toFixed(2) : 'N/A'}\n`;
+    defaultDesc += `Status: ${alert.status}\n`;
+    defaultDesc += `Duration: ${formatDuration(alert.duration)}\n`;
+    
+    if (alert.diagnosis?.explanation) {
+      defaultDesc += `\nAI Diagnosis:\n${alert.diagnosis.explanation}\n`;
+    }
+    if (alert.diagnosis?.suggested_fix) {
+      defaultDesc += `\nSuggested Fix:\n${alert.diagnosis.suggested_fix}\n`;
+    }
+    
+    defaultDesc += `\nAdditional Context:\n`;
+
+    setTicketForm({
+      title: defaultTitle,
+      description: defaultDesc,
+      priority: defaultPriority
+    });
+    setShowTicketModal(true);
+  };
+
+  const handleRaiseTicket = async (e) => {
+    e.preventDefault();
+    setRaisingTicket(true);
+    try {
+      await api.post('/tickets/', ticketForm);
+      showToast('Support ticket raised successfully!', 'success');
+      setShowTicketModal(false);
+    } catch (err) {
+      showToast('Failed to raise ticket', 'error');
+    } finally {
+      setRaisingTicket(false);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -172,6 +227,15 @@ export default function Alerts() {
                     {alert.status === 'active' && (
                       <button onClick={(e) => handleAcknowledge(alert.id, e)} className="glass-button text-xs py-1.5">Acknowledge</button>
                     )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenTicketModal(alert);
+                      }}
+                      className="glass-button text-xs py-1.5 flex items-center gap-1 hover:bg-white/10"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Raise Ticket
+                    </button>
                     <button onClick={(e) => handleResolve(alert.id, e)} className="bg-[var(--accent-mint)]/20 hover:bg-[var(--accent-mint)]/30 text-[var(--accent-mint)] text-xs py-1.5 px-3 rounded-lg font-medium transition-colors">Resolve</button>
                   </div>
                 </div>
@@ -250,6 +314,63 @@ export default function Alerts() {
           ))
         )}
       </div>
+
+      <Modal isOpen={showTicketModal} onClose={() => setShowTicketModal(false)} title="Raise Support Ticket">
+        <form onSubmit={handleRaiseTicket} className="space-y-6">
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-2 block ml-1">Ticket Title</label>
+            <input
+              type="text"
+              required
+              value={ticketForm.title}
+              onChange={e => setTicketForm(prev => ({ ...prev, title: e.target.value }))}
+              className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white text-xs font-bold focus:border-[var(--accent-blue)] outline-none transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-2 block ml-1">Priority</label>
+            <select
+              value={ticketForm.priority}
+              onChange={e => setTicketForm(prev => ({ ...prev, priority: e.target.value }))}
+              className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white text-xs font-bold focus:border-[var(--accent-blue)] outline-none transition-all cursor-pointer"
+            >
+              <option value="Low" className="bg-[#1c1c1e]">Low</option>
+              <option value="Medium" className="bg-[#1c1c1e]">Medium</option>
+              <option value="High" className="bg-[#1c1c1e]">High</option>
+              <option value="Urgent" className="bg-[#1c1c1e]">Urgent</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-[var(--text-secondary)] mb-2 block ml-1">Description & Details</label>
+            <textarea
+              required
+              rows={8}
+              value={ticketForm.description}
+              onChange={e => setTicketForm(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full p-5 rounded-xl bg-black/40 border border-[var(--border-color)] text-white text-xs font-bold focus:border-[var(--accent-blue)] outline-none transition-all resize-none font-mono"
+            />
+          </div>
+
+          <div className="flex gap-4 pt-4 border-t border-white/5">
+            <button
+              type="button"
+              onClick={() => setShowTicketModal(false)}
+              className="flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white/5 text-white hover:bg-white/10 transition-all"
+            >
+              Cancel
+            </button>
+            <button
+              disabled={raisingTicket}
+              type="submit"
+              className="flex-1 py-4 rounded-xl text-[10px] font-black uppercase tracking-widest bg-violet-600 hover:bg-violet-500 text-white hover:scale-[1.03] active:scale-[0.97] transition-all shadow-lg shadow-violet-500/20 disabled:opacity-50 disabled:hover:scale-100 disabled:active:scale-100"
+            >
+              {raisingTicket ? 'Submitting...' : 'Raise Ticket'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
