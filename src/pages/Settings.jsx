@@ -1,13 +1,48 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Users, Mail, Shield, Plus, Trash2, ShieldCheck, Loader2, X, LogOut, Sliders } from 'lucide-react';
+import { User, Users, Mail, Shield, Plus, Trash2, ShieldCheck, Loader2, X, LogOut, Sliders, ArrowRight } from 'lucide-react';
 import { usersAPI } from '../api/endpoints';
 import ConfirmModal from '../components/common/ConfirmModal';
+import { useNotification } from '../context/NotificationContext';
 
 export default function Settings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { showToast } = useNotification();
+  
+  const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordError('');
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    if (passwordForm.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters');
+      return;
+    }
+    setPasswordLoading(true);
+    try {
+      await usersAPI.changePassword({
+        current_password: passwordForm.currentPassword,
+        new_password: passwordForm.newPassword
+      });
+      showToast('Password updated successfully', 'success');
+      setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Failed to update password. Verify current password.';
+      setPasswordError(msg);
+      showToast(`Error: ${msg}`, 'error');
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
+
   const [teamUsers, setTeamUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showUserModulesModal, setShowUserModulesModal] = useState(false);
@@ -204,6 +239,75 @@ export default function Settings() {
                   Terminate Session
                </button>
             </div>
+          </div>
+
+          {/* Change Password Card */}
+          <div className="glass-card p-5 md:p-10">
+            <div className="mb-6 md:mb-10">
+              <h2 className="text-base md:text-xl font-black text-white uppercase tracking-tight font-display">Change Password</h2>
+              <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">Update your gateway credentials</p>
+            </div>
+
+            {passwordError && (
+              <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
+                {passwordError}
+              </div>
+            )}
+
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[9px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Current Password</label>
+                <input
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
+                  required
+                  className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[9px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">New Password</label>
+                <input
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                  required
+                  minLength={8}
+                  className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[9px] md:text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                  required
+                  minLength={8}
+                  className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                  placeholder="••••••••"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={passwordLoading}
+                className="w-full py-3 mt-4 rounded-xl bg-white text-[#2c2c2e] text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50"
+              >
+                {passwordLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    Update Credentials
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </>
+                )}
+              </button>
+            </form>
           </div>
         </div>
 

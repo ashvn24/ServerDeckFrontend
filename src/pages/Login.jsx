@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Server, ArrowRight, Loader2, CheckCircle2, User, Building, ShieldCheck } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
@@ -171,7 +171,12 @@ export default function Login() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Password</label>
+                    <div className="flex justify-between items-center ml-1">
+                      <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Password</label>
+                      <Link to="/forgot-password" className="text-[9px] font-bold text-[var(--accent-violet)] uppercase tracking-widest hover:underline">
+                        Forgot?
+                      </Link>
+                    </div>
                     <input
                       type="password"
                       value={form.password}

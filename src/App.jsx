@@ -13,6 +13,8 @@ import LogViewer from './pages/LogViewer';
 import SSLManager from './pages/SSLManager';
 import Settings from './pages/Settings';
 import InviteAccept from './pages/InviteAccept';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Activity from './pages/Activity';
 import Landing from './pages/Landing';
 import Organizations from './pages/Organizations';
@@ -93,6 +95,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route path="/invite" element={<InviteAccept />} />
       <Route path="/api-reference" element={<ProtectedRoute><ApiReference /></ProtectedRoute>} />

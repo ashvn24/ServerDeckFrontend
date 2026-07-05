@@ -5,6 +5,8 @@ export const authAPI = {
   register: (data) => client.post('/auth/register', data),
   login: (data) => client.post('/auth/login', data),
   joinWaitlist: (data) => client.post('/auth/waitlist', data),
+  forgotPassword: (data) => client.post('/auth/forgot-password', data),
+  resetPassword: (data) => client.post('/auth/reset-password', data),
 };
 
 // Servers
@@ -53,6 +55,7 @@ export const usersAPI = {
   delete: (id) => client.delete(`/users/${id}`),
   me: () => client.get('/users/me'),
   updateModules: (userId, modules) => client.patch(`/users/${userId}/modules`, { enabled_modules: modules }),
+  changePassword: (data) => client.post('/users/change-password', data),
 };
 
 // Audit
