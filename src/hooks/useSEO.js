@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 export default function useSEO({ title, description, keywords, ogImage, ogType = 'website' } = {}) {
   useEffect(() => {
     // 1. Dynamic Page Title
-    const baseTitle = 'ServerDeck — Unified Linux Infrastructure Control Panel';
+    const baseTitle = 'ServerDeck — Linux Server Control Panel';
     if (title) {
       document.title = `${title} | ServerDeck`;
     } else {

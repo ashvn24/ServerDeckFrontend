@@ -196,8 +196,8 @@ const INSTALL_CMD = 'curl -fsSL https://get.serverdeck.io | bash';
 
 const Landing = () => {
   useSEO({
-    title: 'Unified Linux Infrastructure Control Panel',
-    description: 'Unified Linux server management panel. Secure Web SSH terminal, Let\'s Encrypt SSL automation, visual firewall rules, PM2 processes, database explorer, support desk, and real-time alerts.',
+    title: 'ServerDeck — Linux Server Control Panel',
+    description: 'ServerDeck is a unified infrastructure control panel that lets you manage all your Linux servers — SSH, Nginx, SSL, PM2 apps, logs, and firewall rules — from a single, beautiful web interface.',
     keywords: ['linux server management', 'web ssh terminal', 'ssl automation', 'lets encrypt', 'pm2 manager', 'visual firewall', 'sql explorer', 'server monitoring'],
     ogImage: '/app-dark.png'
   });
