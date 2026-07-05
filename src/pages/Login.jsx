@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Server, ArrowRight, Loader2, CheckCircle2, User, Building, ShieldCheck } from 'lucide-react';
+import { Server, ArrowRight, Loader2, CheckCircle2, User, Building, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { authAPI } from '../api/endpoints';
 import useSEO from '../hooks/useSEO';
@@ -19,18 +19,34 @@ export default function Login() {
   const [signupForm, setSignupForm] = useState({ name: '', email: '', password: '', orgName: '' });
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, complete2FALogin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { showToast } = useNotification();
+
+  // Two-Factor Authentication state
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaToken, setMfaToken] = useState('');
+  const [mfaMethod, setMfaMethod] = useState('');
+  const [mfaCode, setMfaCode] = useState('');
+  const [mfaLoading, setMfaLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const userData = await login(form.email, form.password);
+      const res = await login(form.email, form.password);
+      if (res && res.mfa_required) {
+        setMfaToken(res.mfa_token);
+        setMfaMethod(res.mfa_method);
+        setMfaRequired(true);
+        showToast('Two-Factor Authentication Required', 'info');
+        return;
+      }
       showToast('Login Successful', 'success');
       
       const from = location.state?.from;
@@ -45,6 +61,33 @@ export default function Login() {
       showToast(`Authentication Error: ${msg}`, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMfaSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (mfaCode.length !== 6) {
+      setError('Verification code must be 6 digits.');
+      return;
+    }
+    setMfaLoading(true);
+    try {
+      await complete2FALogin(mfaToken, mfaCode);
+      showToast('Login Successful', 'success');
+      
+      const from = location.state?.from;
+      const isPO = localStorage.getItem('serverdeck_is_platform_owner') === 'true';
+      const dest = from
+        ? `${from.pathname}${from.search || ''}${from.hash || ''}`
+        : (isPO ? '/organizations' : '/dashboard');
+      navigate(dest, { replace: true });
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'Invalid verification code.';
+      setError(msg);
+      showToast(`Verification Error: ${msg}`, 'error');
+    } finally {
+      setMfaLoading(false);
     }
   };
 
@@ -94,7 +137,71 @@ export default function Login() {
 
         {/* Auth Module */}
         <div className="glass-card p-10">
-          {signupSuccess ? (
+          {mfaRequired ? (
+            <div className="text-center py-6">
+              <div className="mb-8">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight font-display">Two-Factor Auth</h2>
+                <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
+                  Verify your identity to proceed
+                </p>
+              </div>
+
+              {error && (
+                <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase tracking-widest text-center">
+                  {error}
+                </div>
+              )}
+
+              <form onSubmit={handleMfaSubmit} className="space-y-6 text-left">
+                <p className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide leading-relaxed text-center">
+                  Enter the 6-digit code from your {mfaMethod === 'totp' ? 'authenticator app' : 'email inbox'}:
+                </p>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Verification Code</label>
+                  <input
+                    required
+                    type="text"
+                    maxLength={6}
+                    pattern="[0-9]{6}"
+                    className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white text-center text-lg font-black tracking-[0.4em] focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                    placeholder="000000"
+                    value={mfaCode}
+                    onChange={e => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={mfaLoading}
+                  className="w-full py-4 mt-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
+                >
+                  {mfaLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin mx-auto text-[#2c2c2e]" />
+                  ) : (
+                    <>
+                      Verify & Sign In
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-8 text-center border-t border-[var(--border-color)] pt-6">
+                <button 
+                  onClick={() => {
+                    setMfaRequired(false);
+                    setMfaToken('');
+                    setMfaCode('');
+                    setError('');
+                  }}
+                  className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest hover:text-white transition-colors"
+                >
+                  Cancel and Sign In Again
+                </button>
+              </div>
+            </div>
+          ) : signupSuccess ? (
             <div className="text-center py-6">
               <div className="w-20 h-20 bg-[var(--accent-mint)]/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-[var(--accent-mint)]/20">
                 <ShieldCheck className="w-10 h-10 text-[var(--accent-mint)]" />
@@ -177,15 +284,24 @@ export default function Login() {
                         Forgot?
                       </Link>
                     </div>
-                    <input
-                      type="password"
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      required
-                      minLength={6}
-                      className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showLoginPassword ? "text" : "password"}
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        required
+                        minLength={6}
+                        className="w-full pl-6 pr-12 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowLoginPassword(!showLoginPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white transition-colors"
+                      >
+                        {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
                   <button
                     type="submit"
@@ -275,15 +391,24 @@ export default function Login() {
 
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Password</label>
-                    <input
-                      type="password"
-                      value={signupForm.password}
-                      onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
-                      required
-                      minLength={8}
-                      className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
-                      placeholder="••••••••"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showSignupPassword ? "text" : "password"}
+                        value={signupForm.password}
+                        onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
+                        required
+                        minLength={8}
+                        className="w-full pl-6 pr-12 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                        placeholder="••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignupPassword(!showSignupPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white transition-colors"
+                      >
+                        {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button

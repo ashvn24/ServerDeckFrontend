@@ -57,6 +57,20 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     const res = await authAPI.login({ email, password });
+    if (res.data.mfa_required) {
+      return res.data;
+    }
+    const { access_token, user: userData, is_platform_owner } = res.data;
+    localStorage.setItem('serverdeck_token', access_token);
+    localStorage.setItem('serverdeck_user', JSON.stringify(userData));
+    localStorage.setItem('serverdeck_is_platform_owner', String(!!is_platform_owner));
+    setUser(userData);
+    setIsPlatformOwner(!!is_platform_owner);
+    return userData;
+  };
+
+  const complete2FALogin = async (mfaToken, code) => {
+    const res = await authAPI.login2FA({ mfa_token: mfaToken, code });
     const { access_token, user: userData, is_platform_owner } = res.data;
     localStorage.setItem('serverdeck_token', access_token);
     localStorage.setItem('serverdeck_user', JSON.stringify(userData));
@@ -79,8 +93,18 @@ export function AuthProvider({ children }) {
 
 
 
+  const refreshUser = async () => {
+    try {
+      const res = await usersAPI.me();
+      localStorage.setItem('serverdeck_user', JSON.stringify(res.data));
+      setUser(res.data);
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isPlatformOwner, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isPlatformOwner, loading, login, register, logout, refreshUser, complete2FALogin }}>
       {children}
     </AuthContext.Provider>
   );

@@ -54,7 +54,7 @@ export default function ConfirmModal({
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder={`Type "${verificationText}" to confirm`}
-              className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-red-500 outline-none transition-all text-center"
+              className="w-full px-6 py-4 rounded-2xl bg-[var(--bg-main)] border border-[var(--border-color)] text-[var(--text-primary)] placeholder-gray-500 dark:placeholder-gray-700 text-sm font-bold focus:border-red-500 outline-none transition-all text-center"
               autoFocus
             />
           </div>

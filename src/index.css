@@ -12,10 +12,10 @@
   --text-secondary: #71717a;
   --border-color: rgba(255, 255, 255, 0.08);
 
-  /* Fixed-header geometry. --nav-height is the visible bar (Tailwind md:h-20);
+  /* Fixed-header geometry. --nav-height is the visible bar;
      --safe-top is the iOS status-bar / notch inset on homescreen PWAs.
      --total-header is what fixed-below-header content must clear. */
-  --nav-height: 80px;
+  --nav-height: 64px;
   --safe-top: env(safe-area-inset-top, 0px);
   --total-header: calc(var(--nav-height) + var(--safe-top));
 
@@ -27,7 +27,6 @@
 /* Mobile bar is shorter (Tailwind h-16). 767.98px matches the md breakpoint. */
 @media (max-width: 767.98px) {
   :root {
-    --nav-height: 64px;
     --bottom-nav: calc(4rem + env(safe-area-inset-bottom));
   }
 }

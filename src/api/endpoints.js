@@ -7,6 +7,7 @@ export const authAPI = {
   joinWaitlist: (data) => client.post('/auth/waitlist', data),
   forgotPassword: (data) => client.post('/auth/forgot-password', data),
   resetPassword: (data) => client.post('/auth/reset-password', data),
+  login2FA: (data) => client.post('/auth/login/2fa', data),
 };
 
 // Servers
@@ -56,6 +57,9 @@ export const usersAPI = {
   me: () => client.get('/users/me'),
   updateModules: (userId, modules) => client.patch(`/users/${userId}/modules`, { enabled_modules: modules }),
   changePassword: (data) => client.post('/users/change-password', data),
+  setup2FA: (data) => client.post('/users/2fa/setup', data),
+  verify2FA: (data) => client.post('/users/2fa/verify', data),
+  disable2FA: (data) => client.post('/users/2fa/disable', data),
 };
 
 // Audit
