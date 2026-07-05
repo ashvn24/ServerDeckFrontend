@@ -3,8 +3,14 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Server, ArrowRight, Loader2 } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
+import useSEO from '../hooks/useSEO';
 
 export default function Login() {
+  useSEO({
+    title: 'Sign In',
+    description: 'Sign in to your ServerDeck dashboard to manage your servers, Nginx configurations, SSL certificates, and support tickets.',
+    keywords: ['login serverdeck', 'infrastructure management sign in']
+  });
 
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState('');

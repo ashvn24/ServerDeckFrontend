@@ -7,6 +7,7 @@ import {
   Info, AlertTriangle, Lightbulb, ChevronRight, Terminal
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import useSEO from '../hooks/useSEO';
 
 /* ─────────────────────────────────────────────────────────────────
    DOCUMENTATION
@@ -401,6 +402,12 @@ const SECTIONS = [
 
 /* ── Page ────────────────────────────────────────────────────────── */
 export default function Documentation() {
+  useSEO({
+    title: 'Documentation & User Guides',
+    description: 'Get started with ServerDeck. Read guides on installing the agent, managing Nginx sites, SSL certificates, firewalls, and PM2 processes.',
+    keywords: ['serverdeck documentation', 'server installation guide', 'nginx configuration guide', 'ssl setup']
+  });
+
   const { theme, toggleTheme } = useTheme();
 
   return (

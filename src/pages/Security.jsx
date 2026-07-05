@@ -1,6 +1,13 @@
 import PublicDocPage, { Section, P, UL } from '../components/layout/PublicDocPage';
+import useSEO from '../hooks/useSEO';
 
 export default function Security() {
+  useSEO({
+    title: 'Security Practices',
+    description: 'Security architecture of ServerDeck. Read about end-to-end encrypted WebSocket comms, token-based authentication, auditability, and role-based access control.',
+    keywords: ['serverdeck security', 'agent security', 'encrypted ssh', 'audit logs', 'rbac']
+  });
+
   return (
     <PublicDocPage
       eyebrow="Security"

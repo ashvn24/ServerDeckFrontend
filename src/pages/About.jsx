@@ -1,6 +1,13 @@
 import PublicDocPage, { Section, P, UL } from '../components/layout/PublicDocPage';
+import useSEO from '../hooks/useSEO';
 
 export default function About() {
+  useSEO({
+    title: 'About Us',
+    description: 'Learn about the mission behind ServerDeck and how we build developer-first tools for managing Linux server infrastructure.',
+    keywords: ['about serverdeck', 'serverdeck team', 'infrastructure control panel']
+  });
+
   return (
     <PublicDocPage
       eyebrow="About"

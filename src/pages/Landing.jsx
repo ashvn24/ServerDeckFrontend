@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { authAPI } from '../api/endpoints';
 import './Landing.css';
+import useSEO from '../hooks/useSEO';
 
 /* ── Scroll-reveal wrapper ── */
 const Reveal = ({ children, delay = 0, className = '' }) => {
@@ -194,6 +195,13 @@ const FaqItem = ({ q, a }) => {
 const INSTALL_CMD = 'curl -fsSL https://get.serverdeck.io | bash';
 
 const Landing = () => {
+  useSEO({
+    title: 'Unified Linux Infrastructure Control Panel',
+    description: 'Unified Linux server management panel. Secure Web SSH terminal, Let\'s Encrypt SSL automation, visual firewall rules, PM2 processes, database explorer, support desk, and real-time alerts.',
+    keywords: ['linux server management', 'web ssh terminal', 'ssl automation', 'lets encrypt', 'pm2 manager', 'visual firewall', 'sql explorer', 'server monitoring'],
+    ogImage: '/app-dark.png'
+  });
+
   const [scrolled, setScrolled] = useState(false);
   const [progress, setProgress] = useState(0);
   const [email, setEmail] = useState('');

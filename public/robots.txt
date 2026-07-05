@@ -1,0 +1,22 @@
+User-agent: *
+
+# Allow indexing of public marketing and documentation pages
+Allow: /$
+Allow: /about
+Allow: /security
+Allow: /terms
+Allow: /privacy
+Allow: /documentation
+
+# Block search engines from crawling the dashboard, console, settings, or internal tools
+Disallow: /login
+Disallow: /dashboard
+Disallow: /servers
+Disallow: /alerts
+Disallow: /activity
+Disallow: /settings
+Disallow: /tickets
+Disallow: /organizations
+Disallow: /invite
+
+Sitemap: https://serverdeck.io/sitemap.xml

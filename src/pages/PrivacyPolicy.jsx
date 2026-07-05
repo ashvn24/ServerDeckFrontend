@@ -1,6 +1,13 @@
 import PublicDocPage, { Section, P, UL } from '../components/layout/PublicDocPage';
+import useSEO from '../hooks/useSEO';
 
 export default function PrivacyPolicy() {
+  useSEO({
+    title: 'Privacy Policy',
+    description: 'Privacy Policy for ServerDeck. Understand how we collect, use, store, and protect your account data and infrastructure information.',
+    keywords: ['serverdeck privacy policy', 'data collection', 'cookies']
+  });
+
   return (
     <PublicDocPage
       eyebrow="Privacy"

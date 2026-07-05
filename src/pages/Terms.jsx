@@ -1,6 +1,13 @@
 import PublicDocPage, { Section, P, UL } from '../components/layout/PublicDocPage';
+import useSEO from '../hooks/useSEO';
 
 export default function Terms() {
+  useSEO({
+    title: 'Terms of Service',
+    description: 'Terms of Service governing your use of the ServerDeck infrastructure management platform and lightweight agent.',
+    keywords: ['serverdeck terms', 'terms of service', 'legal terms']
+  });
+
   return (
     <PublicDocPage
       eyebrow="Terms"
