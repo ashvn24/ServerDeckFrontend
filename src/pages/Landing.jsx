@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   Server, Shield, Terminal, Activity, Lock, ArrowRight,
   ChevronDown, CheckCircle2, Cpu, Database, Globe, Check,
-  GitBranch, Volume2, VolumeX, Loader2, Copy, Bell
+  GitBranch, Volume2, VolumeX, Loader2, Copy, Bell,
+  Brain, Folder, FileText, Settings, Play, LifeBuoy
 } from 'lucide-react';
 import { authAPI } from '../api/endpoints';
 import './Landing.css';
@@ -594,6 +595,99 @@ const Landing = () => {
               </div>
             </Reveal>
 
+            <Reveal className="ld-bento-card ld-b-ai" delay={100}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Brain size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">AI Diagnostics Copilot</h3>
+                  <p className="ld-bento-desc">Instant automated troubleshooting. When an alert fires, our integrated LLM analyzes logs and system status to diagnose and suggest a fix.</p>
+                </div>
+              </div>
+              <div className="ld-ai-mock">
+                <div className="ld-ai-mock-header">
+                  <span className="ld-ai-mock-indicator">● AI Diagnosis</span>
+                  <span className="ld-ai-mock-urgency ld-critical">CRITICAL</span>
+                </div>
+                <div className="ld-ai-mock-body">
+                  <p className="ld-ai-mock-text"><strong>Likely Cause:</strong> Nginx connections exhausted due to keepalive settings and rapid traffic spike.</p>
+                  <p className="ld-ai-mock-fix"><strong>Suggested Command:</strong></p>
+                  <div className="ld-ai-mock-code">
+                    <code>sudo sysctl -w net.ipv4.tcp_tw_reuse=1</code>
+                  </div>
+                  <div className="ld-ai-mock-btn">
+                    <Play size={10} style={{ fill: 'currentColor', marginRight: '4px', verticalAlign: 'middle' }} /> Run Suggested Fix
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-files" delay={180}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Folder size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Visual File Manager</h3>
+                  <p className="ld-bento-desc">Navigate directories, upload/download, and edit scripts or configuration files directly from the browser with a secure, built-in text editor.</p>
+                </div>
+              </div>
+              <div className="ld-file-mock">
+                <div className="ld-file-mock-path">
+                  <span>/var/www/html</span>
+                </div>
+                <div className="ld-file-mock-list">
+                  <div className="ld-file-mock-item">
+                    <Folder size={12} color="#f59e0b" style={{ marginRight: '6px' }} />
+                    <span className="ld-file-mock-name">public</span>
+                    <span className="ld-file-mock-meta">drwxr-xr-x</span>
+                  </div>
+                  <div className="ld-file-mock-item">
+                    <FileText size={12} color="#06b6d4" style={{ marginRight: '6px' }} />
+                    <span className="ld-file-mock-name">index.html</span>
+                    <span className="ld-file-mock-meta">644 · 5.2 KB</span>
+                  </div>
+                  <div className="ld-file-mock-item">
+                    <FileText size={12} color="#a855f7" style={{ marginRight: '6px' }} />
+                    <span className="ld-file-mock-name">nginx.conf</span>
+                    <span className="ld-file-mock-meta">644 · 1.4 KB</span>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-sql" delay={260}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Database size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">SQL Explorer & DB Client</h3>
+                  <p className="ld-bento-desc">Connect to PostgreSQL, MySQL, and SQLite. Inspect schemas, browse tables, and execute raw SQL queries with full syntax highlighting.</p>
+                </div>
+              </div>
+              <div className="ld-sql-mock">
+                <div className="ld-sql-mock-query">
+                  <span className="keyword">SELECT</span> name, email <span className="keyword">FROM</span> users <span className="keyword">WHERE</span> active = <span className="literal">true</span>;
+                </div>
+                <div className="ld-sql-mock-results">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>name</th>
+                        <th>email</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>admin</td>
+                        <td>admin@serverdeck.io</td>
+                      </tr>
+                      <tr>
+                        <td>support_alex</td>
+                        <td>alex@serverdeck.io</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Reveal>
+
             <Reveal className="ld-bento-card ld-b-ssl" delay={120}>
               <div className="ld-bento-head">
                 <div className="ld-bento-icon"><Lock size={18} /></div>
@@ -641,6 +735,86 @@ const Landing = () => {
                     <span className="ld-fleet-ms">{s.ms}</span>
                   </div>
                 ))}
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-services" delay={140}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Settings size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Services & Processes</h3>
+                  <p className="ld-bento-desc">Full lifecycle management for systemd, PM2, and Docker containers. Monitor active memory usage and kill rogue processes directly.</p>
+                </div>
+              </div>
+              <div className="ld-services-mock">
+                <div className="ld-services-row">
+                  <span className="ld-services-status ld-up">●</span>
+                  <span className="ld-services-name">nginx.service</span>
+                  <span className="ld-services-cpu">0.2% CPU</span>
+                  <span className="ld-services-action">Restart</span>
+                </div>
+                <div className="ld-services-row">
+                  <span className="ld-services-status ld-up">●</span>
+                  <span className="ld-services-name">pm2: api-server</span>
+                  <span className="ld-services-cpu">4.1% CPU</span>
+                  <span className="ld-services-action">Restart</span>
+                </div>
+                <div className="ld-services-row">
+                  <span className="ld-services-status ld-down">○</span>
+                  <span className="ld-services-name">postgresql@14</span>
+                  <span className="ld-services-cpu">OFFLINE</span>
+                  <span className="ld-services-action ld-start">Start</span>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-tickets" delay={220}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><LifeBuoy size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">Integrated Support Desk</h3>
+                  <p className="ld-bento-desc">Create, reply, and track support tickets inside the panel with WebSocket updates. Escalate production alerts to tickets with context in one click.</p>
+                </div>
+              </div>
+              <div className="ld-tickets-mock">
+                <div className="ld-tickets-item">
+                  <span className="ld-tickets-badge ld-urgent">URGENT</span>
+                  <span className="ld-tickets-id">#1042</span>
+                  <span className="ld-tickets-title">DB CPU Peak Alert</span>
+                  <span className="ld-tickets-time">3m ago</span>
+                </div>
+                <div className="ld-tickets-item">
+                  <span className="ld-tickets-badge ld-open">OPEN</span>
+                  <span className="ld-tickets-id">#1041</span>
+                  <span className="ld-tickets-title">SSL Renewal Issue</span>
+                  <span className="ld-tickets-time">1h ago</span>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal className="ld-bento-card ld-b-luxegenie" delay={300}>
+              <div className="ld-bento-head">
+                <div className="ld-bento-icon"><Cpu size={18} /></div>
+                <div>
+                  <h3 className="ld-bento-title">LuxeGenie IoT Vitals</h3>
+                  <p className="ld-bento-desc">Real-time UART telemetry and device diagnostics for LuxeGenie Linux systems. Monitor battery charge, serial sync status, and firmware builds.</p>
+                </div>
+              </div>
+              <div className="ld-luxegenie-mock">
+                <div className="ld-luxegenie-vitals">
+                  <div className="ld-luxe-vital">
+                    <span className="ld-luxe-lbl">BATTERY</span>
+                    <span className="ld-luxe-val">89%</span>
+                  </div>
+                  <div className="ld-luxe-vital">
+                    <span className="ld-luxe-lbl">UART LINK</span>
+                    <span className="ld-luxe-val ld-active">ONLINE</span>
+                  </div>
+                  <div className="ld-luxe-vital">
+                    <span className="ld-luxe-lbl">FIRMWARE</span>
+                    <span className="ld-luxe-val">v2.4.1</span>
+                  </div>
+                </div>
               </div>
             </Reveal>
           </div>

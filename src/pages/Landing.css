@@ -61,6 +61,7 @@
 .ld-root h4 {
   margin: 0;
   line-height: 1.15;
+  text-align: inherit;
 }
 
 .ld-root img {
@@ -233,7 +234,7 @@
 }
 
 .ld-text-center {
-  text-align: center;
+  text-align: center !important;
 }
 
 .ld-link {
@@ -277,6 +278,7 @@
   letter-spacing: -0.03em;
   color: var(--ld-text);
   line-height: 1.08;
+  text-align: inherit;
 }
 
 .ld-section-sub {
@@ -285,11 +287,13 @@
   max-width: 520px;
   margin-top: 1rem;
   line-height: 1.7;
+  text-align: inherit;
 }
 
 .ld-sub-center {
   margin-left: auto;
   margin-right: auto;
+  text-align: center;
 }
 
 /* ── Scroll reveal ── */
@@ -1007,9 +1011,15 @@
 .ld-b-term   { grid-column: span 3; grid-row: span 2; }
 .ld-b-mon    { grid-column: span 3; }
 .ld-b-alerts { grid-column: span 3; }
+.ld-b-ai     { grid-column: span 3; grid-row: span 2; }
+.ld-b-files  { grid-column: span 3; }
+.ld-b-sql    { grid-column: span 3; }
 .ld-b-ssl    { grid-column: span 2; }
 .ld-b-fw     { grid-column: span 2; }
 .ld-b-fleet  { grid-column: span 2; }
+.ld-b-services { grid-column: span 2; }
+.ld-b-tickets  { grid-column: span 2; }
+.ld-b-luxegenie { grid-column: span 2; }
 
 .ld-bento-head {
   display: flex;
@@ -1410,6 +1420,349 @@
   margin-left: auto;
   color: var(--ld-green);
   font-weight: 600;
+}
+
+/* ── AI Diagnostics Mock ── */
+.ld-ai-mock {
+  flex: 1;
+  background: rgba(2, 4, 6, 0.75);
+  border: 1px solid var(--ld-border-w);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--ld-mono);
+  font-size: 0.72rem;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 220px;
+}
+
+.ld-ai-mock-header {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ld-border-w);
+  padding-bottom: 0.4rem;
+}
+
+.ld-ai-mock-indicator {
+  color: var(--ld-green);
+  font-weight: 700;
+}
+
+.ld-ai-mock-urgency {
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.ld-ai-mock-urgency.ld-critical {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.ld-ai-mock-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  color: var(--ld-muted-2);
+}
+
+.ld-ai-mock-text {
+  line-height: 1.4;
+}
+
+.ld-ai-mock-fix {
+  margin-top: 0.2rem;
+}
+
+.ld-ai-mock-code {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--ld-border-w);
+  color: var(--ld-cyan);
+  word-break: break-all;
+}
+
+.ld-ai-mock-btn {
+  background: linear-gradient(135deg, var(--ld-green-dim), var(--ld-green));
+  color: var(--ld-black);
+  font-weight: 700;
+  padding: 0.4rem;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.68rem;
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+/* ── File Manager Mock ── */
+.ld-file-mock {
+  flex: 1;
+  background: rgba(2, 4, 6, 0.75);
+  border: 1px solid var(--ld-border-w);
+  border-radius: 12px;
+  padding: 0.8rem;
+  font-family: var(--ld-mono);
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ld-file-mock-path {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid var(--ld-border-w);
+  color: var(--ld-muted-2);
+}
+
+.ld-file-mock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ld-file-mock-item {
+  display: flex;
+  align-items: center;
+  padding: 0.4rem 0.6rem;
+  background: rgba(255, 255, 255, 0.015);
+  border-radius: 6px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.ld-file-mock-item:hover {
+  border-color: var(--ld-border-w);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.ld-file-mock-name {
+  color: var(--ld-text);
+  flex: 1;
+}
+
+.ld-file-mock-meta {
+  color: var(--ld-muted);
+  font-size: 0.65rem;
+}
+
+/* ── SQL Explorer Mock ── */
+.ld-sql-mock {
+  flex: 1;
+  background: rgba(2, 4, 6, 0.75);
+  border: 1px solid var(--ld-border-w);
+  border-radius: 12px;
+  padding: 0.8rem;
+  font-family: var(--ld-mono);
+  font-size: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ld-sql-mock-query {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--ld-border-w);
+  color: var(--ld-text);
+  line-height: 1.4;
+}
+
+.ld-sql-mock-query .keyword {
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.ld-sql-mock-query .literal {
+  color: #f59e0b;
+}
+
+.ld-sql-mock-results {
+  overflow-x: auto;
+}
+
+.ld-sql-mock-results table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.ld-sql-mock-results th,
+.ld-sql-mock-results td {
+  padding: 0.35rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid var(--ld-border-w);
+}
+
+.ld-sql-mock-results th {
+  color: var(--ld-muted-2);
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.ld-sql-mock-results td {
+  color: var(--ld-text);
+}
+
+/* ── Services & Processes Mock ── */
+.ld-services-mock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ld-services-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--ld-border-w);
+  border-radius: 10px;
+  font-family: var(--ld-mono);
+  font-size: 0.7rem;
+}
+
+.ld-services-status {
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.ld-services-status.ld-up {
+  color: var(--ld-green);
+  text-shadow: 0 0 6px rgba(34, 197, 94, 0.7);
+}
+
+.ld-services-status.ld-down {
+  color: var(--ld-muted);
+}
+
+.ld-services-name {
+  color: var(--ld-text);
+  flex: 1;
+}
+
+.ld-services-cpu {
+  color: var(--ld-muted-2);
+  font-size: 0.65rem;
+}
+
+.ld-services-action {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ld-text);
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.ld-services-action.ld-start {
+  background: rgba(34, 197, 94, 0.12);
+  color: var(--ld-green);
+}
+
+/* ── Integrated Support Desk Mock ── */
+.ld-tickets-mock {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ld-tickets-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--ld-border-w);
+  border-radius: 10px;
+  font-family: var(--ld-mono);
+  font-size: 0.7rem;
+}
+
+.ld-tickets-badge {
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.ld-tickets-badge.ld-urgent {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.ld-tickets-badge.ld-open {
+  color: var(--ld-green);
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.ld-tickets-id {
+  color: var(--ld-cyan);
+  font-weight: 600;
+}
+
+.ld-tickets-title {
+  color: var(--ld-text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ld-tickets-time {
+  color: var(--ld-muted);
+  font-size: 0.65rem;
+}
+
+/* ── LuxeGenie IoT Vitals Mock ── */
+.ld-luxegenie-mock {
+  background: rgba(2, 4, 6, 0.75);
+  border: 1px solid var(--ld-border-w);
+  border-radius: 12px;
+  padding: 0.8rem;
+  font-family: var(--ld-mono);
+  font-size: 0.7rem;
+}
+
+.ld-luxegenie-vitals {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.ld-luxe-vital {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 6px;
+  border: 1px solid var(--ld-border-w);
+}
+
+.ld-luxe-lbl {
+  color: var(--ld-muted-2);
+}
+
+.ld-luxe-val {
+  font-weight: 700;
+  color: var(--ld-text);
+}
+
+.ld-luxe-val.ld-active {
+  color: var(--ld-green);
+  text-shadow: 0 0 6px rgba(34, 197, 94, 0.7);
 }
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -2117,14 +2470,20 @@
 
   .ld-b-term,
   .ld-b-mon,
-  .ld-b-alerts {
+  .ld-b-alerts,
+  .ld-b-ai,
+  .ld-b-files,
+  .ld-b-sql {
     grid-column: span 2;
     grid-row: auto;
   }
 
   .ld-b-ssl,
   .ld-b-fw,
-  .ld-b-fleet {
+  .ld-b-fleet,
+  .ld-b-services,
+  .ld-b-tickets,
+  .ld-b-luxegenie {
     grid-column: span 1;
   }
 
@@ -2192,7 +2551,13 @@
   .ld-b-alerts,
   .ld-b-ssl,
   .ld-b-fw,
-  .ld-b-fleet {
+  .ld-b-fleet,
+  .ld-b-ai,
+  .ld-b-files,
+  .ld-b-sql,
+  .ld-b-services,
+  .ld-b-tickets,
+  .ld-b-luxegenie {
     grid-column: span 1;
   }
 
