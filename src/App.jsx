@@ -70,6 +70,7 @@ function ModuleProtectedRoute({ module, children }) {
 
 function AppRoutes() {
   const { user, isPlatformOwner, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) return null;
 
@@ -90,11 +91,13 @@ function AppRoutes() {
   };
 
   const defaultRoute = getDefaultRoute();
+  const from = location.state?.from;
+  const dest = from ? `${from.pathname}${from.search || ''}${from.hash || ''}` : defaultRoute;
 
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/login" element={user ? <Navigate to={defaultRoute} replace /> : <Login />} />
+      <Route path="/login" element={user ? <Navigate to={dest} replace /> : <Login />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
