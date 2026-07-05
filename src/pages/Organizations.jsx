@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { adminAPI } from '../api/endpoints';
 import {
-  Building2, Plus, Trash2, Loader2, X, Globe, Key, User, Mail,
+  Building2, Building, Plus, Trash2, Loader2, X, Globe, Key, User, Mail,
   Lock, Shield, Calendar, Database, Search, AlertTriangle, Users, UserPlus, CheckCircle2, Copy, RefreshCw, Sliders
 } from 'lucide-react';
 import ConfirmModal from '../components/common/ConfirmModal';
@@ -737,17 +737,35 @@ export default function Organizations() {
               <div className="divide-y divide-[var(--border-color)]">
                 {/* Table Header */}
                 <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-4 text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest bg-white/2">
-                  <div className="col-span-6">Requested Email</div>
-                  <div className="col-span-3">Requested On</div>
+                  <div className="col-span-4">User Details</div>
+                  <div className="col-span-3">Usage Type</div>
+                  <div className="col-span-2">Requested On</div>
                   <div className="col-span-3 text-right">Actions</div>
                 </div>
                 {filteredWaitlist.map(w => (
                   <div key={w.id} className="px-4 md:px-8 py-4 md:py-5 hover:bg-white/5 transition-all group">
+                    {/* Mobile View */}
                     <div className="md:hidden flex flex-col gap-4">
                       <div>
-                        <p className="text-sm font-black text-white">{w.email}</p>
-                        <p className="text-[10px] font-bold text-[var(--text-secondary)] mt-1">
-                          {new Date(w.created_at).toLocaleDateString('en-US')}
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="text-sm font-black text-white">{w.name || 'Anonymous'}</p>
+                          <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border ${
+                            w.request_type === 'organization'
+                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                              : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          }`}>
+                            {w.request_type || 'Personal'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[var(--text-secondary)]">{w.email}</p>
+                        {w.request_type === 'organization' && w.org_name && (
+                          <p className="text-[10px] font-bold text-white/60 mt-1 flex items-center gap-1">
+                            <Building className="w-3 h-3 text-purple-400" />
+                            {w.org_name}
+                          </p>
+                        )}
+                        <p className="text-[10px] font-bold text-[var(--text-secondary)] mt-2">
+                          Requested: {new Date(w.created_at).toLocaleDateString('en-US')}
                         </p>
                       </div>
                       <div className="flex gap-2">
@@ -772,21 +790,43 @@ export default function Organizations() {
                         </button>
                       </div>
                     </div>
+
+                    {/* Desktop View */}
                     <div className="hidden md:grid grid-cols-12 gap-4 items-center">
-                      <div className="col-span-6 flex items-center gap-3">
+                      <div className="col-span-4 flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
-                          <Mail className="w-4 h-4" />
+                          <User className="w-4 h-4" />
                         </div>
-                        <p className="text-sm font-bold text-white">
-                          {w.email}
-                          {w.status === 'invited' && (
-                            <span className="ml-3 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-black uppercase tracking-widest align-middle">
-                              Invite Sent
-                            </span>
-                          )}
-                        </p>
+                        <div>
+                          <p className="text-sm font-bold text-white">
+                            {w.name || 'Anonymous'}
+                            {w.status === 'invited' && (
+                              <span className="ml-3 px-2 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-md text-[9px] font-black uppercase tracking-widest align-middle">
+                                Invite Sent
+                              </span>
+                            )}
+                          </p>
+                          <p className="text-[10px] font-bold text-[var(--text-secondary)]">{w.email}</p>
+                        </div>
                       </div>
                       <div className="col-span-3">
+                        <div className="flex flex-col gap-1 items-start">
+                          <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${
+                            w.request_type === 'organization'
+                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                              : 'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          }`}>
+                            {w.request_type || 'Personal'}
+                          </span>
+                          {w.request_type === 'organization' && w.org_name && (
+                            <span className="text-[10px] font-bold text-white/60 flex items-center gap-1">
+                              <Building className="w-3 h-3 text-purple-400" />
+                              {w.org_name}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="col-span-2">
                         <span className="text-xs font-bold text-[var(--text-secondary)]">
                           {new Date(w.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                         </span>
