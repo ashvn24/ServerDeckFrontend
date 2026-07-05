@@ -4,7 +4,7 @@ import {
   Server, Shield, Terminal, Activity, Lock, ArrowRight,
   ChevronDown, CheckCircle2, Cpu, Database, Globe, Check,
   GitBranch, Volume2, VolumeX, Loader2, Copy, Bell,
-  Brain, Folder, FileText, Settings, Play, LifeBuoy
+  Brain, Folder, FileText, Settings, Play, LifeBuoy, Box
 } from 'lucide-react';
 import { authAPI } from '../api/endpoints';
 import './Landing.css';
@@ -379,11 +379,11 @@ const Landing = () => {
       {/* ── NAV ── */}
       <nav className={`ld-nav${scrolled ? ' ld-nav-scrolled' : ''}`}>
         <div className="ld-nav-inner">
-          <div className="ld-logo">
-            <div className="ld-logo-icon">
-              <Server size={18} color="#000" />
+          <div className="ld-logo flex items-center gap-3">
+            <div className="w-9 h-9 md:w-10 md:h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
+              <Box className="w-5 h-5 md:w-6 md:h-6 text-black" />
             </div>
-            <span className="ld-logo-text">Server Deck</span>
+            <span className="text-base md:text-xl font-black tracking-tighter uppercase font-display text-white">Server Deck</span>
           </div>
 
           <div className="ld-nav-links">
