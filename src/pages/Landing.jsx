@@ -1029,10 +1029,10 @@ const Landing = () => {
         <div className="ld-footer-inner">
           <div>
             <div className="ld-logo">
-              <div className="ld-logo-icon">
-                <Server size={16} color="#000" />
+              <div className="w-7 h-7 md:w-7 md:h-7 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
+                <Box className="w-4 h-4 md:w-4 md:h-4 text-black" />
               </div>
-              <span className="ld-logo-text">Server Deck</span>
+              <span className="text-base md:text-lg font-black tracking-tighter uppercase font-display text-white">Server Deck</span>
             </div>
             <p className="ld-footer-brand-desc">
               The modern control panel for Linux infrastructure. Manage your entire fleet from one elegant interface.

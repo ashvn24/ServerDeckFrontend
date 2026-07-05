@@ -284,10 +284,10 @@
 .ld-section-sub {
   font-size: 1rem;
   color: var(--ld-muted-2);
-  max-width: 520px;
-  margin-top: 1rem;
+  max-width: 700px;   /* was 520px */
+  margin: 1rem auto 0;
   line-height: 1.7;
-  text-align: inherit;
+  text-align: center;
 }
 
 .ld-sub-center {
