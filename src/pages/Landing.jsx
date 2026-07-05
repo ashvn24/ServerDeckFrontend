@@ -3,12 +3,22 @@ import { Link } from 'react-router-dom';
 import {
   Server, Shield, Terminal, Activity, Lock, ArrowRight,
   ChevronDown, CheckCircle2, Cpu, Database, Globe, Check,
-  GitBranch, Volume2, VolumeX, Loader2, Copy, Bell,
-  Brain, Folder, FileText, Settings, Play, LifeBuoy, Box
+  GitBranch, Loader2, Copy, Bell, Brain, Play, LifeBuoy,
+  Power, RefreshCw, AlertTriangle, User, ExternalLink, HardDrive, Box
 } from 'lucide-react';
 import { authAPI } from '../api/endpoints';
 import './Landing.css';
 import useSEO from '../hooks/useSEO';
+
+/* ── ServerDeck Box Logo (Matches previous version) ── */
+const ServerDeckLogo = ({ size = 'nav' }) => (
+  <div className={size === 'nav'
+    ? 'w-9 h-9 bg-white rounded-2xl flex items-center justify-center shadow-lg hover:rotate-6 transition-all duration-500'
+    : 'w-7.5 h-7.5 bg-white rounded-xl flex items-center justify-center shadow-lg hover:rotate-6 transition-all duration-500'
+  }>
+    <Box className={size === 'nav' ? 'w-5 h-5 text-black' : 'w-4 h-4 text-black'} />
+  </div>
+);
 
 /* ── Scroll-reveal wrapper ── */
 const Reveal = ({ children, delay = 0, className = '' }) => {
@@ -23,7 +33,7 @@ const Reveal = ({ children, delay = 0, className = '' }) => {
         setVisible(true);
         obs.disconnect();
       }
-    }, { threshold: 0.15 });
+    }, { threshold: 0.1 });
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
@@ -31,167 +41,18 @@ const Reveal = ({ children, delay = 0, className = '' }) => {
   return (
     <div
       ref={ref}
-      className={`ld-reveal${visible ? ' ld-in' : ''}${className ? ` ${className}` : ''}`}
-      style={delay ? { '--ld-rd': `${delay}ms` } : undefined}
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? 'translateY(0)' : 'translateY(24px)',
+        transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`
+      }}
+      className={className}
     >
       {children}
     </div>
   );
 };
 
-/* ── Parallax: translates an element against scroll at the given speed.
-   Uses the CSS `translate` property so it never fights `transform`
-   transitions (hover effects, reveals). ── */
-const useParallax = (speed = 0.1) => {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    let raf = 0;
-    let currentY = 0;
-
-    const update = () => {
-      raf = 0;
-      const rect = el.getBoundingClientRect();
-      // subtract our own offset so the base position stays stable
-      const baseCenter = rect.top - currentY + rect.height / 2;
-      currentY = (baseCenter - window.innerHeight / 2) * speed;
-      el.style.translate = `0 ${currentY.toFixed(1)}px`;
-    };
-
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    return () => {
-      window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('resize', onScroll);
-      if (raf) cancelAnimationFrame(raf);
-      el.style.translate = '';
-    };
-  }, [speed]);
-
-  return ref;
-};
-
-/* ── Small helpers ── */
-const Star = () => (
-  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </svg>
-);
-
-const Stars = ({ n = 5 }) => (
-  <div className="ld-stars">
-    {Array.from({ length: n }).map((_, i) => <Star key={i} />)}
-  </div>
-);
-
-/* ── Terminal mockup (bento) ── */
-const TerminalMock = () => (
-  <div className="ld-term">
-    <div className="ld-term-bar">
-      <span className="ld-term-dot ld-r" />
-      <span className="ld-term-dot ld-y" />
-      <span className="ld-term-dot ld-g" />
-      <span className="ld-term-title">prod-01 — ssh</span>
-      <span className="ld-term-live">● LIVE</span>
-    </div>
-    <div className="ld-term-body">
-      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> systemctl status nginx</div>
-      <div className="ld-term-line ld-ok">● nginx.service — active (running) since 41 days ago</div>
-      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> pm2 restart api</div>
-      <div className="ld-term-line ld-ok">[PM2] ✓ api restarted · mem 84.2mb · cpu 0.4%</div>
-      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> certbot renew --dry-run</div>
-      <div className="ld-term-line ld-dim">Congratulations, all simulated renewals succeeded</div>
-      <div className="ld-term-line"><span className="ld-term-prompt">root@prod-01:~$</span> <span className="ld-term-caret" /></div>
-    </div>
-  </div>
-);
-
-/* ── Sparkline chart (bento) ── */
-const MiniChart = ({ bars }) => (
-  <div className="ld-chart">
-    {bars.map((h, i) => (
-      <div
-        key={i}
-        className={`ld-chart-bar${h > 70 ? ' ld-high' : ''}`}
-        style={{ '--ld-bar-h': `${h}%`, height: `${h}%`, animationDelay: `${i * 0.05}s` }}
-      />
-    ))}
-  </div>
-);
-
-/* ── SSL renewal ring (bento) ── */
-const CertRing = () => (
-  <div className="ld-ring-wrap">
-    <svg viewBox="0 0 80 80" className="ld-ring">
-      <circle cx="40" cy="40" r="34" className="ld-ring-track" />
-      <circle cx="40" cy="40" r="34" className="ld-ring-fill" strokeDasharray="213.6" strokeDashoffset="30" />
-    </svg>
-    <div className="ld-ring-center">
-      <span className="ld-ring-num">89</span>
-      <span className="ld-ring-sub">days left</span>
-    </div>
-  </div>
-);
-
-/* ── Integrations orbit ── */
-const ORBIT_NODES = [
-  { icon: <Globe size={18} />,    label: 'Nginx', angle: 270, r: 110 },
-  { icon: <Database size={18} />, label: 'DB',    angle: 45,  r: 110 },
-  { icon: <Cpu size={18} />,      label: 'PM2',   angle: 135, r: 110 },
-  { icon: <Lock size={18} />,     label: 'SSL',   angle: 225, r: 110 },
-];
-
-const OrbitVisual = () => (
-  <div className="ld-orbit-visual">
-    <div className="ld-orbit-ring-1" />
-    <div className="ld-orbit-ring-2" />
-    <div className="ld-orbit-sweep" />
-    <div className="ld-orbit-center">
-      <Box size={34} color="#22c55e" />
-    </div>
-    {ORBIT_NODES.map(({ icon, label, angle, r }) => {
-      const rad = (angle * Math.PI) / 180;
-      const x = Math.cos(rad) * r;
-      const y = Math.sin(rad) * r;
-      return (
-        <div
-          key={label}
-          className="ld-orbit-node"
-          style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-          title={label}
-        >
-          {icon}
-        </div>
-      );
-    })}
-  </div>
-);
-
-/* ── FAQ item ── */
-const FaqItem = ({ q, a }) => {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className={`ld-faq-item${open ? ' ld-open' : ''}`}>
-      <button className="ld-faq-q" onClick={() => setOpen(o => !o)}>
-        {q}
-        <span className="ld-faq-chevron"><ChevronDown size={14} /></span>
-      </button>
-      <div className="ld-faq-a">{a}</div>
-    </div>
-  );
-};
-
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   MAIN COMPONENT
-   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const INSTALL_CMD = 'curl -fsSL https://get.serverdeck.io | bash';
 
 const Landing = () => {
@@ -203,28 +64,25 @@ const Landing = () => {
   });
 
   const [scrolled, setScrolled] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [copied, setCopied] = useState(false);
-  const laptopVideoRef = useRef(null);
-  const mobileVideoRef = useRef(null);
-  const [isMuted, setIsMuted] = useState(true);
+  
+  // Interactive Node States
+  const [hoveredNode, setHoveredNode] = useState(null);
+  
+  // Interactive Radar States
+  const [radarStep, setRadarStep] = useState(1);
+  const [radarLoading, setRadarLoading] = useState(false);
 
-  const rootRef = useRef(null);
-  const heroGlowRef = useParallax(-0.15);
-  const phoneRef = useParallax(0.06);
-  const laptopRef = useParallax(-0.04);
-  const orbitRef = useParallax(-0.08);
+  // Map Active Spot
+  const [activeSpot, setActiveSpot] = useState('NYC');
 
-  const toggleMute = () => {
-    if (laptopVideoRef.current) {
-      laptopVideoRef.current.muted = !laptopVideoRef.current.muted;
-      setIsMuted(laptopVideoRef.current.muted);
-    }
-  };
+  // Video Modal state
+  const [showVideoModal, setShowVideoModal] = useState(false);
 
   const copyCmd = async () => {
     try {
@@ -232,46 +90,38 @@ const Landing = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      /* clipboard unavailable — ignore */
+      /* clipboard unavailable */
     }
   };
 
   useEffect(() => {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.play().catch(e => console.log('Autoplay prevented:', e));
-        } else {
-          entry.target.pause();
-        }
-      });
-    }, { threshold: 0.3 });
-
-    if (laptopVideoRef.current) observer.observe(laptopVideoRef.current);
-    if (mobileVideoRef.current) observer.observe(mobileVideoRef.current);
-
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 30);
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? (window.scrollY / max) * 100 : 0);
-      // drives the fixed background parallax (grid + auroras) via CSS calc()
-      if (rootRef.current) rootRef.current.style.setProperty('--ld-scroll', window.scrollY);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 40);
+      const totalScroll = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollProgress(totalScroll > 0 ? (window.scrollY / totalScroll) * 100 : 0);
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollTo = (e, id) => {
-    e.preventDefault();
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const triggerRadarStep = () => {
+    if (radarLoading) return;
+    setRadarLoading(true);
+    setTimeout(() => {
+      setRadarStep(prev => (prev % 3) + 1);
+      setRadarLoading(false);
+    }, 1000);
   };
 
-  const handleSubmit = async (e) => {
+  // Node Points mapping (coordinates relative to viewBox 1200x700)
+  const networkNodes = [
+    { id: 'cortex', name: 'Cortex', x: 230, y: 180, val: '20,945', ip: '142.250.190.46', cpu: '24%', ram: '42%' },
+    { id: 'quant', name: 'Quant', x: 970, y: 220, val: '2,345', ip: '172.217.16.14', cpu: '12%', ram: '19%' },
+    { id: 'aelf', name: 'Aelf', x: 180, y: 480, val: '18,546', ip: '216.58.212.142', cpu: '88%', ram: '71%' },
+    { id: 'meeton', name: 'Meeton', x: 990, y: 500, val: '440', ip: '104.244.42.1', cpu: '5%', ram: '8%' }
+  ];
+
+  const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
     if (!email) return;
 
@@ -287,54 +137,25 @@ const Landing = () => {
     }
   };
 
-  const steps = [
-    {
-      num: '01',
-      title: 'Install the agent',
-      desc: 'One command on any Ubuntu or Debian server. The agent dials out over an encrypted WebSocket — no open ports, no firewall changes.',
-      code: INSTALL_CMD,
-    },
-    {
-      num: '02',
-      title: 'Node joins your deck',
-      desc: 'Within seconds the server appears in your dashboard with live CPU, RAM, disk, and network telemetry streaming in.',
-      code: null,
-    },
-    {
-      num: '03',
-      title: 'Control everything',
-      desc: 'Open a terminal, edit Nginx sites, renew SSL, restart PM2 apps, tail logs, and manage firewall rules — all from one window.',
-      code: null,
-    },
+  // Stats cylinders initial/mock heights
+  const resources = [
+    { label: 'CPU', val: '42%', color: 'var(--color-cyan)', h: 58.8 },
+    { label: 'RAM', val: '64%', color: 'var(--color-teal)', h: 89.6 },
+    { label: 'Disk', val: '31%', color: 'var(--color-blue)', h: 43.4 },
+    { label: 'Load', val: '0.45', color: 'var(--color-emerald)', h: 63.0 },
+    { label: 'Net', val: '24m', color: 'var(--color-violet)', h: 110.6 }
   ];
 
-  const alerts = [
-    { color: 'green',  title: 'Deployment successful', msg: 'api-server v2.4.1 live on prod-01', time: 'now' },
-    { color: 'red',    title: 'High memory usage',     msg: 'prod-03 RAM at 91% — action suggested', time: '2m' },
-    { color: 'yellow', title: 'SSL renewal scheduled', msg: 'api.example.com renews in 14 days', time: '8m' },
-  ];
-
-  const fwRules = [
-    { port: '443 / tcp',  rule: 'ALLOW', from: 'Anywhere' },
-    { port: '22 / tcp',   rule: 'ALLOW', from: 'Office VPN' },
-    { port: '3306 / tcp', rule: 'DENY',  from: 'Anywhere' },
-  ];
-
-  const fleet = [
-    { name: 'prod-01',    region: 'fra1', ms: '2ms',  up: true },
-    { name: 'prod-02',    region: 'fra1', ms: '3ms',  up: true },
-    { name: 'staging-01', region: 'blr1', ms: '11ms', up: true },
-    { name: 'worker-03',  region: 'nyc3', ms: '38ms', up: true },
-  ];
+  const trafficBars = [40, 24, 76, 48, 90, 32, 60, 80, 52, 68, 44, 88];
 
   const testimonials = [
     {
       logo: 'Infrastack',
-      quote: '"Server Deck eliminated our tool sprawl overnight. We went from juggling 6 SSH windows to managing 40 nodes from a single dashboard. The SSL automation alone saved us hours weekly."',
+      quote: '"ServerDeck eliminated our tool sprawl overnight. We went from juggling 6 SSH windows to managing 40 nodes from a single dashboard. The SSL automation alone saved us hours weekly."',
       name: 'Rajan M.',
       role: 'Lead SRE, Infrastack',
       avatar: 'RM',
-      color: '#16a34a',
+      color: '#14b8a6',
     },
     {
       logo: 'DevCore',
@@ -342,733 +163,682 @@ const Landing = () => {
       name: 'Priya S.',
       role: 'CTO, DevCore Systems',
       avatar: 'PS',
-      color: '#0d9488',
+      color: '#3b82f6',
     },
     {
       logo: 'CloudNest',
-      quote: '"Onboarding new servers takes 30 seconds now. The web terminal is indistinguishable from native SSH. Server Deck is the control panel we always wished existed."',
+      quote: '"Onboarding new servers takes 30 seconds now. The web terminal is indistinguishable from native SSH. ServerDeck is the control panel we always wished existed."',
       name: 'Alex T.',
       role: 'DevOps Engineer, CloudNest',
       avatar: 'AT',
-      color: '#0891b2',
-    },
+      color: '#8b5cf6',
+    }
   ];
 
   const faqs = [
-    { q: 'What is Server Deck?', a: 'Server Deck is a unified infrastructure control panel that lets you manage all your Linux servers — SSH, Nginx, SSL, PM2 apps, logs, and firewall rules — from a single, beautiful web interface.' },
-    { q: 'How does Server Deck connect to my server?', a: 'You deploy a lightweight agent on any Ubuntu/Debian server with a single command. The agent communicates via a secure, encrypted WebSocket channel — no open ports, no extra firewall rules required.' },
-    { q: 'Is it suitable for small teams or solo developers?', a: 'Absolutely. Server Deck scales from a single VPS to a fleet of hundreds. The interface is designed to be powerful for advanced users yet approachable for developers who just want things to work.' },
+    { q: 'What is ServerDeck?', a: 'ServerDeck is a unified infrastructure control panel that lets you manage all your Linux servers — SSH, Nginx, SSL, PM2 apps, logs, and firewall rules — from a single, beautiful web interface.' },
+    { q: 'How does ServerDeck connect to my server?', a: 'You deploy a lightweight agent on any Ubuntu/Debian server with a single command. The agent communicates via a secure, outbound WebSocket channel — no open ports, no extra firewall rules required.' },
+    { q: 'Is it suitable for small teams or solo developers?', a: 'Absolutely. ServerDeck scales from a single VPS to a fleet of hundreds. The interface is designed to be powerful for advanced users yet approachable for developers who just want things to work.' },
     { q: 'What does the monitoring dashboard show?', a: 'You get real-time CPU, RAM, disk usage, network I/O, running processes, Nginx site status, SSL certificate expiry, and application health — all in one view with configurable alerts.' },
-    { q: 'Does Server Deck support team collaboration?', a: 'Yes. You can invite team members with granular role-based access control, and every action is logged in a full audit trail so you always know who changed what and when.' },
+    { q: 'Does ServerDeck support team collaboration?', a: 'Yes. You can invite team members with granular role-based access control, and every action is logged in a full audit trail so you always know who changed what and when.' }
   ];
 
-  const tickerItems = ['Ubuntu 22.04', 'Nginx', 'PM2', 'Let\'s Encrypt', 'PostgreSQL', 'Node.js', 'Python', 'Redis', 'Docker', 'AWS EC2', 'DigitalOcean', 'Hetzner'];
+  const [activeFaq, setActiveFaq] = useState(null);
 
-  const chartBars = [35, 55, 48, 72, 60, 85, 42, 78, 65, 90, 55, 70, 38, 80];
+  const toggleFaq = (index) => {
+    setActiveFaq(activeFaq === index ? null : index);
+  };
+
+  const scrollToSection = (e, id) => {
+    e.preventDefault();
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   return (
-    <div className="ld-root" ref={rootRef}>
+    <div className="ld-root">
+      
+      {/* ── Scroll Progress Bar ── */}
+      <div className="ld-scroll-bar" style={{ width: `${scrollProgress}%` }} />
 
-      {/* ── BACKGROUND FX ── */}
-      <div className="ld-bg-fx" aria-hidden="true">
-        <div className="ld-bg-grid" />
-        <div className="ld-bg-aurora" />
-        <div className="ld-bg-aurora ld-bg-aurora-2" />
+      {/* ── Background Glow Bubbles ── */}
+      <div className="ld-bg-glows" aria-hidden="true">
+        <div className="ld-glow-bubble ld-glow-1" />
+        <div className="ld-glow-bubble ld-glow-2" />
+        <div className="ld-glow-bubble ld-glow-3" />
       </div>
 
-      {/* ── NAV ── */}
-      <nav className={`ld-nav${scrolled ? ' ld-nav-scrolled' : ''}`}>
-        <div className="ld-nav-inner">
-          <div className="ld-logo flex items-center gap-3">
-            <div className="w-9 h-9 md:w-10 md:h-10 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
-              <Box className="w-5 h-5 md:w-6 md:h-6 text-black" />
-            </div>
-            <span className="text-base md:text-xl font-black tracking-tighter uppercase font-display text-white">Server Deck</span>
+      {/* ── Floating Center Navbar ── */}
+      <div className="ld-nav-container">
+        <nav className={`ld-nav-pill ${scrolled ? 'ld-nav-pill-scrolled' : ''}`}>
+          <div className="ld-nav-logo">
+            <ServerDeckLogo size="nav" />
+            <span>ServerDeck</span>
           </div>
 
           <div className="ld-nav-links">
-            <a href="#features"     className="ld-nav-link" onClick={e => scrollTo(e, 'features')}>Features</a>
-            <a href="#how"          className="ld-nav-link" onClick={e => scrollTo(e, 'how')}>How it works</a>
-            <a href="#integrations" className="ld-nav-link" onClick={e => scrollTo(e, 'integrations')}>Integrations</a>
-            <a href="#testimonials" className="ld-nav-link" onClick={e => scrollTo(e, 'testimonials')}>Reviews</a>
-            <a href="#faq"          className="ld-nav-link" onClick={e => scrollTo(e, 'faq')}>FAQ</a>
+            <a href="#features" className="ld-nav-link" onClick={e => scrollToSection(e, 'features')}>Features</a>
+            <a href="#how" className="ld-nav-link" onClick={e => scrollToSection(e, 'how')}>How it works</a>
+            <a href="#insights" className="ld-nav-link" onClick={e => scrollToSection(e, 'insights')}>Insights</a>
+            <a href="#reviews" className="ld-nav-link" onClick={e => scrollToSection(e, 'reviews')}>Reviews</a>
+            <a href="#faq" className="ld-nav-link" onClick={e => scrollToSection(e, 'faq')}>FAQ</a>
           </div>
 
           <div className="ld-nav-actions">
-            <Link to="/login" className="ld-btn-outline">Sign In</Link>
-            <a href="#request" className="ld-btn-primary" onClick={e => scrollTo(e, 'request')}>
-              Get Access <ArrowRight size={15} />
-            </a>
-          </div>
-        </div>
-        <div className="ld-nav-progress" style={{ width: `${progress}%` }} />
-      </nav>
-
-      {/* ── HERO ── */}
-      <section className="ld-hero">
-        <div className="ld-hero-glow" aria-hidden="true" ref={heroGlowRef} />
-
-        <div className="ld-hero-inner">
-          <div className="ld-hero-badge">
-            <span className="ld-hero-badge-dot" />
-            Early access open · agent v2.0
-          </div>
-
-          <h1 className="ld-hero-title">
-            The command deck for
-            <br />
-            <span className="ld-hero-title-accent">your entire fleet.</span>
-          </h1>
-
-          <p className="ld-hero-sub">
-            Server Deck unifies SSH, Nginx, SSL, firewalls, processes, and real-time
-            monitoring into one fast control panel — so you never juggle six
-            terminals again.
-          </p>
-
-          <div className="ld-hero-ctas">
-            <a href="#request" className="ld-btn-primary ld-btn-lg" onClick={e => scrollTo(e, 'request')}>
-              Request Early Access <ArrowRight size={16} />
-            </a>
-            <a href="#product" className="ld-btn-outline ld-btn-lg" onClick={e => scrollTo(e, 'product')}>
-              See the deck
-            </a>
-          </div>
-
-          <div className="ld-install">
-            <span className="ld-install-prompt">$</span>
-            <code className="ld-install-code">{INSTALL_CMD}</code>
-            <button className="ld-install-copy" onClick={copyCmd} title="Copy install command">
-              {copied ? <Check size={14} /> : <Copy size={14} />}
-            </button>
-          </div>
-
-          <div className="ld-hero-trust">
-            <div className="ld-hero-avatars">
-              {['AK','RS','PT','MN'].map((av, i) => (
-                <div className="ld-avatar" key={i} style={{ background: ['#16a34a','#0d9488','#0891b2','#7c3aed'][i] }}>
-                  {av}
-                </div>
-              ))}
+            <div className="ld-nav-badge hidden md:flex">
+              <Shield size={13} />
+              <span>Protection</span>
+              <ChevronDown size={11} />
             </div>
-            <p className="ld-hero-trust-text">
-              Trusted by <strong>500+ engineers</strong> managing production fleets
+            <Link to="/login" className="ld-btn-signin">
+              <User size={13} />
+              <span>Sign In</span>
+            </Link>
+          </div>
+        </nav>
+      </div>
+
+      {/* ── Hero Section (Matches Panel 1 Aesthetic) ── */}
+      <section className="ld-hero">
+        <div className="ld-hero-inner">
+          <Reveal delay={100}>
+            <div className="ld-play-trigger" onClick={() => setShowVideoModal(true)} title="Watch Demo Video">
+              <Play size={18} style={{ fill: 'currentColor', marginLeft: '3px' }} />
+            </div>
+          </Reveal>
+
+          <Reveal delay={200}>
+            <div className="ld-hero-badge">
+              <span className="ld-hero-badge-dot" />
+              <span>Unlock Infrastructure Power!</span>
+              <ArrowRight size={12} />
+            </div>
+          </Reveal>
+
+          <Reveal delay={300}>
+            <h1 className="ld-hero-title">
+              <span>One-click for Server Control</span>
+            </h1>
+          </Reveal>
+
+          <Reveal delay={400}>
+            <p className="ld-hero-sub">
+              Secure, monitor, and configure your entire Linux fleet from a single elegant interface. No SSH key wrangling, no open inbound ports.
             </p>
-          </div>
-        </div>
+          </Reveal>
 
-        {/* ── PRODUCT SHOWCASE ── */}
-        <div id="product" className="ld-showcase-wrapper">
-          <div className="ld-mobile-frame ld-mobile-1" ref={phoneRef}>
-            <div className="ld-mobile-notch" />
-            <video
-              ref={mobileVideoRef}
-              src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Serverdeck_Dashboard_User_Guidepwa.mp4"
-              className="ld-mobile-video ld-desktop-only"
-              loop muted playsInline
-            />
-            <img
-              src="/app-dark.png"
-              alt="Server Deck dark theme"
-              className="ld-mobile-video ld-mobile-only"
-            />
-          </div>
+          <Reveal delay={500}>
+            <div className="ld-hero-ctas">
+              <Link to="/login" className="ld-btn-primary">
+                Open App
+              </Link>
+              <a href="#features" className="ld-btn-secondary" onClick={e => scrollToSection(e, 'features')}>
+                Discover More
+              </a>
+            </div>
+          </Reveal>
 
-          <div className="ld-laptop-frame" ref={laptopRef}>
-            <div className="ld-laptop-lid">
-              <div className="ld-laptop-camera" />
-              <div className="ld-laptop-screen">
-                <video
-                  ref={laptopVideoRef}
-                  src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4"
-                  className="ld-laptop-video"
-                  loop muted playsInline autoPlay
-                />
-                <button className="ld-mute-btn" onClick={toggleMute} title={isMuted ? 'Unmute' : 'Mute'}>
-                  {isMuted ? <VolumeX size={11} /> : <Volume2 size={11} />}
+          {/* Interactive Install Command Tool */}
+          <Reveal delay={600}>
+            <div className="flex justify-center mb-10">
+              <div className="inline-flex items-center gap-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-full px-5 py-2.5 backdrop-blur-md">
+                <span className="text-[rgba(255,255,255,0.4)] font-mono text-sm">$</span>
+                <code className="text-sm font-mono text-[rgba(255,255,255,0.85)]">{INSTALL_CMD}</code>
+                <button
+                  onClick={copyCmd}
+                  className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors"
+                  title="Copy installation command"
+                >
+                  {copied ? <Check size={14} className="text-teal-400" /> : <Copy size={14} />}
                 </button>
               </div>
             </div>
-            <div className="ld-laptop-base">
-              <div className="ld-laptop-hinge" />
-            </div>
-          </div>
+          </Reveal>
+        </div>
 
+        {/* ── Interactive SVG Node Network ── */}
+        <div className="ld-node-network" aria-hidden="true">
+          <svg className="ld-node-svg" viewBox="0 0 1200 700">
+            <defs>
+              <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="var(--color-cyan)" stopOpacity="0.8" />
+                <stop offset="50%" stopColor="var(--color-teal)" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="var(--color-violet)" stopOpacity="0.8" />
+              </linearGradient>
+            </defs>
+
+            {/* Central Hub Core */}
+            <g className="ld-network-node" transform="translate(600, 350)">
+              <circle cx="0" cy="0" r="16" fill="rgba(255, 255, 255, 0.03)" stroke="rgba(255, 255, 255, 0.15)" strokeWidth="1" />
+              <circle cx="0" cy="0" r="6" fill="#ffffff" />
+            </g>
+
+            {/* Floating Nodes & Connecting Lines */}
+            {networkNodes.map((n) => (
+              <g key={n.id}>
+                {/* Curved Connection Path */}
+                <path
+                  className="ld-network-path"
+                  d={`M 600,350 Q ${(600 + n.x) / 2},${(350 + n.y) / 2 - 40} ${n.x},${n.y}`}
+                />
+                <path
+                  className="ld-network-path-active"
+                  d={`M 600,350 Q ${(600 + n.x) / 2},${(350 + n.y) / 2 - 40} ${n.x},${n.y}`}
+                />
+                
+                {/* Outer Node Group */}
+                <g
+                  className="ld-network-node"
+                  transform={`translate(${n.x}, ${n.y})`}
+                  onMouseEnter={() => setHoveredNode(n)}
+                  onMouseLeave={() => setHoveredNode(null)}
+                >
+                  <circle cx="0" cy="0" r="18" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255, 255, 255, 0.08)" strokeWidth="1" />
+                  <circle cx="0" cy="0" r="5" fill={hoveredNode?.id === n.id ? '#ffffff' : 'rgba(255, 255, 255, 0.4)'} />
+                  
+                  {/* Labels */}
+                  <text x="14" y="-2" textAnchor="start">{n.name}</text>
+                  <text x="14" y="10" className="ld-network-node-val" textAnchor="start">{n.val}</text>
+
+                  {/* Telemetry Tooltip on Hover */}
+                  {hoveredNode?.id === n.id && (
+                    <g transform="translate(0, -60)">
+                      <rect x="-60" y="0" width="120" height="46" rx="6" fill="rgba(8, 8, 12, 0.9)" stroke="rgba(255,255,255,0.15)" strokeWidth="1" />
+                      <text x="0" y="16" fill="white" fontSize="9" fontWeight="bold" textAnchor="middle">{n.ip}</text>
+                      <text x="0" y="32" fill="var(--color-cyan)" fontSize="9" textAnchor="middle">CPU {n.cpu} | RAM {n.ram}</text>
+                    </g>
+                  )}
+                </g>
+              </g>
+            ))}
+
+            {/* Scroll Down & Horizons Texts (Matches reference) */}
+            <text x="80" y="600" className="ld-scroll-down-text">02.03 . SCROLL DOWN</text>
+            <text x="1120" y="600" className="ld-horizons-text" textAnchor="end">SERVERDECK HORIZONS</text>
+          </svg>
+        </div>
+
+        {/* ── Partner Tech Integration Logos ── */}
+        <div className="ld-partners">
+          <div className="ld-partners-title">Compatible Infrastructure Stack</div>
+          <div className="ld-partners-grid">
+            <span className="ld-partner-logo"><Globe size={15} /> Nginx</span>
+            <span className="ld-partner-logo"><Shield size={15} /> Let's Encrypt</span>
+            <span className="ld-partner-logo"><Cpu size={15} /> PM2</span>
+            <span className="ld-partner-logo"><Database size={15} /> PostgreSQL</span>
+            <span className="ld-partner-logo"><HardDrive size={15} /> Docker</span>
+            <span className="ld-partner-logo"><Server size={15} /> AWS EC2</span>
+            <span className="ld-partner-logo"><Terminal size={15} /> Ubuntu</span>
+          </div>
         </div>
       </section>
 
-      {/* ── TICKER ── */}
-      <div className="ld-ticker-wrap">
-        <p className="ld-ticker-label">Works with your entire stack</p>
-        <div className="ld-ticker-track">
-          {[...tickerItems, ...tickerItems].map((item, i) => (
-            <span className="ld-ticker-item" key={i}>
-              <span className="ld-ticker-icon"><Check size={12} /></span>
-              {item}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── STATS STRIP ── */}
-      <div className="ld-container ld-stats-section">
-        <Reveal>
-          <div className="ld-stats-strip">
-            {[
-              { n: '99.99%', d: 'Uptime SLA' },
-              { n: '1,200+', d: 'Servers Indexed' },
-              { n: '<3ms',   d: 'Avg Panel Latency' },
-              { n: 'RSA-256',d: 'Encrypted Comms' },
-            ].map(s => (
-              <div className="ld-stats-item" key={s.n}>
-                <div className="ld-stats-num">{s.n}</div>
-                <div className="ld-stats-desc">{s.d}</div>
-              </div>
-            ))}
-          </div>
-        </Reveal>
-      </div>
-
-      {/* ── BENTO FEATURES ── */}
+      {/* ── Section 1: ServerDeck System (Matches Panel 3 - DeFi Wallet Style) ── */}
       <section id="features" className="ld-section">
         <div className="ld-container">
-          <Reveal className="ld-text-center ld-section-head">
-            <span className="ld-label">01 / The Deck</span>
-            <h2 className="ld-section-title">
-              Everything your servers need.<br />One surface.
-            </h2>
-            <p className="ld-section-sub ld-sub-center">
-              Terminal, monitoring, alerts, SSL, firewall, and fleet management —
-              live, in one bento of control.
-            </p>
-          </Reveal>
+          <div className="ld-section-header">
+            <h2 className="ld-section-title-large">Secure Terminal & Live Shell</h2>
+            <p className="ld-section-desc">Manage SSH, run scripts, and tail logs in real-time without leaving your browser.</p>
+          </div>
 
-          <div className="ld-bento">
-            <Reveal className="ld-bento-card ld-b-term">
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Terminal size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Web SSH Terminal</h3>
-                  <p className="ld-bento-desc">A real terminal in your browser. Zero client setup, end-to-end encrypted, persistent session recovery.</p>
-                </div>
-              </div>
-              <TerminalMock />
-            </Reveal>
+          <div className="ld-section-btn-wrap">
+            <a href="#how" className="ld-section-btn" onClick={e => scrollToSection(e, 'how')}>
+              How it works?
+            </a>
+          </div>
 
-            <Reveal className="ld-bento-card ld-b-mon" delay={80}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Activity size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Real-time Telemetry</h3>
-                  <p className="ld-bento-desc">Sub-second CPU, RAM, disk, and network streams with anomaly detection.</p>
+          <div className="ld-deck-system-grid">
+            
+            {/* Visual Left: ServerDeck System Oval + Logs list */}
+            <Reveal delay={100}>
+              <div className="ld-system-visual-left">
+                <div className="ld-visual-title-row">
+                  <div className="ld-visual-subtitle">ServerDeck System</div>
+                  <div className="ld-visual-uptime-big">+99.9%</div>
                 </div>
-              </div>
-              <div className="ld-metrics">
-                {[
-                  { l: 'CPU', v: 34, cls: '' },
-                  { l: 'RAM', v: 61, cls: 'ld-amber' },
-                  { l: 'DSK', v: 48, cls: 'ld-cyan-bar' },
-                ].map(m => (
-                  <div className="ld-metric-row" key={m.l}>
-                    <span className="ld-metric-lbl">{m.l}</span>
-                    <div className="ld-metric-bar-track">
-                      <div className={`ld-metric-bar-fill ${m.cls}`} style={{ width: `${m.v}%` }} />
-                    </div>
-                    <span className="ld-metric-val">{m.v}%</span>
+
+                <div className="ld-logs-overlay-stack">
+                  <div className="ld-log-pill">
+                    <span className="ld-log-pill-icon teal"><Lock size={14} /></span>
+                    <span className="ld-log-pill-text">SSH Session Authorized</span>
+                    <span className="ld-log-pill-meta">root@prod-01</span>
                   </div>
-                ))}
-              </div>
-              <MiniChart bars={chartBars} />
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-alerts" delay={160}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Bell size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Instant Alerts</h3>
-                  <p className="ld-bento-desc">Every node streams events the moment they happen.</p>
-                </div>
-              </div>
-              <div className="ld-alert-list">
-                {alerts.map((a, i) => (
-                  <div className="ld-alert-row" key={i}>
-                    <span className={`ld-alert-dot ld-${a.color}`} />
-                    <div className="ld-alert-text">
-                      <span className="ld-alert-title">{a.title}</span>
-                      <span className="ld-alert-msg">{a.msg}</span>
-                    </div>
-                    <span className="ld-alert-time">{a.time}</span>
+                  <div className="ld-log-pill">
+                    <span className="ld-log-pill-icon blue"><RefreshCw size={14} /></span>
+                    <span className="ld-log-pill-text">PM2 Application Restarted</span>
+                    <span className="ld-log-pill-meta">api-server</span>
                   </div>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-ai" delay={100}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Brain size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">AI Diagnostics Copilot</h3>
-                  <p className="ld-bento-desc">Instant automated troubleshooting. When an alert fires, our integrated LLM analyzes logs and system status to diagnose and suggest a fix.</p>
-                </div>
-              </div>
-              <div className="ld-ai-mock">
-                <div className="ld-ai-mock-header">
-                  <span className="ld-ai-mock-indicator">● AI Diagnosis</span>
-                  <span className="ld-ai-mock-urgency ld-critical">CRITICAL</span>
-                </div>
-                <div className="ld-ai-mock-body">
-                  <p className="ld-ai-mock-text"><strong>Likely Cause:</strong> Nginx connections exhausted due to keepalive settings and rapid traffic spike.</p>
-                  <p className="ld-ai-mock-fix"><strong>Suggested Command:</strong></p>
-                  <div className="ld-ai-mock-code">
-                    <code>sudo sysctl -w net.ipv4.tcp_tw_reuse=1</code>
-                  </div>
-                  <div className="ld-ai-mock-btn">
-                    <Play size={10} style={{ fill: 'currentColor', marginRight: '4px', verticalAlign: 'middle' }} /> Run Suggested Fix
+                  <div className="ld-log-pill">
+                    <span className="ld-log-pill-icon coral"><Shield size={14} /></span>
+                    <span className="ld-log-pill-text">Firewall Blocked Port 3306</span>
+                    <span className="ld-log-pill-meta">UFW Reject</span>
                   </div>
                 </div>
               </div>
             </Reveal>
 
-            <Reveal className="ld-bento-card ld-b-files" delay={180}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Folder size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Visual File Manager</h3>
-                  <p className="ld-bento-desc">Navigate directories, upload/download, and edit scripts or configuration files directly from the browser with a secure, built-in text editor.</p>
-                </div>
-              </div>
-              <div className="ld-file-mock">
-                <div className="ld-file-mock-path">
-                  <span>/var/www/html</span>
-                </div>
-                <div className="ld-file-mock-list">
-                  <div className="ld-file-mock-item">
-                    <Folder size={12} color="#f59e0b" style={{ marginRight: '6px' }} />
-                    <span className="ld-file-mock-name">public</span>
-                    <span className="ld-file-mock-meta">drwxr-xr-x</span>
+            {/* Visual Right: Onboarding Dial Radar */}
+            <Reveal delay={300}>
+              <div className="ld-system-visual-right">
+                <div className="ld-radar-container" onClick={triggerRadarStep} style={{ cursor: 'pointer' }}>
+                  <div className="ld-radar-circle ld-radar-circle-1" />
+                  <div className="ld-radar-circle ld-radar-circle-2" />
+                  <div className="ld-radar-circle ld-radar-circle-3" />
+                  
+                  <div className="ld-radar-sweep" />
+
+                  <div className="ld-radar-center">
+                    {radarLoading ? (
+                      <Loader2 size={24} className="animate-spin text-dark" />
+                    ) : (
+                      <Power size={24} />
+                    )}
                   </div>
-                  <div className="ld-file-mock-item">
-                    <FileText size={12} color="#06b6d4" style={{ marginRight: '6px' }} />
-                    <span className="ld-file-mock-name">index.html</span>
-                    <span className="ld-file-mock-meta">644 · 5.2 KB</span>
-                  </div>
-                  <div className="ld-file-mock-item">
-                    <FileText size={12} color="#a855f7" style={{ marginRight: '6px' }} />
-                    <span className="ld-file-mock-name">nginx.conf</span>
-                    <span className="ld-file-mock-meta">644 · 1.4 KB</span>
+
+                  <div className="ld-radar-step-label">
+                    Step 0{radarStep}: {radarStep === 1 ? 'Agent Sync' : radarStep === 2 ? 'Security Scan' : 'Connected'}
                   </div>
                 </div>
               </div>
             </Reveal>
 
-            <Reveal className="ld-bento-card ld-b-sql" delay={260}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Database size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">SQL Explorer & DB Client</h3>
-                  <p className="ld-bento-desc">Connect to PostgreSQL, MySQL, and SQLite. Inspect schemas, browse tables, and execute raw SQL queries with full syntax highlighting.</p>
-                </div>
-              </div>
-              <div className="ld-sql-mock">
-                <div className="ld-sql-mock-query">
-                  <span className="keyword">SELECT</span> name, email <span className="keyword">FROM</span> users <span className="keyword">WHERE</span> active = <span className="literal">true</span>;
-                </div>
-                <div className="ld-sql-mock-results">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>name</th>
-                        <th>email</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>admin</td>
-                        <td>admin@serverdeck.io</td>
-                      </tr>
-                      <tr>
-                        <td>support_alex</td>
-                        <td>alex@serverdeck.io</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </Reveal>
+            {/* Bottom Tags filter */}
+            <div className="ld-system-visual-bottom-tags">
+              <span className="ld-system-tag">Secure Shell</span>
+              <span className="ld-system-tag">Nginx Config</span>
+              <span className="ld-system-tag">Let's Encrypt SSL</span>
+              <span className="ld-system-tag ld-system-tag-active">Real-time Telemetry</span>
+              <span className="ld-system-tag">Firewall Rules</span>
+              <span className="ld-system-tag">PM2 Process Manager</span>
+              <span className="ld-system-tag">Zero Open Ports</span>
+            </div>
 
-            <Reveal className="ld-bento-card ld-b-ssl" delay={120}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Lock size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Auto SSL</h3>
-                  <p className="ld-bento-desc">Let's Encrypt renewed 30 days early, every time.</p>
-                </div>
-              </div>
-              <CertRing />
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-fw" delay={200}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Shield size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Visual Firewall</h3>
-                  <p className="ld-bento-desc">UFW rules without the CLI.</p>
-                </div>
-              </div>
-              <div className="ld-fw-list">
-                {fwRules.map(r => (
-                  <div className="ld-fw-row" key={r.port}>
-                    <span className="ld-fw-port">{r.port}</span>
-                    <span className={`ld-fw-rule ${r.rule === 'ALLOW' ? 'ld-allow' : 'ld-deny'}`}>{r.rule}</span>
-                    <span className="ld-fw-from">{r.from}</span>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-fleet" delay={280}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><GitBranch size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Unlimited Fleet</h3>
-                  <p className="ld-bento-desc">Switch context between nodes instantly.</p>
-                </div>
-              </div>
-              <div className="ld-fleet-list">
-                {fleet.map(s => (
-                  <div className="ld-fleet-row" key={s.name}>
-                    <span className="ld-fleet-dot" />
-                    <span className="ld-fleet-name">{s.name}</span>
-                    <span className="ld-fleet-region">{s.region}</span>
-                    <span className="ld-fleet-ms">{s.ms}</span>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-services" delay={140}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Settings size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Services & Processes</h3>
-                  <p className="ld-bento-desc">Full lifecycle management for systemd, PM2, and Docker containers. Monitor active memory usage and kill rogue processes directly.</p>
-                </div>
-              </div>
-              <div className="ld-services-mock">
-                <div className="ld-services-row">
-                  <span className="ld-services-status ld-up">●</span>
-                  <span className="ld-services-name">nginx.service</span>
-                  <span className="ld-services-cpu">0.2% CPU</span>
-                  <span className="ld-services-action">Restart</span>
-                </div>
-                <div className="ld-services-row">
-                  <span className="ld-services-status ld-up">●</span>
-                  <span className="ld-services-name">pm2: api-server</span>
-                  <span className="ld-services-cpu">4.1% CPU</span>
-                  <span className="ld-services-action">Restart</span>
-                </div>
-                <div className="ld-services-row">
-                  <span className="ld-services-status ld-down">○</span>
-                  <span className="ld-services-name">postgresql@14</span>
-                  <span className="ld-services-cpu">OFFLINE</span>
-                  <span className="ld-services-action ld-start">Start</span>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-tickets" delay={220}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><LifeBuoy size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">Integrated Support Desk</h3>
-                  <p className="ld-bento-desc">Create, reply, and track support tickets inside the panel with WebSocket updates. Escalate production alerts to tickets with context in one click.</p>
-                </div>
-              </div>
-              <div className="ld-tickets-mock">
-                <div className="ld-tickets-item">
-                  <span className="ld-tickets-badge ld-urgent">URGENT</span>
-                  <span className="ld-tickets-id">#1042</span>
-                  <span className="ld-tickets-title">DB CPU Peak Alert</span>
-                  <span className="ld-tickets-time">3m ago</span>
-                </div>
-                <div className="ld-tickets-item">
-                  <span className="ld-tickets-badge ld-open">OPEN</span>
-                  <span className="ld-tickets-id">#1041</span>
-                  <span className="ld-tickets-title">SSL Renewal Issue</span>
-                  <span className="ld-tickets-time">1h ago</span>
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal className="ld-bento-card ld-b-luxegenie" delay={300}>
-              <div className="ld-bento-head">
-                <div className="ld-bento-icon"><Cpu size={18} /></div>
-                <div>
-                  <h3 className="ld-bento-title">IoT Vitals</h3>
-                  <p className="ld-bento-desc">Real-time UART telemetry and device diagnostics for Linux systems. Monitor battery charge, serial sync status, and firmware builds.</p>
-                </div>
-              </div>
-              <div className="ld-luxegenie-mock">
-                <div className="ld-luxegenie-vitals">
-                  <div className="ld-luxe-vital">
-                    <span className="ld-luxe-lbl">BATTERY</span>
-                    <span className="ld-luxe-val">89%</span>
-                  </div>
-                  <div className="ld-luxe-vital">
-                    <span className="ld-luxe-lbl">UART LINK</span>
-                    <span className="ld-luxe-val ld-active">ONLINE</span>
-                  </div>
-                  <div className="ld-luxe-vital">
-                    <span className="ld-luxe-lbl">FIRMWARE</span>
-                    <span className="ld-luxe-val">v2.4.1</span>
-                  </div>
-                </div>
-              </div>
-            </Reveal>
           </div>
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section id="how" className="ld-section ld-how-section">
+      {/* ── Section 2: Fleet Insights Bento Grid (Matches Panel 2 - Marvellous Insights Style) ── */}
+      <section id="insights" className="ld-section">
         <div className="ld-container">
-          <Reveal className="ld-text-center ld-section-head">
-            <span className="ld-label">02 / Onboarding</span>
-            <h2 className="ld-section-title">
-              Zero to managed<br />in sixty seconds.
-            </h2>
-            <p className="ld-section-sub ld-sub-center">
-              No SSH key wrangling, no VPNs, no open inbound ports. The agent does the work.
-            </p>
-          </Reveal>
-
-          <div className="ld-steps">
-            {steps.map((s, i) => (
-              <Reveal className="ld-step" key={s.num} delay={i * 100}>
-                <div className="ld-step-num">{s.num}</div>
-                <h3 className="ld-step-title">{s.title}</h3>
-                <p className="ld-step-desc">{s.desc}</p>
-                {s.code && (
-                  <div className="ld-step-code">
-                    <code>{s.code}</code>
-                  </div>
-                )}
-              </Reveal>
-            ))}
+          <div className="ld-section-header">
+            <h2 className="ld-section-title-large">Meet Fleet Insights</h2>
+            <p className="ld-section-desc">Unified metrics replace the tedious checking of manual logs. Track your global status at a glance.</p>
           </div>
-        </div>
-      </section>
 
-      {/* ── INTEGRATIONS ── */}
-      <section id="integrations" className="ld-section">
-        <div className="ld-container">
-          <div className="ld-grid-2">
-            <Reveal>
-              <span className="ld-label">03 / Integrations</span>
-              <h2 className="ld-section-title">
-                One panel.<br />Every stack.
-              </h2>
-              <p className="ld-section-sub">
-                Server Deck works everywhere your infrastructure lives — from bare-metal
-                to cloud VMs — with zero vendor lock-in.
-              </p>
+          <div className="ld-bento-grid">
+            
+            {/* Bento 1: World Map Cluster */}
+            <div className="ld-bento-item ld-bento-globe">
+              <div className="ld-map-container">
+                <svg className="ld-map-svg" viewBox="0 0 1000 480" fill="none">
+                  {/* Outline World Map (Simplified) */}
+                  <path d="M150,150 L220,130 L250,160 L290,140 L300,100 L350,90 L390,130 L450,150 L480,180 L520,160 L540,110 L600,100 L680,140 L700,200 L760,220 L800,180 L880,150 L920,200 L950,280 L900,320 L820,300 L790,340 L740,320 L700,280 L650,300 L600,260 L570,300 L540,360 L480,380 L420,360 L380,300 L320,330 L280,310 L250,350 L200,320 L160,250 L120,220 Z" stroke="rgba(255,255,255,0.08)" strokeWidth="2" strokeDasharray="5 5" />
+                  <path d="M400,250 L430,230 L450,260 L480,240 L500,280 L460,320 Z" stroke="rgba(255,255,255,0.08)" strokeWidth="1.5" />
+                </svg>
 
-              <div className="ld-int-list">
-                {[
-                  { icon: <Globe size={18} />,     title: 'Nginx Site Management', desc: 'Create, edit, and toggle server blocks with a visual editor. No more manual conf files.' },
-                  { icon: <Cpu size={18} />,       title: 'PM2 Process Control',   desc: 'Full lifecycle control for Node.js apps — start, stop, restart, and stream logs live.' },
-                  { icon: <GitBranch size={18} />, title: 'Multi-Server Fleet',    desc: 'Connect unlimited servers. Switch context instantly. Manage everything from one place.' },
-                ].map(item => (
-                  <div key={item.title} className="ld-int-row">
-                    <div className="ld-int-icon">{item.icon}</div>
-                    <div>
-                      <div className="ld-int-title">{item.title}</div>
-                      <div className="ld-int-desc">{item.desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Reveal>
-
-            <Reveal delay={120}>
-              <div ref={orbitRef}>
-                <OrbitVisual />
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section id="testimonials" className="ld-section ld-testi-section">
-        <div className="ld-container">
-          <Reveal className="ld-text-center ld-section-head">
-            <span className="ld-label">04 / Reviews</span>
-            <h2 className="ld-section-title">
-              Trusted by engineers.<br />Proven in production.
-            </h2>
-            <p className="ld-section-sub ld-sub-center">
-              Teams running critical infrastructure rely on Server Deck every day.
-            </p>
-          </Reveal>
-
-          <div className="ld-grid-3">
-            {testimonials.map((t, i) => (
-              <Reveal className="ld-testi-card" key={i} delay={i * 100}>
-                <div className="ld-testi-logo">
-                  <div className="ld-testi-logo-icon">
-                    <Box size={14} />
-                  </div>
-                  {t.logo}
+                {/* Locator Dots with Pulsing animations */}
+                <div
+                  className="ld-map-dot"
+                  style={{ top: '35%', left: '30%' }}
+                  onClick={() => setActiveSpot('NYC')}
+                >
+                  <span className="ld-map-dot-label">NYC (Us-East)</span>
                 </div>
 
-                <Stars />
-
-                <p className="ld-testi-quote">{t.quote}</p>
-
-                <div className="ld-testi-author">
-                  <div className="ld-testi-avatar" style={{ background: t.color }}>{t.avatar}</div>
-                  <div>
-                    <div className="ld-testi-name">{t.name}</div>
-                    <div className="ld-testi-role">{t.role}</div>
-                  </div>
+                <div
+                  className="ld-map-dot"
+                  style={{ top: '32%', left: '52%' }}
+                  onClick={() => setActiveSpot('FRA')}
+                >
+                  <span className="ld-map-dot-label">FRA (Eu-Central)</span>
                 </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
 
-      {/* ── FAQ ── */}
-      <section id="faq" className="ld-section">
-        <div className="ld-container">
-          <Reveal className="ld-text-center ld-section-head">
-            <span className="ld-label">05 / FAQ</span>
-            <h2 className="ld-section-title">Frequently asked<br />questions</h2>
-            <p className="ld-section-sub ld-sub-center">
-              Can't find your answer? <a href="mailto:support@serverdeck.io" className="ld-link">Contact our team</a>.
-            </p>
-          </Reveal>
+                <div
+                  className="ld-map-dot"
+                  style={{ top: '55%', left: '72%' }}
+                  onClick={() => setActiveSpot('BLR')}
+                >
+                  <span className="ld-map-dot-label">BLR (As-South)</span>
+                </div>
 
-          <div className="ld-faq-list">
-            {faqs.map(f => <FaqItem key={f.q} q={f.q} a={f.a} />)}
-          </div>
-        </div>
-      </section>
+                <div
+                  className="ld-map-dot"
+                  style={{ top: '60%', left: '80%' }}
+                  onClick={() => setActiveSpot('SGP')}
+                >
+                  <span className="ld-map-dot-label">SGP (As-East)</span>
+                </div>
+              </div>
 
-      {/* ── CTA BANNER ── */}
-      <section id="request" className="ld-cta-section">
-        <Reveal>
-          <div className="ld-cta-banner">
-            <div className="ld-cta-deco ld-cta-deco-tl"><Box size={18} /></div>
-            <div className="ld-cta-deco ld-cta-deco-tr"><Shield size={18} /></div>
-            <div className="ld-cta-deco ld-cta-deco-bl"><Activity size={18} /></div>
-            <div className="ld-cta-deco ld-cta-deco-br"><Lock size={18} /></div>
+              <div className="ld-bento-globe-content">
+                <div className="ld-bento-title-small">98.2% Nodes Online</div>
+                <p className="ld-bento-subtitle-small">
+                  Currently viewing <strong>{activeSpot} Cluster</strong>. Active instances are routing requests with sub-millisecond response delay. Uptime validated across regional zones.
+                </p>
+                <div className="ld-map-actions">
+                  <button className={`ld-map-action-btn ${activeSpot === 'NYC' ? 'ld-map-action-btn-active' : ''}`} onClick={() => setActiveSpot('NYC')}>NYC</button>
+                  <button className={`ld-map-action-btn ${activeSpot === 'FRA' ? 'ld-map-action-btn-active' : ''}`} onClick={() => setActiveSpot('FRA')}>FRA</button>
+                  <button className={`ld-map-action-btn ${activeSpot === 'BLR' ? 'ld-map-action-btn-active' : ''}`} onClick={() => setActiveSpot('BLR')}>BLR</button>
+                  <button className={`ld-map-action-btn ${activeSpot === 'SGP' ? 'ld-map-action-btn-active' : ''}`} onClick={() => setActiveSpot('SGP')}>SGP</button>
+                </div>
+              </div>
+            </div>
 
-            <div className="ld-cta-inner">
-              <span className="ld-label">Early Access</span>
-              <h2 className="ld-cta-title">
-                Manage your servers<br />
-                <span className="ld-cta-title-accent">before they manage you.</span>
-              </h2>
-              <p className="ld-cta-sub">
-                Join the early access waitlist and transform your infrastructure
-                from a liability into a competitive advantage.
-              </p>
+            {/* Bento 2: Cylinder Resource Utilization Graph */}
+            <div className="ld-bento-item ld-bento-resource">
+              <div>
+                <div className="ld-bento-title-small">Resource Allocation</div>
+                <p className="ld-bento-subtitle-small">Active usage patterns on target servers.</p>
+              </div>
 
-              {!submitted ? (
-                <div className="ld-cta-form-wrap">
-                  <form className="ld-cta-form" onSubmit={handleSubmit}>
-                    <div className="ld-cta-input-wrap">
-                      <span className="ld-cta-input-icon">@</span>
-                      <input
-                        type="email"
-                        className="ld-cta-input"
-                        placeholder="you@company.com"
-                        value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        required
+              <div className="ld-cylinders-container">
+                {resources.map((r, i) => (
+                  <div key={i} className="ld-cylinder-wrapper">
+                    <span className="ld-cylinder-val">{r.val}</span>
+                    <div className="ld-cylinder">
+                      <div
+                        className="ld-cylinder-fill"
+                        style={{
+                          height: `${r.h}px`,
+                          '--fill-color': r.color
+                        }}
                       />
                     </div>
-                    <button type="submit" className="ld-cta-btn" disabled={isSubmitting}>
-                      {isSubmitting ? (
-                        <span className="ld-cta-btn-busy"><Loader2 size={16} className="animate-spin" /> Processing...</span>
-                      ) : (
-                        <>Get Early Access <ArrowRight size={16} /></>
-                      )}
-                    </button>
-                  </form>
-                  {submitError && (
-                    <div className="ld-cta-error">{submitError}</div>
-                  )}
-                  <p className="ld-cta-note">No credit card required · Free during beta</p>
-                </div>
-              ) : (
-                <div className="ld-cta-success">
-                  <div className="ld-cta-success-icon">
-                    <CheckCircle2 size={32} color="#22c55e" />
+                    <span className="ld-cylinder-label">{r.label}</span>
                   </div>
-                  <div>
-                    <p className="ld-cta-success-title">You're on the list!</p>
-                    <p className="ld-cta-success-sub">
-                      We'll notify <strong>{email}</strong> when your access window opens.
-                    </p>
-                  </div>
-                  <button className="ld-btn-outline" onClick={() => setSubmitted(false)}>
-                    Back
-                  </button>
-                </div>
-              )}
+                ))}
+              </div>
             </div>
+
+            {/* Bento 3: Fleet Telemetry statistics */}
+            <div className="ld-bento-item ld-bento-stats">
+              <div>
+                <div className="ld-bento-title-small">Uptime & Fleet Traffic</div>
+                <p className="ld-bento-subtitle-small">Consolidated load parameters across all environments.</p>
+              </div>
+
+              <div className="ld-stats-columns">
+                <div className="ld-stats-col cyan">
+                  <div className="ld-stats-col-lbl">Load Avg</div>
+                  <div className="ld-stats-col-val">19.2%</div>
+                  <div className="ld-stats-col-sub">System average</div>
+                </div>
+                <div className="ld-stats-col teal">
+                  <div className="ld-stats-col-lbl">Active Conns</div>
+                  <div className="ld-stats-col-val">24.5k</div>
+                  <div className="ld-stats-col-sub">Requests / sec</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bento 4: Traffic bars graph */}
+            <div className="ld-bento-item ld-bento-traffic">
+              <div>
+                <div className="ld-bento-title-small">Bandwidth Throughput</div>
+                <p className="ld-bento-subtitle-small">Incoming and outgoing transfer volumes (hourly analytics).</p>
+              </div>
+
+              <div className="ld-traffic-graph">
+                {trafficBars.map((h, i) => (
+                  <div
+                    key={i}
+                    className="ld-traffic-bar"
+                    style={{
+                      height: `${h}%`,
+                      '--bar-color': i % 2 === 0 ? 'var(--color-cyan)' : i % 3 === 0 ? 'var(--color-coral)' : 'var(--color-teal)'
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+
           </div>
-        </Reveal>
+        </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="ld-footer">
-        <div className="ld-footer-inner">
-          <div>
-            <div className="ld-logo">
-              <div className="w-7 h-7 md:w-7 md:h-7 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:rotate-6 transition-all duration-500">
-                <Box className="w-4 h-4 md:w-4 md:h-4 text-black" />
-              </div>
-              <span className="text-base md:text-lg font-black tracking-tighter uppercase font-display text-white">Server Deck</span>
-            </div>
-            <p className="ld-footer-brand-desc">
-              The modern control panel for Linux infrastructure. Manage your entire fleet from one elegant interface.
-            </p>
+      {/* ── Steps / Onboarding Grid ── */}
+      <section id="how" className="ld-section">
+        <div className="ld-container">
+          <div className="ld-section-header">
+            <h2 className="ld-section-title-large">Zero to Managed in 60s</h2>
+            <p className="ld-section-desc">Integrate any Ubuntu or Debian node quickly. The daemon initializes outbound communication immediately.</p>
           </div>
 
-          <div>
-            <div className="ld-footer-col-title">Platform</div>
-            <a href="#features"     className="ld-footer-link" onClick={e => scrollTo(e, 'features')}>Features</a>
-            <a href="#how"          className="ld-footer-link" onClick={e => scrollTo(e, 'how')}>How it works</a>
-            <a href="#integrations" className="ld-footer-link" onClick={e => scrollTo(e, 'integrations')}>Integrations</a>
-            <a href="#"             className="ld-footer-link">Changelog</a>
-          </div>
-
-          <div>
-            <div className="ld-footer-col-title">Resources</div>
-            <Link to="/documentation" className="ld-footer-link">Documentation</Link>
-            <Link to="/api-reference" className="ld-footer-link">API Reference</Link>
-            <a href="#" className="ld-footer-link">Status Page</a>
-            <a href="#" className="ld-footer-link">Blog</a>
-          </div>
-
-          <div>
-            <div className="ld-footer-col-title">Company</div>
-            <Link to="/about" className="ld-footer-link">About</Link>
-            <Link to="/security" className="ld-footer-link">Security</Link>
-            <Link to="/privacy" className="ld-footer-link">Privacy Policy</Link>
-            <Link to="/terms" className="ld-footer-link">Terms</Link>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Reveal delay={100} className="border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.01)] rounded-3xl p-8 backdrop-blur-md">
+              <div className="text-4xl font-extrabold text-[rgba(255,255,255,0.1)] mb-4">01</div>
+              <h3 className="text-xl font-bold mb-2">Deploy the Agent</h3>
+              <p className="text-sm text-[rgba(255,255,255,0.6)] leading-relaxed">
+                Run the quick curl string directly on your target server. Safe, isolated configuration.
+              </p>
+            </Reveal>
+            <Reveal delay={200} className="border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.01)] rounded-3xl p-8 backdrop-blur-md">
+              <div className="text-4xl font-extrabold text-[rgba(255,255,255,0.1)] mb-4">02</div>
+              <h3 className="text-xl font-bold mb-2">WebSocket Sync</h3>
+              <p className="text-sm text-[rgba(255,255,255,0.6)] leading-relaxed">
+                The agent completes TLS handshakes over visual WebSockets, registering telemetry metrics instantly.
+              </p>
+            </Reveal>
+            <Reveal delay={300} className="border border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.01)] rounded-3xl p-8 backdrop-blur-md">
+              <div className="text-4xl font-extrabold text-[rgba(255,255,255,0.1)] mb-4">03</div>
+              <h3 className="text-xl font-bold mb-2">Instant Control</h3>
+              <p className="text-sm text-[rgba(255,255,255,0.6)] leading-relaxed">
+                Control active databases, inspect site configs, reset servers, or launch interactive SSH consoles.
+              </p>
+            </Reveal>
           </div>
         </div>
+      </section>
 
-        <div className="ld-footer-bottom">
-          <span>© 2026 Server Deck. All rights reserved.</span>
-          <span>Built for engineers who ship.</span>
+      {/* ── Testimonials Section ── */}
+      <section id="reviews" className="ld-section">
+        <div className="ld-container">
+          <div className="ld-section-header">
+            <h2 className="ld-section-title-large">Trusted by Engineers</h2>
+            <p className="ld-section-desc">Reliable deployment strategies used by high-volume teams globally.</p>
+          </div>
+
+          <div className="ld-reviews-grid">
+            {testimonials.map((t, i) => (
+              <div key={i} className="ld-review-card">
+                <div>
+                  <div className="ld-review-header">
+                    <div className="ld-review-logo-icon">
+                      <Server size={10} />
+                    </div>
+                    <span>{t.logo}</span>
+                  </div>
+
+                  <div className="ld-stars-wrap">
+                    {Array.from({ length: 5 }).map((_, idx) => (
+                      <span key={idx}>★</span>
+                    ))}
+                  </div>
+
+                  <p className="ld-review-quote">{t.quote}</p>
+                </div>
+
+                <div className="ld-review-author">
+                  <div className="ld-review-avatar" style={{ background: t.color }}>{t.avatar}</div>
+                  <div>
+                    <div className="ld-review-author-name">{t.name}</div>
+                    <div className="ld-review-author-role">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ Section ── */}
+      <section id="faq" className="ld-section">
+        <div className="ld-container">
+          <div className="ld-section-header">
+            <h2 className="ld-section-title-large">Frequently Asked Questions</h2>
+            <p className="ld-section-desc">Clear clarifications on configurations and features.</p>
+          </div>
+
+          <div className="ld-faq-container">
+            {faqs.map((f, i) => (
+              <div
+                key={i}
+                className={`ld-faq-item-custom ${activeFaq === i ? 'ld-faq-item-open' : ''}`}
+              >
+                <button className="ld-faq-q-btn" onClick={() => toggleFaq(i)}>
+                  <span>{f.q}</span>
+                  <ChevronDown size={16} className="ld-faq-chevron-icon" />
+                </button>
+                <div className="ld-faq-answer">
+                  {f.a}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA Waitlist Signup Section ── */}
+      <section className="ld-section bg-[rgba(255,255,255,0.01)] border-t border-[rgba(255,255,255,0.03)]">
+        <div className="ld-container text-center max-w-xl">
+          <h2 className="text-3xl font-black tracking-tight mb-4 font-display">Transform Your Infrastructure</h2>
+          <p className="text-[rgba(255,255,255,0.6)] mb-8 text-sm max-w-md mx-auto">
+            Join the early access waitlist to deploy monitoring agents and handle visual server decks today.
+          </p>
+
+          {!submitted ? (
+            <form onSubmit={handleWaitlistSubmit} className="flex flex-col md:flex-row gap-3 items-center justify-center">
+              <input
+                type="email"
+                placeholder="you@company.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="w-full md:w-80 px-5 py-3 rounded-full bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.08)] text-white placeholder-[rgba(255,255,255,0.3)] focus:outline-none focus:border-[rgba(255,255,255,0.2)] text-sm"
+              />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full md:w-auto px-6 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-[rgba(255,255,255,0.9)] transition-colors flex items-center justify-center gap-2 whitespace-nowrap ld-btn-waitlist"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 size={14} className="animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Get Access</span>
+                    <ArrowRight size={14} />
+                  </>
+                )}
+              </button>
+            </form>
+          ) : (
+            <div className="bg-[rgba(16,185,129,0.08)] border border-[rgba(16,185,129,0.2)] rounded-3xl p-6 text-center max-w-sm mx-auto">
+              <CheckCircle2 className="mx-auto mb-3 text-emerald-400" size={28} />
+              <h3 className="text-lg font-bold text-emerald-400 mb-1">Added to waitlist!</h3>
+              <p className="text-xs text-[rgba(255,255,255,0.6)]">
+                We will email <strong>{email}</strong> when your workspace credentials are ready.
+              </p>
+            </div>
+          )}
+          {submitError && (
+            <p className="text-rose-400 text-xs mt-3 font-medium">{submitError}</p>
+          )}
+        </div>
+      </section>
+
+      {/* ── Footer (Matches Panel 2 Footer Style) ── */}
+      <footer className="ld-footer-section">
+        <div className="ld-container">
+          <div className="ld-footer-grid">
+            <div>
+              <div className="ld-footer-brand-logo">
+                <ServerDeckLogo size="footer" />
+                <span>ServerDeck</span>
+              </div>
+              <p className="ld-footer-brand-desc">
+                The modern visual control panel for Linux infrastructure.
+              </p>
+            </div>
+
+            <div>
+              <div className="ld-footer-col-title-custom">Platform</div>
+              <div className="ld-footer-links-list">
+                <a href="#features" className="ld-footer-link-custom" onClick={e => scrollToSection(e, 'features')}>Features</a>
+                <a href="#how" className="ld-footer-link-custom" onClick={e => scrollToSection(e, 'how')}>How it works</a>
+                <a href="#insights" className="ld-footer-link-custom" onClick={e => scrollToSection(e, 'insights')}>Insights</a>
+              </div>
+            </div>
+
+            <div>
+              <div className="ld-footer-col-title-custom">Resources</div>
+              <div className="ld-footer-links-list">
+                <Link to="/documentation" className="ld-footer-link-custom">Docs</Link>
+                <Link to="/api-reference" className="ld-footer-link-custom">API Ref</Link>
+                <a href="#" className="ld-footer-link-custom">Status Page</a>
+              </div>
+            </div>
+
+            <div>
+              <div className="ld-footer-col-title-custom">Company</div>
+              <div className="ld-footer-links-list">
+                <Link to="/about" className="ld-footer-link-custom">About Us</Link>
+                <Link to="/security" className="ld-footer-link-custom">Security</Link>
+                <Link to="/privacy" className="ld-footer-link-custom">Privacy</Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="ld-footer-bottom-bar">
+            <span className="ld-footer-copyright">
+              © 2026 Designed with love at ServerDeck. All rights reserved.
+            </span>
+            <div className="ld-footer-socials">
+              <a href="#" className="ld-footer-social-icon" title="Twitter / X">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+              <a href="#" className="ld-footer-social-icon" title="LinkedIn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
+                </svg>
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
+
+      {/* ── Mock Video Demo Modal ── */}
+      {showVideoModal && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-4xl bg-[var(--bg-dark)] border border-[rgba(255,255,255,0.1)] rounded-3xl overflow-hidden shadow-2xl">
+            {/* Modal header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[rgba(255,255,255,0.06)]">
+              <span className="text-sm font-semibold tracking-wide uppercase font-display text-[rgba(255,255,255,0.6)]">ServerDeck Live Playback</span>
+              <button
+                className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors text-lg font-bold"
+                onClick={() => setShowVideoModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            {/* Modal video body */}
+            <div className="aspect-video bg-black relative flex items-center justify-center">
+              <video
+                src="https://d3cw4jhsg5snrz.cloudfront.net/LandingPage/Node_Provisioning_and_Management_Guide.mp4"
+                className="w-full h-full object-cover"
+                controls
+                autoPlay
+                playsInline
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
