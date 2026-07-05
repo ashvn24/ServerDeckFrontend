@@ -805,7 +805,7 @@ const Landing = () => {
                 <div className="ld-bento-icon"><Cpu size={18} /></div>
                 <div>
                   <h3 className="ld-bento-title">IoT Vitals</h3>
-                  <p className="ld-bento-desc">Real-time UART telemetry and device diagnostics for LuxeGenie Linux systems. Monitor battery charge, serial sync status, and firmware builds.</p>
+                  <p className="ld-bento-desc">Real-time UART telemetry and device diagnostics for Linux systems. Monitor battery charge, serial sync status, and firmware builds.</p>
                 </div>
               </div>
               <div className="ld-luxegenie-mock">
