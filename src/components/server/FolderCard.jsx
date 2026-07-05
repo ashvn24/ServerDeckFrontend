@@ -1,6 +1,6 @@
-import { Folder, ChevronRight, MoreVertical } from 'lucide-react';
+import { Folder, ChevronRight, ArrowRight, Trash2 } from 'lucide-react';
 
-export default function FolderCard({ folder, onClick, onMore }) {
+export default function FolderCard({ folder, onClick, onMore, onDelete, isAdmin }) {
   return (
     <div 
       onClick={onClick}
@@ -17,12 +17,24 @@ export default function FolderCard({ folder, onClick, onMore }) {
       </div>
       
       <div className="flex items-center gap-2">
-        <button 
-          onClick={(e) => { e.stopPropagation(); onMore(); }}
-          className="p-2 text-[var(--text-secondary)] hover:text-white hover:bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-        >
-          <MoreVertical className="w-4 h-4" />
-        </button>
+        {isAdmin && (
+          <div className="flex items-center gap-1">
+            <button 
+              onClick={(e) => { e.stopPropagation(); onMore(); }}
+              className="p-2 text-[var(--text-secondary)] hover:text-white hover:bg-white/5 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+              title="Move Group"
+            >
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-2 text-[var(--text-secondary)] hover:text-red-500 hover:bg-red-500/10 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+              title="Delete Group"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        )}
         <ChevronRight className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-white transition-colors" />
       </div>
     </div>

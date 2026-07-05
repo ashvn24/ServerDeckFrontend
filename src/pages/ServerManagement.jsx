@@ -4,6 +4,7 @@ import ServerCard from '../components/server/ServerCard';
 import FolderCard from '../components/server/FolderCard';
 import { foldersAPI, serversAPI } from '../api/endpoints';
 import { useAuth } from '../context/AuthContext';
+import ConfirmModal from '../components/common/ConfirmModal';
 
 export default function ServerManagement() {
   const { user } = useAuth();
@@ -23,6 +24,7 @@ export default function ServerManagement() {
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [itemToMove, setItemToMove] = useState(null);
   const [targetFolderId, setTargetFolderId] = useState('');
+  const [folderToDelete, setFolderToDelete] = useState(null);
 
   const isAdmin = user?.role === 'owner' || user?.role === 'admin';
 
@@ -75,6 +77,10 @@ export default function ServerManagement() {
     } catch (err) {
       console.error('Failed to create folder:', err);
     }
+  };
+
+  const triggerDeleteFolder = (folderId, folderName) => {
+    setFolderToDelete({ id: folderId, name: folderName });
   };
 
   const handleCopy = () => {
@@ -204,11 +210,13 @@ export default function ServerManagement() {
             <FolderCard 
               key={folder.id} 
               folder={folder} 
+              isAdmin={isAdmin}
               onClick={() => setCurrentFolderId(folder.id)}
               onMore={() => {
                 setItemToMove({ id: folder.id, type: 'folder', name: folder.name });
                 setShowMoveModal(true);
               }} 
+              onDelete={() => triggerDeleteFolder(folder.id, folder.name)}
             />
           ))}
           {currentServers.map((server) => (
@@ -340,6 +348,26 @@ export default function ServerManagement() {
            </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={!!folderToDelete}
+        onClose={() => setFolderToDelete(null)}
+        title="Delete Group"
+        message={`Delete group "${folderToDelete?.name}"?`}
+        confirmText="Confirm Delete"
+        cancelText="Cancel"
+        type="danger"
+        onConfirm={async () => {
+          if (!folderToDelete) return;
+          try {
+            await foldersAPI.delete(folderToDelete.id);
+            fetchData();
+          } catch (err) {
+            console.error('Failed to delete folder:', err);
+          }
+        }}
+      />
       </div>
     </div>
   );

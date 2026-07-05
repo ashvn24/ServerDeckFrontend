@@ -49,7 +49,10 @@ function statusMeta(s) {
   }
 }
 
-function RoleBadge({ role }) {
+function RoleBadge({ role, isSupport }) {
+  if (isSupport) {
+    return <span className="text-[9px] px-2 py-0.5 rounded-lg font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">SUPPORT</span>;
+  }
   const map = {
     owner:   'bg-amber-500/10 text-amber-500 border border-amber-500/10',
     admin:   'bg-violet-500/10 text-violet-500 border border-violet-500/10',
@@ -63,7 +66,14 @@ function RoleBadge({ role }) {
   );
 }
 
-function Avatar({ name }) {
+function Avatar({ name, isSupport }) {
+  if (isSupport) {
+    return (
+      <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+        <LifeBuoy className="w-5 h-5 text-emerald-500" />
+      </div>
+    );
+  }
   return (
     <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/5 flex items-center justify-center font-black text-[var(--text-primary)] uppercase tracking-widest text-sm shrink-0">
       {name?.charAt(0)?.toUpperCase() ?? '?'}
@@ -418,6 +428,7 @@ export default function Tickets() {
 
               {selectedTicket.messages?.map(msg => {
                 const isMe = msg.sender_id === user?.id;
+                const isSupportMessage = !msg.sender_id;
 
                 const startLongPress = (e) => {
                   const el = e.currentTarget.querySelector('[data-bubble]');
@@ -456,11 +467,13 @@ export default function Tickets() {
                     onTouchEnd={cancelLongPress}
                     onTouchMove={cancelLongPress}
                   >
-                    <Avatar name={msg.sender?.name} />
+                    <Avatar name={msg.sender?.name} isSupport={isSupportMessage} />
                     <div className={`max-w-[85%] md:max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
                       <div className={`flex items-center gap-2 mb-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                        <span className="text-xs font-black uppercase tracking-tight text-[var(--text-secondary)]">{msg.sender?.name}</span>
-                        <RoleBadge role={msg.sender?.role} />
+                        <span className="text-xs font-black uppercase tracking-tight text-[var(--text-secondary)]">
+                          {isSupportMessage ? 'ServerDeck Support' : msg.sender?.name}
+                        </span>
+                        <RoleBadge role={msg.sender?.role} isSupport={isSupportMessage} />
                         <span className="text-[9px] font-bold uppercase tracking-widest text-[var(--text-secondary)]">{timeAgo(msg.created_at)}</span>
                       </div>
                       <div
