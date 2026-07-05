@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { ShieldAlert, Terminal, CheckCircle2, Clock, Play, X, MessageSquare } from 'lucide-react';
 import api from '../../api/client';
+import { Link } from 'react-router-dom';
 import { useWebSocket } from '../../hooks/useWebSocket';
 import { useNotification } from '../../context/NotificationContext';
 import AlertRulesModal from '../AlertRulesModal';
@@ -9,6 +10,7 @@ import { ticketsAPI } from '../../api/endpoints';
 
 export default function ServerAlertsPanel({ serverId, sendCommand }) {
   const [alerts, setAlerts] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const { on } = useWebSocket();
@@ -16,7 +18,7 @@ export default function ServerAlertsPanel({ serverId, sendCommand }) {
   const [expandedAlert, setExpandedAlert] = useState(null);
 
   const [showTicketModal, setShowTicketModal] = useState(false);
-  const [ticketForm, setTicketForm] = useState({ title: '', description: '', priority: 'Medium' });
+  const [ticketForm, setTicketForm] = useState({ title: '', description: '', priority: 'Medium', alert_id: null });
   const [raisingTicket, setRaisingTicket] = useState(false);
 
   const handleOpenTicketModal = (alert) => {
@@ -50,7 +52,8 @@ export default function ServerAlertsPanel({ serverId, sendCommand }) {
     setTicketForm({
       title: defaultTitle,
       description: defaultDesc,
-      priority: defaultPriority
+      priority: defaultPriority,
+      alert_id: alert.id
     });
     setShowTicketModal(true);
   };
@@ -62,6 +65,7 @@ export default function ServerAlertsPanel({ serverId, sendCommand }) {
       await ticketsAPI.create(ticketForm);
       showToast('Support ticket raised successfully!', 'success');
       setShowTicketModal(false);
+      fetchAlerts();
     } catch (err) {
       showToast('Failed to raise ticket', 'error');
     } finally {
@@ -71,9 +75,12 @@ export default function ServerAlertsPanel({ serverId, sendCommand }) {
 
   const fetchAlerts = async () => {
     try {
-      const res = await api.get(`/servers/${serverId}/alerts`);
-      // Filter only active/acknowledged
-      setAlerts(res.data.filter(a => ['active', 'acknowledged'].includes(a.status)));
+      const [alertsRes, ticketsRes] = await Promise.all([
+        api.get(`/servers/${serverId}/alerts`),
+        ticketsAPI.list()
+      ]);
+      setAlerts(alertsRes.data.filter(a => ['active', 'acknowledged'].includes(a.status)));
+      setTickets(ticketsRes.data || []);
     } catch (e) {
       // 
     }
@@ -166,15 +173,25 @@ export default function ServerAlertsPanel({ serverId, sendCommand }) {
                     <Clock className="w-3 h-3" />
                     {formatDuration(alert.duration)}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenTicketModal(alert);
-                    }}
-                    className="text-[10px] font-bold uppercase bg-white/5 text-white px-2 py-1 rounded hover:bg-white/10 flex items-center gap-1 transition-colors"
-                  >
-                    <MessageSquare className="w-3 h-3 text-violet-400" /> Raise Ticket
-                  </button>
+                  {alert.ticket_id || tickets.some(t => t.alert_id === alert.id || t.title === `[Alert] ${alert.rule_name} on ${alert.server_name}`) ? (
+                    <Link
+                      to="/tickets"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-[10px] font-bold uppercase bg-violet-600/20 text-violet-400 border border-violet-500/30 px-2 py-1 rounded hover:bg-violet-600/30 flex items-center gap-1 transition-colors"
+                    >
+                      <MessageSquare className="w-3 h-3" /> Ticket Raised
+                    </Link>
+                  ) : (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenTicketModal(alert);
+                      }}
+                      className="text-[10px] font-bold uppercase bg-white/5 text-white px-2 py-1 rounded hover:bg-white/10 flex items-center gap-1 transition-colors"
+                    >
+                      <MessageSquare className="w-3 h-3 text-violet-400" /> Raise Ticket
+                    </button>
+                  )}
                   <button onClick={(e) => handleResolve(alert.id, e)} className="text-[10px] font-bold uppercase bg-[var(--accent-mint)]/20 text-[var(--accent-mint)] px-2 py-1 rounded hover:bg-[var(--accent-mint)]/30">
                     Resolve
                   </button>

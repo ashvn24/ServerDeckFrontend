@@ -4,7 +4,7 @@ import {
   Server, ArrowLeft, Sun, Moon, Rocket, Building2, HardDrive,
   Globe, ShieldCheck, FileText, LifeBuoy, Users, ScrollText,
   Radio, Lock, Palette, HelpCircle, BookOpen, Copy, Check,
-  Info, AlertTriangle, Lightbulb, ChevronRight, Terminal
+  Info, AlertTriangle, Lightbulb, ChevronRight, Terminal, Box
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import useSEO from '../hooks/useSEO';
@@ -425,7 +425,7 @@ export default function Documentation() {
           <Link to="/" className="flex items-center gap-2.5 group">
             <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-[var(--text-primary)] transition-colors" />
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <Server className="w-4 h-4 text-white" />
+              <Box className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm font-black uppercase tracking-tight">ServerDeck</span>
             <span className="text-sm font-bold text-gray-500 hidden sm:inline">/ Docs</span>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Server, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
+import { Box, ArrowRight, Loader2, CheckCircle } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { authAPI } from '../api/endpoints';
 import useSEO from '../hooks/useSEO';
@@ -43,16 +43,18 @@ export default function ForgotPassword() {
       
       <div className="relative w-full max-w-md z-10">
         {/* Branding */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-5 bg-white text-[#2c2c2e] rounded-[2rem] mb-6 shadow-2xl shadow-white/10">
-            <Server className="w-10 h-10" />
+        <div className="flex flex-col items-center mb-6">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 bg-white text-[#2c2c2e] rounded-xl flex items-center justify-center shadow-lg shadow-white/10">
+              <Box className="w-5.5 h-5.5" />
+            </div>
+            <h1 className="text-3.5xl font-black text-white uppercase tracking-tighter font-display leading-none">ServerDeck</h1>
           </div>
-          <h1 className="text-4xl font-black text-white uppercase tracking-tighter font-display leading-none">ServerDeck</h1>
-          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] mt-4">Enterprise Infrastructure Gateway</p>
+          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.25em] mt-2.5">Enterprise Infrastructure Gateway</p>
         </div>
 
         {/* Form Module */}
-        <div className="glass-card p-10">
+        <div className="glass-card px-8 py-7">
           {success ? (
             <div className="text-center py-6">
               <div className="w-20 h-20 bg-[var(--accent-mint)]/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 border border-[var(--accent-mint)]/20">
@@ -71,11 +73,11 @@ export default function ForgotPassword() {
             </div>
           ) : (
             <>
-              <div className="mb-10">
-                 <h2 className="text-2xl font-black text-white uppercase tracking-tight font-display">
+              <div className="mb-5">
+                 <h2 className="text-xl font-black text-white uppercase tracking-tight font-display">
                    Reset Credentials
                  </h2>
-                 <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
+                 <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
                    Request secure password reset
                  </p>
               </div>
@@ -86,15 +88,15 @@ export default function ForgotPassword() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email Address</label>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email Address</label>
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
+                    className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
                     placeholder="your@email.com"
                   />
                 </div>
@@ -102,10 +104,10 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 mt-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
+                  className="w-full py-3.5 mt-2 rounded-xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
                 >
                   {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <>
                       Send Reset Instructions

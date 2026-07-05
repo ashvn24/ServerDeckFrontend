@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Server, ArrowLeft, Sun, Moon, Terminal, Lock, Globe,
   Folder, LayoutDashboard, FileText, Users, ScrollText,
-  LifeBuoy, Building2, Radio, Copy, Check, KeyRound, Zap
+  LifeBuoy, Building2, Radio, Copy, Check, KeyRound, Zap, Box
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL, WS_URL } from '../utils/constants';
@@ -726,7 +726,7 @@ export default function ApiReference() {
           <Link to="/" className="flex items-center gap-2.5 group">
             <ArrowLeft className="w-4 h-4 text-gray-500 group-hover:text-[var(--text-primary)] transition-colors" />
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-primary-500/20">
-              <Server className="w-4 h-4 text-white" />
+              <Box className="w-4 h-4 text-white" />
             </div>
             <span className="text-sm font-black uppercase tracking-tight">ServerDeck</span>
             <span className="text-sm font-bold text-gray-500 hidden sm:inline">/ API Reference</span>

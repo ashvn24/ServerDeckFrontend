@@ -10,13 +10,14 @@ import { ticketsAPI } from '../api/endpoints';
 export default function Alerts() {
   const [summary, setSummary] = useState(null);
   const [alerts, setAlerts] = useState([]);
+  const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const { on, sendCommand } = useWebSocket();
   const { showToast } = useNotification();
   const [expandedAlert, setExpandedAlert] = useState(null);
 
   const [showTicketModal, setShowTicketModal] = useState(false);
-  const [ticketForm, setTicketForm] = useState({ title: '', description: '', priority: 'Medium' });
+  const [ticketForm, setTicketForm] = useState({ title: '', description: '', priority: 'Medium', alert_id: null });
   const [raisingTicket, setRaisingTicket] = useState(false);
 
   const handleOpenTicketModal = (alert) => {
@@ -50,7 +51,8 @@ export default function Alerts() {
     setTicketForm({
       title: defaultTitle,
       description: defaultDesc,
-      priority: defaultPriority
+      priority: defaultPriority,
+      alert_id: alert.id
     });
     setShowTicketModal(true);
   };
@@ -62,6 +64,7 @@ export default function Alerts() {
       await ticketsAPI.create(ticketForm);
       showToast('Support ticket raised successfully!', 'success');
       setShowTicketModal(false);
+      fetchData();
     } catch (err) {
       showToast('Failed to raise ticket', 'error');
     } finally {
@@ -71,12 +74,14 @@ export default function Alerts() {
 
   const fetchData = async () => {
     try {
-      const [sumRes, alertsRes] = await Promise.all([
+      const [sumRes, alertsRes, ticketsRes] = await Promise.all([
         api.get('/alerts/summary'),
-        api.get('/alerts')
+        api.get('/alerts'),
+        ticketsAPI.list()
       ]);
       setSummary(sumRes.data);
       setAlerts(alertsRes.data);
+      setTickets(ticketsRes.data || []);
     } catch (e) {
       showToast('Failed to load alerts', 'error');
     }
@@ -228,15 +233,25 @@ export default function Alerts() {
                     {alert.status === 'active' && (
                       <button onClick={(e) => handleAcknowledge(alert.id, e)} className="glass-button text-xs py-1.5">Acknowledge</button>
                     )}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleOpenTicketModal(alert);
-                      }}
-                      className="glass-button text-xs py-1.5 flex items-center gap-1 hover:bg-white/10"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Raise Ticket
-                    </button>
+                    {alert.ticket_id || tickets.some(t => t.alert_id === alert.id || t.title === `[Alert] ${alert.rule_name} on ${alert.server_name}`) ? (
+                      <Link
+                        to="/tickets"
+                        onClick={(e) => e.stopPropagation()}
+                        className="glass-button text-xs py-1.5 flex items-center gap-1 bg-violet-600/20 text-violet-400 border-violet-500/30 hover:bg-violet-600/30"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" /> Ticket Raised
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenTicketModal(alert);
+                        }}
+                        className="glass-button text-xs py-1.5 flex items-center gap-1 hover:bg-white/10"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5 text-violet-400" /> Raise Ticket
+                      </button>
+                    )}
                     <button onClick={(e) => handleResolve(alert.id, e)} className="bg-[var(--accent-mint)]/20 hover:bg-[var(--accent-mint)]/30 text-[var(--accent-mint)] text-xs py-1.5 px-3 rounded-lg font-medium transition-colors">Resolve</button>
                   </div>
                 </div>

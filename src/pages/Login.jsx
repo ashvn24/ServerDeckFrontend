@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Server, ArrowRight, Loader2, CheckCircle2, User, Building, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { Box, ArrowRight, Loader2, CheckCircle2, User, Building, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import { useNotification } from '../context/NotificationContext';
 import { authAPI } from '../api/endpoints';
 import useSEO from '../hooks/useSEO';
@@ -127,16 +127,18 @@ export default function Login() {
       
       <div className="relative w-full max-w-md z-10">
         {/* Branding */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center p-5 bg-white text-[#2c2c2e] rounded-[2rem] mb-6 shadow-2xl shadow-white/10">
-            <Server className="w-10 h-10" />
+        <div className="flex flex-col items-center mb-6">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 bg-white text-[#2c2c2e] rounded-xl flex items-center justify-center shadow-lg shadow-white/10">
+              <Box className="w-5.5 h-5.5" />
+            </div>
+            <h1 className="text-3.5xl font-black text-white uppercase tracking-tighter font-display leading-none">ServerDeck</h1>
           </div>
-          <h1 className="text-4xl font-black text-white uppercase tracking-tighter font-display leading-none">ServerDeck</h1>
-          <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.3em] mt-4">Enterprise Infrastructure Gateway</p>
+          <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-[0.25em] mt-2.5">Enterprise Infrastructure Gateway</p>
         </div>
 
         {/* Auth Module */}
-        <div className="glass-card p-10">
+        <div className="glass-card px-8 py-7">
           {mfaRequired ? (
             <div className="text-center py-6">
               <div className="mb-8">
@@ -224,11 +226,11 @@ export default function Login() {
           ) : (
             <>
               {/* Tab Selector */}
-              <div className="flex border-b border-[var(--border-color)] mb-8">
+              <div className="flex border-b border-[var(--border-color)] mb-5">
                 <button
                   type="button"
                   onClick={() => switchTab('login')}
-                  className={`flex-1 pb-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
+                  className={`flex-1 pb-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
                     activeTab === 'login'
                       ? 'text-white border-white'
                       : 'text-[var(--text-secondary)] border-transparent hover:text-white'
@@ -239,7 +241,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => switchTab('signup')}
-                  className={`flex-1 pb-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
+                  className={`flex-1 pb-3 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all ${
                     activeTab === 'signup'
                       ? 'text-white border-white'
                       : 'text-[var(--text-secondary)] border-transparent hover:text-white'
@@ -249,11 +251,11 @@ export default function Login() {
                 </button>
               </div>
 
-              <div className="mb-8">
-                <h2 className="text-2xl font-black text-white uppercase tracking-tight font-display">
+              <div className="mb-5">
+                <h2 className="text-xl font-black text-white uppercase tracking-tight font-display">
                   {activeTab === 'login' ? 'Login' : 'Sign Up'}
                 </h2>
-                <p className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
+                <p className="text-[9px] font-bold text-[var(--text-secondary)] uppercase tracking-widest mt-1">
                   {activeTab === 'login' ? 'Access your infrastructure' : 'Request gateway credentials'}
                 </p>
               </div>
@@ -265,21 +267,21 @@ export default function Login() {
               )}
 
               {activeTab === 'login' ? (
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email</label>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email</label>
                     <input
                       type="email"
                       value={form.email}
                       onChange={(e) => setForm({ ...form, email: e.target.value })}
                       required
-                      className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
+                      className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
                       placeholder="your@email.com"
                     />
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <div className="flex justify-between items-center ml-1">
-                      <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Password</label>
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest">Password</label>
                       <Link to="/forgot-password" className="text-[9px] font-bold text-[var(--accent-violet)] uppercase tracking-widest hover:underline">
                         Forgot?
                       </Link>
@@ -291,7 +293,7 @@ export default function Login() {
                         onChange={(e) => setForm({ ...form, password: e.target.value })}
                         required
                         minLength={6}
-                        className="w-full pl-6 pr-12 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                        className="w-full pl-5 pr-11 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
                         placeholder="••••••••"
                       />
                       <button
@@ -299,17 +301,17 @@ export default function Login() {
                         onClick={() => setShowLoginPassword(!showLoginPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white transition-colors"
                       >
-                        {showLoginPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showLoginPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 mt-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
+                    className="w-full py-3.5 mt-2 rounded-xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
                   >
                     {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
                         Sign In
@@ -319,78 +321,78 @@ export default function Login() {
                   </button>
                 </form>
               ) : (
-                <form onSubmit={handleSignupSubmit} className="space-y-6">
+                <form onSubmit={handleSignupSubmit} className="space-y-3.5">
                   {/* Account Type Selector */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Usage Scope</label>
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Usage Scope</label>
+                    <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
                         onClick={() => setSignupType('personal')}
-                        className={`py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 transition-all ${
+                        className={`py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest flex flex-col items-center gap-1 transition-all ${
                           signupType === 'personal'
                             ? 'bg-[var(--accent-violet)]/10 border-[var(--accent-violet)] text-white'
                             : 'bg-black/20 border-[var(--border-color)] text-[var(--text-secondary)] hover:text-white'
                         }`}
                       >
-                        <User className="w-5 h-5" />
-                        Personal Use
+                        <User className="w-4 h-4" />
+                        Personal
                       </button>
                       <button
                         type="button"
                         onClick={() => setSignupType('org')}
-                        className={`py-4 rounded-2xl border text-[10px] font-black uppercase tracking-widest flex flex-col items-center gap-2 transition-all ${
+                        className={`py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest flex flex-col items-center gap-1 transition-all ${
                           signupType === 'org'
                             ? 'bg-[var(--accent-violet)]/10 border-[var(--accent-violet)] text-white'
                             : 'bg-black/20 border-[var(--border-color)] text-[var(--text-secondary)] hover:text-white'
                         }`}
                       >
-                        <Building className="w-5 h-5" />
+                        <Building className="w-4 h-4" />
                         Organization
                       </button>
                     </div>
                   </div>
 
                   {signupType === 'org' && (
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Organization Name</label>
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Organization Name</label>
                       <input
                         type="text"
                         value={signupForm.orgName}
                         onChange={(e) => setSignupForm({ ...signupForm, orgName: e.target.value })}
                         required={signupType === 'org'}
-                        className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
+                        className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
                         placeholder="Company name"
                       />
                     </div>
                   )}
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Name</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Name</label>
                     <input
                       type="text"
                       value={signupForm.name}
                       onChange={(e) => setSignupForm({ ...signupForm, name: e.target.value })}
                       required
-                      className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
+                      className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
                       placeholder="Your full name"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Email</label>
                     <input
                       type="email"
                       value={signupForm.email}
                       onChange={(e) => setSignupForm({ ...signupForm, email: e.target.value })}
                       required
-                      className="w-full px-6 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
+                      className="w-full px-5 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all"
                       placeholder="your@email.com"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Password</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[9px] font-black text-[var(--text-secondary)] uppercase tracking-widest ml-1">Password</label>
                     <div className="relative">
                       <input
                         type={showSignupPassword ? "text" : "password"}
@@ -398,7 +400,7 @@ export default function Login() {
                         onChange={(e) => setSignupForm({ ...signupForm, password: e.target.value })}
                         required
                         minLength={8}
-                        className="w-full pl-6 pr-12 py-4 rounded-2xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-sm font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
+                        className="w-full pl-5 pr-11 py-3 rounded-xl bg-black/40 border border-[var(--border-color)] text-white placeholder-gray-700 text-xs font-bold focus:border-[var(--accent-violet)] outline-none transition-all font-mono"
                         placeholder="••••••••"
                       />
                       <button
@@ -406,7 +408,7 @@ export default function Login() {
                         onClick={() => setShowSignupPassword(!showSignupPassword)}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text-secondary)] hover:text-white transition-colors"
                       >
-                        {showSignupPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        {showSignupPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
@@ -414,10 +416,10 @@ export default function Login() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-4 mt-4 rounded-2xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
+                    className="w-full py-3.5 mt-2 rounded-xl bg-white text-[#2c2c2e] text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] transition-all active:scale-95 disabled:opacity-50 shadow-xl shadow-white/5"
                   >
                     {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <>
                         Request for Access

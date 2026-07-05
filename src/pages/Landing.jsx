@@ -155,7 +155,7 @@ const OrbitVisual = () => (
     <div className="ld-orbit-ring-2" />
     <div className="ld-orbit-sweep" />
     <div className="ld-orbit-center">
-      <Server size={34} color="#22c55e" />
+      <Box size={34} color="#22c55e" />
     </div>
     {ORBIT_NODES.map(({ icon, label, angle, r }) => {
       const rad = (angle * Math.PI) / 180;
@@ -917,7 +917,7 @@ const Landing = () => {
               <Reveal className="ld-testi-card" key={i} delay={i * 100}>
                 <div className="ld-testi-logo">
                   <div className="ld-testi-logo-icon">
-                    <Server size={14} />
+                    <Box size={14} />
                   </div>
                   {t.logo}
                 </div>
@@ -960,7 +960,7 @@ const Landing = () => {
       <section id="request" className="ld-cta-section">
         <Reveal>
           <div className="ld-cta-banner">
-            <div className="ld-cta-deco ld-cta-deco-tl"><Server size={18} /></div>
+            <div className="ld-cta-deco ld-cta-deco-tl"><Box size={18} /></div>
             <div className="ld-cta-deco ld-cta-deco-tr"><Shield size={18} /></div>
             <div className="ld-cta-deco ld-cta-deco-bl"><Activity size={18} /></div>
             <div className="ld-cta-deco ld-cta-deco-br"><Lock size={18} /></div>
