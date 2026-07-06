@@ -4,7 +4,8 @@ import {
   Server, Shield, Terminal, Activity, Lock, ArrowRight,
   ChevronDown, CheckCircle2, Cpu, Database, Globe, Check,
   GitBranch, Loader2, Copy, Bell, Brain, Play, LifeBuoy,
-  Power, RefreshCw, AlertTriangle, User, ExternalLink, HardDrive, Box
+  Power, RefreshCw, AlertTriangle, User, ExternalLink, HardDrive, Box,
+  Menu, X
 } from 'lucide-react';
 import { authAPI } from '../api/endpoints';
 import './Landing.css';
@@ -70,6 +71,7 @@ const Landing = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   // Interactive Node States
   const [hoveredNode, setHoveredNode] = useState(null);
@@ -80,6 +82,18 @@ const Landing = () => {
 
   // Map Active Spot
   const [activeSpot, setActiveSpot] = useState('NYC');
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
 
   // Video Modal state
   const [showVideoModal, setShowVideoModal] = useState(false);
@@ -225,17 +239,28 @@ const Landing = () => {
           </div>
 
           <div className="ld-nav-actions">
-            <div className="ld-nav-badge hidden md:flex">
-              <Shield size={13} />
-              <span>Protection</span>
-              <ChevronDown size={11} />
-            </div>
             <Link to="/login" className="ld-btn-signin">
               <User size={13} />
               <span>Sign In</span>
             </Link>
+            <button className="ld-menu-toggle" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} aria-label="Toggle Menu">
+              {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </nav>
+      </div>
+
+      {/* ── Mobile Menu Drawer ── */}
+      <div className={`ld-mobile-drawer ${mobileMenuOpen ? 'ld-mobile-drawer-open' : ''}`}>
+        <a href="#features" className="ld-mobile-link" onClick={e => { scrollToSection(e, 'features'); setMobileMenuOpen(false); }}>Features</a>
+        <a href="#how" className="ld-mobile-link" onClick={e => { scrollToSection(e, 'how'); setMobileMenuOpen(false); }}>How it works</a>
+        <a href="#insights" className="ld-mobile-link" onClick={e => { scrollToSection(e, 'insights'); setMobileMenuOpen(false); }}>Insights</a>
+        <a href="#reviews" className="ld-mobile-link" onClick={e => { scrollToSection(e, 'reviews'); setMobileMenuOpen(false); }}>Reviews</a>
+        <a href="#faq" className="ld-mobile-link" onClick={e => { scrollToSection(e, 'faq'); setMobileMenuOpen(false); }}>FAQ</a>
+        <Link to="/login" className="ld-btn-primary mt-4" onClick={() => setMobileMenuOpen(false)}>
+          <User size={14} />
+          <span>Sign In</span>
+        </Link>
       </div>
 
       {/* ── Hero Section (Matches Panel 1 Aesthetic) ── */}
@@ -280,13 +305,15 @@ const Landing = () => {
 
           {/* Interactive Install Command Tool */}
           <Reveal delay={600}>
-            <div className="flex justify-center mb-10">
-              <div className="inline-flex items-center gap-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-full px-5 py-2.5 backdrop-blur-md">
-                <span className="text-[rgba(255,255,255,0.4)] font-mono text-sm">$</span>
-                <code className="text-sm font-mono text-[rgba(255,255,255,0.85)]">{INSTALL_CMD}</code>
+            <div className="flex justify-center mb-10 w-full px-4">
+              <div className="ld-command-wrapper inline-flex items-center gap-3 bg-[rgba(255,255,255,0.02)] border border-[rgba(255,255,255,0.06)] rounded-full px-5 py-2.5 backdrop-blur-md max-w-full">
+                <span className="text-[rgba(255,255,255,0.4)] font-mono text-xs md:text-sm">$</span>
+                <div className="overflow-x-auto whitespace-nowrap scrollbar-none flex-1 max-w-[calc(100vw-120px)] md:max-w-none">
+                  <code className="text-xs md:text-sm font-mono text-[rgba(255,255,255,0.85)]">{INSTALL_CMD}</code>
+                </div>
                 <button
                   onClick={copyCmd}
-                  className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors"
+                  className="text-[rgba(255,255,255,0.4)] hover:text-white transition-colors shrink-0"
                   title="Copy installation command"
                 >
                   {copied ? <Check size={14} className="text-teal-400" /> : <Copy size={14} />}

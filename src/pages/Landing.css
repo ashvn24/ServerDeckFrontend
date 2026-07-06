@@ -1414,3 +1414,191 @@
   background-color: rgba(255, 255, 255, 0.9) !important;
   color: var(--bg-darker) !important;
 }
+
+/* ============================================================
+   MOBILE RESPONSIVENESS FIXES (ADDED FOR PREMIUM MOBILE EXPERIENCE)
+   ============================================================ */
+
+/* Menu Toggle Button Style */
+.ld-menu-toggle {
+  display: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-white);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  width: 36px;
+  height: 36px;
+}
+
+.ld-menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Mobile Menu Drawer Overlay */
+.ld-mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(7, 7, 9, 0.95);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 28px;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.4s linear;
+}
+
+.ld-mobile-drawer-open {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.ld-mobile-link {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  letter-spacing: -0.01em;
+}
+
+.ld-mobile-link:hover {
+  color: var(--text-white);
+  transform: translateY(-2px);
+}
+
+/* Scrollbar Hider for Install Command */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Global Section & Containers Padding Adaptation */
+@media (max-width: 768px) {
+  .ld-menu-toggle {
+    display: flex;
+  }
+
+  .ld-nav-pill .ld-btn-signin {
+    display: none !important;
+  }
+
+  .ld-section {
+    padding: 60px 16px;
+  }
+
+  .ld-hero {
+    padding: 120px 16px 60px 16px;
+  }
+
+  /* Secure Terminal / Logs overlay fixes */
+  .ld-system-visual-left {
+    padding: 24px;
+    min-height: auto;
+  }
+
+  .ld-visual-uptime-big {
+    font-size: 3rem;
+  }
+
+  .ld-log-pill {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .ld-system-visual-bottom-tags {
+    margin-top: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Hero buttons adjustment */
+  .ld-hero-ctas {
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  .ld-hero-ctas .ld-btn-primary,
+  .ld-hero-ctas .ld-btn-secondary {
+    width: 100%;
+    justify-content: center;
+    padding: 12px 24px;
+  }
+
+  /* Radar container scaling on small screens */
+  .ld-radar-container {
+    width: 280px;
+    height: 280px;
+  }
+
+  .ld-radar-center {
+    width: 52px;
+    height: 52px;
+  }
+
+  .ld-radar-step-label {
+    bottom: -32px;
+    font-size: 0.75rem;
+  }
+
+  /* Bento Stats Vertical layout */
+  .ld-stats-columns {
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+/* Fleet Insights Bento Grid Stacking and Grid Column Overrides */
+@media (max-width: 992px) {
+  .ld-bento-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 16px;
+  }
+
+  .ld-bento-item {
+    grid-column: auto !important;
+    grid-row: auto !important;
+    padding: 24px;
+  }
+
+  /* Map Action buttons wrap */
+  .ld-map-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .ld-map-action-btn {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Tighten traffic graph on small screens */
+  .ld-traffic-graph {
+    gap: 4px;
+    padding: 0 4px;
+  }
+}
