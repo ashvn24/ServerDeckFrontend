@@ -256,11 +256,13 @@
 
 .ld-hero-inner {
   text-align: center;
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   position: relative;
   z-index: 10;
   pointer-events: none;
+  padding: 0 24px;
 }
 
 .ld-hero-inner * {
@@ -410,7 +412,8 @@
 
 @media (max-width: 768px) {
   .ld-node-network {
-    display: none;
+    display: block;
+    opacity: 0.22; /* Subtle animated backdrop to ensure text readability on mobile */
   }
 }
 
@@ -1426,7 +1429,7 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   color: var(--text-white);
   cursor: pointer;
-  padding: 8px;
+  padding: 0;
   border-radius: 50%;
   align-items: center;
   justify-content: center;
@@ -1494,8 +1497,14 @@
 
 /* Global Section & Containers Padding Adaptation */
 @media (max-width: 768px) {
+  .ld-nav-pill {
+    padding-left: 20px !important;
+    padding-right: 28px !important;
+  }
+
   .ld-menu-toggle {
     display: flex;
+    margin-right: 0 !important;
   }
 
   .ld-nav-pill .ld-btn-signin {
