@@ -32,7 +32,7 @@
   color: var(--text-white);
   min-height: 100vh;
   position: relative;
-  overflow-x: hidden;
+  overflow: visible;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -1454,7 +1454,7 @@
   backdrop-filter: blur(28px);
   -webkit-backdrop-filter: blur(28px);
   z-index: 999;
-  display: flex;
+  display: none;
   flex-direction: column;
   justify-content: center;
   align-items: center;
@@ -1466,6 +1466,7 @@
 }
 
 .ld-mobile-drawer-open {
+  display: flex !important;
   opacity: 1;
   pointer-events: auto;
   visibility: visible;

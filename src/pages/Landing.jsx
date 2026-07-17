@@ -324,8 +324,8 @@ const Landing = () => {
         </div>
 
         {/* ── Interactive SVG Node Network ── */}
-        <div className="ld-node-network" aria-hidden="true">
-          <svg className="ld-node-svg" viewBox="0 0 1200 700">
+        <div className="ld-node-network" aria-hidden="true" style={{ pointerEvents: 'none', touchAction: 'pan-y' }}>
+          <svg className="ld-node-svg" viewBox="0 0 1200 700" style={{ pointerEvents: 'none' }}>
             <defs>
               <linearGradient id="lineGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="var(--color-cyan)" stopOpacity="0.8" />

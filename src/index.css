@@ -35,9 +35,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-user-select: none;
-  user-select: none;
   -webkit-touch-callout: none;
+}
+
+html, body {
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 body {
@@ -46,9 +53,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--bg-main);
   color: var(--text-primary);
-  min-height: 100vh;
-  overscroll-behavior-y: contain;
-  -webkit-user-select: none;
 }
 
 /* Re-enable text selection only where the user needs to type or copy */
@@ -170,7 +174,14 @@ input, textarea, [contenteditable] {
   /* Disable the global zoom on mobile (it shrinks already-cramped UI). */
   @media (max-width: 768px) {
     body { zoom: 1; }
-    html, body { width: 100%; overflow-x: hidden; }
+    html, body {
+      width: 100%;
+      height: auto !important;
+      min-height: 100% !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
 
     /* iOS Safari auto-zooms when a focused field's font-size is < 16px.
        Force 16px on mobile only — keeps the small desktop inputs intact
@@ -197,7 +208,7 @@ input, textarea, [contenteditable] {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-  
+
   /* Premium UI Utilities */
   .glass-card {
     background: var(--bg-card);
