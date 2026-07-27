@@ -29,6 +29,7 @@ import { SSHFullscreenProvider } from './context/SSHFullscreenContext';
 import SSHFullscreenOverlay from './components/server/SSHFullscreenOverlay';
 import Alerts from './pages/Alerts';
 import AlertsListener from './components/AlertsListener';
+import MaintenanceModal from './components/common/MaintenanceModal';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -146,6 +147,7 @@ export default function App() {
           <NotificationProvider>
             <SSHFullscreenProvider>
               <AlertsListener />
+              <MaintenanceModal />
               <AppRoutes />
               <SSHFullscreenOverlay />
             </SSHFullscreenProvider>

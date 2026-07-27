@@ -25,14 +25,27 @@ client.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally
+// Handle 401 globally & detect API down/maintenance
 client.interceptors.response.use(
-  (res) => res,
+  (res) => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('serverdeck:api-up'));
+    }
+    return res;
+  },
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('serverdeck_token');
       localStorage.removeItem('serverdeck_user');
       window.location.href = '/login';
+    } else if (
+      !err.response ||
+      err.code === 'ERR_NETWORK' ||
+      [502, 503, 504].includes(err.response?.status)
+    ) {
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('serverdeck:api-down'));
+      }
     }
     return Promise.reject(err);
   }
