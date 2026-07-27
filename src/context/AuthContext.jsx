@@ -30,11 +30,11 @@ export function AuthProvider({ children }) {
           // ignore parsing error
         }
       }
+      setLoading(false);
       
       const fetchProfile = async () => {
         try {
           if (savedIsPlatformOwner === 'true') {
-            setLoading(false);
             return;
           }
           const res = await usersAPI.me();
@@ -45,8 +45,6 @@ export function AuthProvider({ children }) {
           if (err.response?.status === 401) {
             logout();
           }
-        } finally {
-          setLoading(false);
         }
       };
       fetchProfile();

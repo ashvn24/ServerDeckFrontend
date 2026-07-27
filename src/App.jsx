@@ -73,7 +73,10 @@ function AppRoutes() {
   const { user, isPlatformOwner, loading } = useAuth();
   const location = useLocation();
 
-  if (loading) return null;
+  const publicRoutes = ['/', '/login', '/forgot-password', '/reset-password', '/invite', '/documentation', '/about', '/security', '/privacy', '/terms'];
+  const isPublicRoute = publicRoutes.includes(location.pathname);
+
+  if (loading && !isPublicRoute) return null;
 
   const getDefaultRoute = () => {
     if (isPlatformOwner) return '/organizations';
