@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
 import { Wrench, Mail, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import client from '../../api/client';
@@ -9,6 +10,7 @@ export default function MaintenanceModal() {
   const [retrying, setRetrying] = useState(false);
   const [retryMessage, setRetryMessage] = useState('');
   const { theme } = useTheme();
+  const location = useLocation();
 
   useEffect(() => {
     const handleApiDown = () => setIsDown(true);
@@ -45,7 +47,8 @@ export default function MaintenanceModal() {
     }
   };
 
-  if (!isDown) return null;
+  // Do not display modal if server is up, or if user is currently on the Landing page ('/')
+  if (!isDown || location.pathname === '/') return null;
 
   return createPortal(
     <div
